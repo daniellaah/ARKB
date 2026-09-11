@@ -42,11 +42,21 @@ class Reranker:
             raise ValueError('Reranker candidates contain duplicate identities.')
         if not candidates:
             return ()
-        scores = tuple(self.scorer.score(query, candidates))
+        try:
+            output = self.scorer.score(query, candidates)
+        except (RuntimeError, OSError) as error:
+            return self._fallback(candidates, top_k, 'scoring_error',
+                                  f'{type(error).__name__}: {error}')
+        try:
+            scores = tuple(output)
+        except TypeError:
+            return self._fallback(candidates, top_k, 'invalid_scores',
+                                  'Scorer returned a non-sequence score container.')
         if len(scores) != len(candidates) or any(
             type(score) not in (int, float) or not math.isfinite(score) for score in scores
         ):
-            raise ValueError('Scorer must return one finite score per candidate.')
+            return self._fallback(candidates, top_k, 'invalid_scores',
+                                  'Scorer must return one finite score per candidate.')
         # Equal model scores express no preference: preserve the upstream order.
         order = sorted(range(len(candidates)), key=lambda i: -scores[i])
         return tuple(replace(candidates[i], method='reranked', score=scores[i], score_type=self.scorer.score_type,
@@ -57,6 +67,17 @@ class Reranker:
                                  'candidate_count': len(candidates),
                                  'previous': candidates[i].metadata.get('rerank')}})
                      for i in order[:top_k])
+
+    def _fallback(self, candidates, top_k, reason, message):
+        # Keep original methods and scores: a failed scorer has no relevance
+        # value to substitute. The diagnostic makes this an explicit fallback.
+        return tuple(replace(hit, metadata={**hit.metadata, 'rerank': {
+            'scorer': self.scorer.identity, 'input_rank': i + 1,
+            'input_method': hit.method, 'input_score': hit.score,
+            'input_score_type': hit.score_type, 'candidate_count': len(candidates),
+            'fallback': reason, 'message': message,
+            'previous': hit.metadata.get('rerank')}})
+            for i, hit in enumerate(candidates[:top_k]))
 
 
 @dataclass(frozen=True)

@@ -39,8 +39,10 @@ def test_reranker_empty_ties_invalid_scores_and_duplicate_identity():
     assert [h.chunk_id for h in reranker.rerank('query', list(reversed(candidates())))] == ['b', 'a']
     for scores in ([1.], [True, 1.], [float('nan'), 1.], [[1.], [2.]]):
         scorer.score.return_value = scores
-        with pytest.raises(ValueError, match='one finite score'):
-            reranker.rerank('query', candidates())
+        result = reranker.rerank('query', candidates())
+        assert [h.identity for h in result] == [h.identity for h in candidates()]
+        assert [h.score for h in result] == [.9, .4]
+        assert all(h.metadata['rerank']['fallback'] == 'invalid_scores' for h in result)
     with pytest.raises(ValueError, match='duplicate'):
         reranker.rerank('query', [candidates()[0]] * 2)
     with pytest.raises(ValueError):
@@ -86,3 +88,32 @@ def test_distinct_chunks_of_one_source_remain_distinct_candidates():
     after = Reranker(scorer).rerank('query', [first, second])
     assert [h.chunk_id for h in after] == ['second-chunk', first.chunk_id]
     assert [h.source for h in after] == [first.source, first.source]
+
+
+@pytest.mark.parametrize('error', [RuntimeError('model unavailable'), OSError('weights unreadable')])
+def test_scoring_execution_failure_preserves_original_scores_and_ranking(error):
+    from arkb.retrieval.rerank import Reranker
+    scorer = SimpleNamespace(identity='frozen', score_type='logit', score=Mock(side_effect=error))
+    before = tuple(reversed(candidates()))
+    after = Reranker(scorer).rerank('query', before)
+    assert [h.identity for h in after] == [h.identity for h in before]
+    assert [(h.method, h.score, h.score_type) for h in after] == [(h.method, h.score, h.score_type) for h in before]
+    assert all(h.metadata['rerank']['fallback'] == 'scoring_error' for h in after)
+    assert type(error).__name__ in after[0].metadata['rerank']['message']
+
+
+@pytest.mark.parametrize('error', [KeyError('broken invariant'), TypeError('programming error'), ValueError('invalid configuration')])
+def test_programming_and_configuration_errors_are_not_hidden(error):
+    from arkb.retrieval.rerank import Reranker
+    scorer = SimpleNamespace(identity='frozen', score_type='logit', score=Mock(side_effect=error))
+    with pytest.raises(type(error)):
+        Reranker(scorer).rerank('query', candidates())
+
+
+@pytest.mark.parametrize('scores', [None, 5., ['a', 'b'], [float('inf'), 1.]])
+def test_unusable_score_containers_have_explicit_safe_fallback(scores):
+    from arkb.retrieval.rerank import Reranker
+    scorer = SimpleNamespace(identity='frozen', score_type='logit', score=lambda *_: scores)
+    after = Reranker(scorer).rerank('query', candidates(), top_k=1)
+    assert after[0].identity == candidates()[0].identity
+    assert after[0].metadata['rerank']['fallback'] == 'invalid_scores'

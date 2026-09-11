@@ -17,8 +17,8 @@ SUFFIX = '<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
 class QwenRerankerScorer:
     """CPU float32, title+body candidates; higher logit(yes)-logit(no) is better.
 
-    Uses the official model-card Transformers template and truncation recipe.
-    Prefix/suffix are reserved before truncation, preserving the scoring position.
+    Uses the official model-card Transformers template. Prefix/suffix are
+    reserved before allocating query/title/body, preserving the scoring position.
     Logit difference orders candidates identically to the official two-token
     softmax, without saturation from converting large logits to probabilities.
     No generation, sampling, remote code, label-dependent instruction, or fallback.
@@ -26,9 +26,17 @@ class QwenRerankerScorer:
     score_type = 'yes_no_logit_difference'
 
     def __init__(self, *, max_length: int = 512, batch_size: int = 16,
-                 cache_folder: str | None = None, local_files_only: bool = False):
+                 cache_folder: str | None = None, local_files_only: bool = False,
+                 query_cap: int | None = None, title_cap: int = 64,
+                 query_strategy: str = 'head_tail'):
         validate_options(max_length, None)
         validate_options(batch_size, None)
+        if query_cap is not None:
+            validate_options(query_cap, None)
+        validate_options(title_cap, None)
+        if query_strategy not in ('head', 'tail', 'head_tail'):
+            raise ValueError('Unknown query allocation strategy.')
+        self.query_cap, self.title_cap, self.query_strategy = query_cap, title_cap, query_strategy
         try:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -52,13 +60,20 @@ class QwenRerankerScorer:
         self.max_length, self.batch_size = max_length, batch_size
         self.identity = (f'{QWEN_MODEL}@{QWEN_REVISION}/cpu/float32/max_length={max_length}/batch_size={batch_size}'
                          '/title-body-v1/official-instruction-v1/yes-no-logit-difference')
+        if query_cap is not None:
+            self.identity += f'/allocation-v2/query_cap={query_cap}/title_cap={title_cap}/query={query_strategy}/body_min=128'
+
+    def prepare_inputs(self, query: str, candidates: Sequence[SearchResult]) -> list[dict]:
+        """Lossless unpadded inputs and field diagnostics, without model inference."""
+        from arkb.retrieval.qwen_inputs import QwenInputBuilder
+        builder = QwenInputBuilder(self.tokenizer, max_length=self.max_length,
+                                  query_cap=self.query_cap,
+                                  title_cap=self.title_cap if self.query_cap is not None else None,
+                                  query_strategy=self.query_strategy)
+        return [builder.prepare(query, hit) for hit in candidates]
 
     def _inputs(self, query, candidates):
-        pairs = [f'<Instruct>: {INSTRUCTION}\n<Query>: {query}\n<Document>: '
-                 f"{hit.metadata.get('title') or ''}\n\n{hit.content}" for hit in candidates]
-        encoded = self.tokenizer(pairs, padding=False, truncation='longest_first',
-            return_attention_mask=False, max_length=self.max_length - len(self._prefix) - len(self._suffix))
-        inputs = {'input_ids': [self._prefix + ids + self._suffix for ids in encoded['input_ids']]}
+        inputs = {'input_ids': [row['input_ids'] for row in self.prepare_inputs(query, candidates)]}
         return self.tokenizer.pad(inputs, padding=True, return_tensors='pt',
                                   return_attention_mask=True)
 

@@ -66,27 +66,6 @@ def test_missing_optional_dependency_explains_install_command(monkeypatch):
         QwenRerankerScorer()
 
 
-def test_truncation_reserves_scoring_suffix_and_retains_title_body_input():
-    class Tokenizer:
-        def __call__(self, pairs, **options):
-            self.pairs, self.options = pairs, options
-            return {'input_ids': [[9] * options['max_length'], [8, 8]]}
-        def pad(self, values, **options):
-            self.padding = options
-            return values
-    scorer = object.__new__(QwenRerankerScorer)
-    scorer.tokenizer = Tokenizer()
-    scorer._prefix, scorer._suffix, scorer.max_length = [1, 2], [3, 4, 5], 8
-    hits = candidates()
-    result = scorer._inputs('Paris?', hits)
-    assert result['input_ids'] == [[1, 2, 9, 9, 9, 3, 4, 5], [1, 2, 8, 8, 3, 4, 5]]
-    assert scorer.tokenizer.options['max_length'] == 3
-    assert scorer.tokenizer.options['truncation'] == 'longest_first'
-    assert scorer.tokenizer.padding['return_attention_mask'] is True
-    assert '<Query>: Paris?' in scorer.tokenizer.pairs[0]
-    assert scorer.tokenizer.pairs[0].endswith(f"{hits[0].metadata.get('title') or ''}\n\n{hits[0].content}")
-
-
 def test_last_token_yes_no_difference_and_batch_order():
     torch = pytest.importorskip('torch')
     scorer = object.__new__(QwenRerankerScorer)
