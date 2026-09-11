@@ -71,18 +71,21 @@ def test_last_token_yes_no_difference_and_batch_order():
     scorer = object.__new__(QwenRerankerScorer)
     scorer.batch_size, scorer._true, scorer._false = 2, 2, 1
     seen = []
-    def inputs(query, hits):
-        seen.append(list(hits))
-        return {'input_ids': torch.tensor([[hit] for hit in hits])}
+    def prepare(query, hits):
+        return [{'input_ids': [hit], 'body_empty': False} for hit in hits]
+    scorer.prepare_inputs = prepare
+    scorer.tokenizer = SimpleNamespace(pad=lambda inputs, **kwargs:
+                                      {'input_ids': torch.tensor(inputs['input_ids'])})
     def model(input_ids, **options):
         assert options == {'use_cache': False, 'logits_to_keep': 1}
         assert not torch.is_grad_enabled()
         values = input_ids[:, 0].float()
+        seen.append(input_ids[:, 0].tolist())
         logits = torch.zeros((len(values), 1, 3))
         logits[:, 0, 1] = 5
         logits[:, 0, 2] = values
         return SimpleNamespace(logits=logits)
-    scorer._inputs, scorer._model = inputs, model
+    scorer._model = model
     assert scorer.score('query', [2, 8, 6]) == [-3.0, 3.0, 1.0]
     assert seen == [[2, 8], [6]]
     assert scorer.score('query', []) == [] and len(seen) == 2

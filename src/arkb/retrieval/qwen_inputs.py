@@ -114,6 +114,8 @@ class QwenInputBuilder:
                 title_limit -= max(0, title_excess)
                 if min(query_limit, title_limit) < 0:
                     raise ValueError('Field allocation cannot fit the requested caps.')
+            if not counts['query']:
+                raise ValueError('The query allocation retains no query characters; increase query_cap.')
             body_capacity = self.capacity - sum(g != 'body' for g in groups)
             if body_capacity < min(self.min_body_tokens, counts['body']):
                 raise ValueError('Sequence budget cannot meet the configured query/title caps and minimum body allocation.')

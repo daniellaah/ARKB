@@ -117,3 +117,28 @@ def test_unusable_score_containers_have_explicit_safe_fallback(scores):
     after = Reranker(scorer).rerank('query', candidates(), top_k=1)
     assert after[0].identity == candidates()[0].identity
     assert after[0].metadata['rerank']['fallback'] == 'invalid_scores'
+
+
+@pytest.mark.parametrize('scores', [[1., 1.], [0., -0.]])
+def test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic(scores):
+    from arkb.retrieval.rerank import Reranker
+    scorer = SimpleNamespace(identity='fixed', score_type='logit', score=lambda *_: scores)
+    before = tuple(reversed(candidates()))
+    after = Reranker(scorer).rerank('query', before, top_k=1)
+    assert len(after) == 1 and after[0].identity == before[0].identity
+    assert (after[0].method, after[0].score, after[0].score_type) == (
+        before[0].method, before[0].score, before[0].score_type)
+    diagnostic = after[0].metadata['rerank']
+    assert diagnostic['fallback'] == 'all_equal_scores'
+    assert diagnostic['model_score'] == scores[0]
+
+
+def test_near_equal_scores_are_not_merged_and_single_candidate_remains_scored():
+    from arkb.retrieval.rerank import Reranker
+    scorer = SimpleNamespace(identity='fixed', score_type='logit', score=Mock(return_value=[1., 1.000001]))
+    after = Reranker(scorer).rerank('query', candidates())
+    assert [h.identity for h in after] == [h.identity for h in reversed(candidates())]
+    assert all('fallback' not in h.metadata['rerank'] for h in after)
+    scorer.score.return_value = [7.]
+    single = Reranker(scorer).rerank('query', candidates()[:1])
+    assert single[0].score == 7. and single[0].method == 'reranked'

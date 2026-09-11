@@ -102,18 +102,20 @@ def test_invalid_allocation_configuration_is_rejected(tokenizer, kwargs):
         QwenInputBuilder(tokenizer, **kwargs)
 
 
-def test_scorer_sends_exact_instrumented_tokens_to_model(tokenizer, monkeypatch):
+@pytest.mark.parametrize('empty_first_batch', [False, True])
+def test_scorer_sends_exact_instrumented_tokens_to_model(tokenizer, monkeypatch, empty_first_batch):
     from types import SimpleNamespace
     from arkb.retrieval.qwen_rerank import QwenRerankerScorer, PREFIX, SUFFIX
     torch = pytest.importorskip('torch')
     import transformers
     tokenizer.add_tokens(['yes', 'no'])
     tokenizer.padding_side = 'left'
-    received = []
+    received = []; batches = []
     class Model:
         def to(self, *_): return self
         def eval(self): return self
         def __call__(self, input_ids, attention_mask, **kwargs):
+            batches.append(len(input_ids))
             received.extend(ids[mask.bool()].tolist() for ids, mask in zip(input_ids, attention_mask))
             assert attention_mask[:, -1].tolist() == [1] * len(input_ids)
             scores = torch.zeros((len(input_ids), 1, len(tokenizer)))
@@ -122,10 +124,14 @@ def test_scorer_sends_exact_instrumented_tokens_to_model(tokenizer, monkeypatch)
     monkeypatch.setattr(transformers.AutoTokenizer, 'from_pretrained', lambda *a, **k: tokenizer)
     monkeypatch.setattr(transformers.AutoModelForCausalLM, 'from_pretrained', lambda *a, **k: Model())
     scorer = QwenRerankerScorer(query_cap=128, title_cap=64, batch_size=2)
-    hits = (replace(candidates()[0], content='Evidence '*500), candidates()[1])
+    hits = (replace(candidates()[0], content='Evidence '*500), candidates()[1],
+            replace(candidates()[0], source_id='third', source='third.md', chunk_id='third', content='Short evidence.'))
+    if empty_first_batch:
+        hits = tuple(replace(h, content='') for h in hits[:2]) + hits[2:]
     query = 'Beginning question. ' + 'example '*500 + ' Final question?'
     details = scorer.prepare_inputs(query, hits)
-    assert scorer.score(query, hits) == [3., 3.]
+    assert scorer.score(query, hits) == [3., 3., 3.]
+    assert batches == [2, 1]
     assert received == [r['input_ids'] for r in details]
     prefix = tokenizer.encode(PREFIX, add_special_tokens=False)
     suffix = tokenizer.encode(SUFFIX, add_special_tokens=False)
@@ -142,3 +148,36 @@ def test_source_identity_and_unrelated_metadata_cannot_change_model_input(tokeni
     other = replace(first, source_id='different-document', source='different.md', chunk_id='different-chunk',
                     score=.01, metadata={**first.metadata, 'unrelated_annotation': 'must not enter model input'})
     assert builder.prepare('A question?', first)['input_ids'] == builder.prepare('A question?', other)['input_ids']
+
+
+@pytest.mark.parametrize('legacy_truncation', [False, True])
+def test_all_body_empty_preserves_hybrid_without_calling_model(tokenizer, monkeypatch, legacy_truncation):
+    from unittest.mock import Mock
+    pytest.importorskip('torch')
+    import transformers
+    from arkb.retrieval.qwen_rerank import QwenRerankerScorer
+    from arkb.retrieval.rerank import Reranker
+    tokenizer.add_tokens(['yes', 'no'])
+    tokenizer.padding_side = 'left'
+    model = Mock(side_effect=AssertionError('Empty input must not invoke model inference.'))
+    model.to.return_value = model.eval.return_value = model
+    monkeypatch.setattr(transformers.AutoTokenizer, 'from_pretrained', lambda *a, **k: tokenizer)
+    monkeypatch.setattr(transformers.AutoModelForCausalLM, 'from_pretrained', lambda *a, **k: model)
+    scorer = QwenRerankerScorer(query_cap=None if legacy_truncation else 128)
+    query = 'query ' * 1000 if legacy_truncation else 'An English question?'
+    hits = tuple(reversed(candidates())) if legacy_truncation else tuple(
+        replace(h, content='') for h in reversed(candidates()))
+    assert all(d['body_empty'] for d in scorer.prepare_inputs(query, hits))
+    after = Reranker(scorer).rerank(query, hits)
+    model.assert_not_called()
+    assert [(h.identity, h.content, h.method, h.score, h.score_type) for h in after] == [
+        (h.identity, h.content, h.method, h.score, h.score_type) for h in hits]
+    assert all(h.metadata['rerank']['fallback'] == 'empty_body' for h in after)
+
+
+@pytest.mark.parametrize('query_cap', [1, 3])
+def test_query_budget_cannot_silently_remove_every_complete_character(tokenizer, query_cap):
+    from arkb.retrieval.qwen_inputs import QwenInputBuilder
+    builder = QwenInputBuilder(tokenizer, query_cap=query_cap, title_cap=64)
+    with pytest.raises(ValueError, match='query allocation retains no query'):
+        builder.prepare('🙂' * 100, candidates()[0])

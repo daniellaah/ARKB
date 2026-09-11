@@ -64,6 +64,24 @@ def input_summary(rows):
             'queries_over_512_tokens': [r['qid'] for r in rows if r['inputs'][0]['query_tokens_before'] > 512]}
 
 
+def verify_fallback(row):
+    """Require recorded evidence for each declared query-level fallback."""
+    reason = row['fallback']; scores = row.get('scores', [])
+    if reason == 'all_equal_scores':
+        valid = len(scores) == 20 and len(set(scores)) == 1
+    elif reason == 'empty_body':
+        inputs = row.get('inputs', [])
+        valid = len(inputs) == 20 and all(d['body_tokens_retained'] == 0 for d in inputs)
+    elif reason in ('scoring_error', 'invalid_scores'):
+        provenance = row.get('result_provenance', [])
+        valid = not scores and len(provenance) == 20 and all(
+            p.get('fallback') == reason and p.get('message') for p in provenance)
+    else:
+        valid = False
+    if not valid:
+        raise ValueError('Unsupported fallback trigger: ' + str(reason))
+
+
 def audit_variant(pools, labels, rows, *, tie_policy='stable'):
     if [r['qid'] for r in rows] != [p['qid'] for p in pools]:
         raise ValueError('Variant must preserve the full registered query order.')
@@ -83,6 +101,7 @@ def audit_variant(pools, labels, rows, *, tie_policy='stable'):
         if scores and (len(scores) != 20 or not all(type(s) in (int, float) and np.isfinite(s) for s in scores)):
             raise ValueError('Invalid saved scores must be explicitly excluded from usable scores.')
         if row.get('fallback'):
+            verify_fallback(row)
             if ranking != before:
                 raise ValueError('Fallback did not preserve the complete Hybrid order.')
         elif scores:
@@ -196,6 +215,20 @@ def main():
         else:
             verify_checksums(args.run/args.variant)
             rows = read_jsonl(args.run/args.variant/f'{ds}.jsonl')
+        # B0/B1 do not run the new input builder. Their verified token-identical
+        # B2 records supply diagnostics without changing scores or rankings.
+        if args.variant in ('B0-saved', 'B0-inference', 'B1') and (args.run/'B2-corrected').exists():
+            verify_checksums(args.run/'B2-corrected')
+            control = read_jsonl(args.run/'B2-corrected'/f'{ds}.jsonl')
+            if [r['qid'] for r in control] != [r['qid'] for r in rows]:
+                raise ValueError('Legacy input diagnostic query order differs.')
+            for row, source in zip(rows, control):
+                if row['scores'] != source['scores']:
+                    raise ValueError('Legacy input diagnostic scores differ.')
+                if 'input_ids' in row and row['input_ids'] != [d['input_ids'] for d in source['inputs']]:
+                    raise ValueError('B0 actual tokens differ from legacy input diagnostics.')
+                row['inputs'] = source['inputs']
+            result['legacy_input_diagnostics_sha256'] = digest(args.run/'B2-corrected/checksums.json')
         if args.variant in ('B3', 'B4'):
             prepared = read_jsonl(args.run/'allocations'/args.variant/f'{ds}.jsonl')
             if len(prepared) != len(rows): raise ValueError('Registered inputs are incomplete.')

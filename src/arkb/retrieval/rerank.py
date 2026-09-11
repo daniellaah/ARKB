@@ -10,6 +10,10 @@ from arkb.retrieval.models import (
 )
 
 
+class EmptyRerankerInput(RuntimeError):
+    """No candidate retains usable document-body tokens for this query."""
+
+
 class CandidateScorer(Protocol):
     """Return one finite relevance score per candidate, in input order.
 
@@ -44,6 +48,8 @@ class Reranker:
             return ()
         try:
             output = self.scorer.score(query, candidates)
+        except EmptyRerankerInput as error:
+            return self._fallback(candidates, top_k, 'empty_body', str(error))
         except (RuntimeError, OSError) as error:
             return self._fallback(candidates, top_k, 'scoring_error',
                                   f'{type(error).__name__}: {error}')
@@ -57,6 +63,9 @@ class Reranker:
         ):
             return self._fallback(candidates, top_k, 'invalid_scores',
                                   'Scorer must return one finite score per candidate.')
+        if len(scores) > 1 and len(set(scores)) == 1:
+            return self._fallback(candidates, top_k, 'all_equal_scores',
+                                  'All model scores are exactly equal.', scores=scores)
         # Equal model scores express no preference: preserve the upstream order.
         order = sorted(range(len(candidates)), key=lambda i: -scores[i])
         return tuple(replace(candidates[i], method='reranked', score=scores[i], score_type=self.scorer.score_type,
@@ -68,7 +77,7 @@ class Reranker:
                                  'previous': candidates[i].metadata.get('rerank')}})
                      for i in order[:top_k])
 
-    def _fallback(self, candidates, top_k, reason, message):
+    def _fallback(self, candidates, top_k, reason, message, *, scores=None):
         # Keep original methods and scores: a failed scorer has no relevance
         # value to substitute. The diagnostic makes this an explicit fallback.
         return tuple(replace(hit, metadata={**hit.metadata, 'rerank': {
@@ -76,6 +85,7 @@ class Reranker:
             'input_method': hit.method, 'input_score': hit.score,
             'input_score_type': hit.score_type, 'candidate_count': len(candidates),
             'fallback': reason, 'message': message,
+            **({'model_score': scores[i], 'model_score_type': self.scorer.score_type} if scores is not None else {}),
             'previous': hit.metadata.get('rerank')}})
             for i, hit in enumerate(candidates[:top_k]))
 

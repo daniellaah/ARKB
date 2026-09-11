@@ -116,3 +116,30 @@ def test_runtime_reranks_real_snapshot_preserving_evidence_and_filters(snapshot,
         'candidates': [asdict(hit) for hit in candidates],
         'response': asdict(response), 'filtered': asdict(filtered),
     }, ensure_ascii=False, indent=2) + '\n')
+
+
+def test_real_long_technical_query_retains_body_and_both_query_ends():
+    from arkb.retrieval.qwen_inputs import QwenInputBuilder
+    scorer = QwenRerankerScorer(cache_folder=os.environ.get('ARKB_RERANKER_CACHE'),
+        local_files_only=os.environ.get('ARKB_RERANKER_OFFLINE', '1') == '1')
+    query = ('How can I preserve a decorated function name and docstring in Python?\n'
+             + 'def wrapper(*args, **kwargs): return func(*args, **kwargs)\n' * 80
+             + 'Final question: should I use functools.wraps to preserve this metadata?')
+    hits = tuple(SearchResult(source_id=str(i), source=f'{i}.md', content=body * 100,
+                              method='hybrid', score=.5-i*.1, score_type='rrf')
+                 for i, body in enumerate([
+                     'Dogs bark and cats meow. Their coats can be black or brown. ',
+                     'The functools.wraps decorator copies the wrapped function name and docstring '
+                     'onto the wrapper function and preserves the original function metadata. ']))
+    legacy = QwenInputBuilder(scorer.tokenizer)
+    assert all(legacy.prepare(query, h)['body_empty'] for h in hits)
+    prepared = scorer.prepare_inputs(query, hits)
+    assert all(d['body_tokens_retained'] >= 128 and d['total_model_tokens'] <= 512 for d in prepared)
+    for row in prepared:
+        visible = scorer.tokenizer.decode(row['input_ids'])
+        assert 'How can I preserve' in visible and 'Final question:' in visible
+    result = Reranker(scorer).rerank(query, hits)
+    assert result[0].source == '1.md'
+    assert all(h.score_type == 'yes_no_logit_difference' and math.isfinite(h.score) for h in result)
+    original = {h.identity: h.content for h in hits}
+    assert all(h.content == original[h.identity] for h in result)

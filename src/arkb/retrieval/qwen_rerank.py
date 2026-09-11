@@ -21,13 +21,14 @@ class QwenRerankerScorer:
     reserved before allocating query/title/body, preserving the scoring position.
     Logit difference orders candidates identically to the official two-token
     softmax, without saturation from converting large logits to probabilities.
-    No generation, sampling, remote code, label-dependent instruction, or fallback.
+    No generation, sampling, remote code, or label-dependent instruction. Empty
+    document inputs are reported explicitly for the Reranker fallback boundary.
     """
     score_type = 'yes_no_logit_difference'
 
     def __init__(self, *, max_length: int = 512, batch_size: int = 16,
                  cache_folder: str | None = None, local_files_only: bool = False,
-                 query_cap: int | None = None, title_cap: int = 64,
+                 query_cap: int | None = 128, title_cap: int = 64,
                  query_strategy: str = 'head_tail'):
         validate_options(max_length, None)
         validate_options(batch_size, None)
@@ -73,17 +74,26 @@ class QwenRerankerScorer:
         return [builder.prepare(query, hit) for hit in candidates]
 
     def _inputs(self, query, candidates):
-        inputs = {'input_ids': [row['input_ids'] for row in self.prepare_inputs(query, candidates)]}
+        return self._pad(self.prepare_inputs(query, candidates))
+
+    def _pad(self, prepared):
+        inputs = {'input_ids': [row['input_ids'] for row in prepared]}
         return self.tokenizer.pad(inputs, padding=True, return_tensors='pt',
                                   return_attention_mask=True)
 
     def score(self, query: str, candidates: Sequence[SearchResult]) -> list[float]:
         import torch
 
+        if not candidates:
+            return []
+        prepared = self.prepare_inputs(query, candidates)
+        if all(row['body_empty'] for row in prepared):
+            from arkb.retrieval.rerank import EmptyRerankerInput
+            raise EmptyRerankerInput('No candidate retains document body tokens.')
         scores = []
         with torch.inference_mode():
             for offset in range(0, len(candidates), self.batch_size):
-                inputs = self._inputs(query, candidates[offset:offset + self.batch_size])
+                inputs = self._pad(prepared[offset:offset + self.batch_size])
                 logits = self._model(**inputs, use_cache=False, logits_to_keep=1).logits[:, -1, :]
                 scores.extend((logits[:, self._true] - logits[:, self._false]).tolist())
         return scores
