@@ -240,8 +240,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         with Runtime(_runtime_config(args)) as runtime:
             result = _execute(runtime, args)
         _print_result(args, result)
-        if args.command == 'ask' and result.stop_reason == 'max_turns':
-            print('Agent reached --max-turns without a final response.', file=sys.stderr)
+        if args.command == 'ask' and result.stop_reason != 'final':
+            detail = result.final.termination_reason if result.final else result.stop_reason
+            print(f'Agent stopped without a final response: {detail}.', file=sys.stderr)
             return 1
         return 0
     except (OSError, ValueError, LookupError, TypeError, sqlite3.Error, ResponseError, HTTPError,

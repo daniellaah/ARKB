@@ -423,7 +423,11 @@ Final Response
 
 The agent can select an available search mode on each `search` call.
 
-`read` expands a source by document ID or filename and can optionally restrict the returned content to a section or character range.
+`match` and `search` return opaque evidence references. The Agent expands a result
+with `read(ref="…")`, or reads a known filename with `read(source="rag.md")`.
+References belong to one run and bind the source, revision and original span;
+edits, deletions and renames produce recoverable errors. Low-level Python
+document access still supports validated IDs, sections and ranges.
 
 Each `ask` invocation starts a fresh conversation while retaining one retrieval snapshot across turns.
 
@@ -447,11 +451,20 @@ Use:
 
 to modify generation behavior.
 
-`--max-turns` defaults to eight model requests, including the final response.
+`--max-turns` defaults to eight model requests and reserves the last request for
+schema-constrained finalization. Earlier answers use the `finish` tool.
 
-If the turn budget is exhausted before a final response is produced, the command returns no final answer and exits with a nonzero status.
+Tool or evidence-budget exhaustion closes evidence collection and allows an
+answer from already delivered evidence. An unsupported answer must report
+`insufficient_evidence`. A wall-clock deadline or fatal infrastructure failure
+can still prevent a normal answer; the CLI returns a nonzero status and retains
+a structured failure.
 
-Model and tool failures propagate with available partial traces. The loop currently does not retry them automatically.
+Expected tool misuse returns `recoverable_error` observations. Internal failures
+return a terminal `fatal_error`; the runtime never substitutes empty success.
+JSON output includes the canonical `final` (answer, status, resolved citations,
+termination reason), conversation, request/tool accounting and reference mapping.
+`response` remains the answer-text projection for existing consumers.
 
 The default `ask` composition leaves reranking disabled. Prepared Python tools can configure reranking separately.
 
@@ -479,7 +492,9 @@ citation validation
 
 The package provides context budgeting and validated citation APIs.
 
-The current `ask` command returns the agent model's final text directly and does not apply the separate citation-validation stage from `generation/`.
+`ask` validates the structure and source/revision identity of final citations.
+It does not apply the separate claim/quote validation stage from `generation/`,
+and structural validity does not establish semantic support for an answer.
 
 This keeps agent execution and explicit citation-aware generation as separate capabilities.
 

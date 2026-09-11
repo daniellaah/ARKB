@@ -36,7 +36,7 @@ def test_real_model_selects_tools_and_finishes(tmp_path, query, allowed_first_to
         tools = runtime.agent_tools(engine=engine, directory=tmp_path, vault_id='agent-test', mode='bm25')
         result = runtime.run_agent(query, tools=tools, max_turns=8,
                                    model=os.environ.get('ARKB_AGENT_MODEL', DEFAULT_GENERATION_MODEL))
-    names = [c['function']['name'] for c in result.state.tool_calls]
+    names = [c['function']['name'] for c in result.state.tool_calls if c['function']['name'] != 'finish']
     assert result.stop_reason == 'final', names
     assert result.response and result.response.strip()
     if not allowed_first_tools:

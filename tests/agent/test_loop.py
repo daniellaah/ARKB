@@ -8,7 +8,7 @@ from arkb.agent import AgentState, AgentTools, TOOL_DEFINITIONS, run_agent
 from arkb.agent.loop import SYSTEM_INSTRUCTION
 from arkb.knowledge.models import Chunk, ChunkRecord, Note
 from arkb.retrieval import BM25Retriever, ExactRetriever, RetrievalEngine
-from tests.agent.helpers import ScriptedModel, reply, tool_call
+from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
 
 
 @pytest.fixture
@@ -17,57 +17,38 @@ def bm25_tools(documents):
     return AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine, mode='bm25')
 
 
-@pytest.mark.parametrize('query,call,observation', [
-    ('Which notes mention RAG', tool_call('match', query='RAG'),
-     {'query': 'RAG', 'results': [{'source': 'rag.md', 'content': 'RAG'}]}),
-    ('Which notes relate to RAG', tool_call('search', query='RAG'),
-     {'query': 'RAG', 'results': [{'source': 'retrieval.md', 'content': 'Related knowledge'}]}),
-    ('Read rag.md', tool_call('read', source='rag.md'),
-     {'result': {'source': 'rag.md', 'content': 'Full document content'}}),
-])
-def test_model_selected_tool_receives_arguments_and_returns_observation(query, call, observation):
-    tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
-    name = call['function']['name']
-    getattr(tools, name).return_value = observation
-    final = reply('  model response\n')
-
+@pytest.mark.parametrize('name,args', [('match', {'query': 'café'}),
+    ('search', {'query': 'rare'}), ('read', {'source': 'a.md'})])
+def test_model_selected_tool_receives_arguments_and_returns_observation(bm25_tools, name, args):
+    chosen = tool_call(name, **args)
     def after_tool(messages):
-        assert messages[1] == {'role': 'user', 'content': query}
-        assert messages[-2]['tool_calls'] == [call]
-        assert messages[-1]['role'] == 'tool'
+        assert messages[-2]['tool_calls'] == [chosen]
         assert messages[-1]['tool_name'] == name
-        assert json.loads(messages[-1]['content']) == observation
-        return final
-
-    model = ScriptedModel(reply(calls=[call]), after_tool)
-    result = run_agent(query, client=model, tools=tools, model='fake')
-    assert result.stop_reason == 'final'
-    assert result.response == final.message.content
+        result = json.loads(messages[-1]['content'])
+        assert result['status'] == 'success'
+        hits = [result['result']] if name == 'read' else result['results']
+        assert hits and all(hit['ref'] and hit['source'] == 'a.md' for hit in hits)
+        return complete('  model response\n')(messages)
+    model = ScriptedModel(reply(calls=[chosen]), after_tool)
+    result = run_agent('Find rare idea', client=model, tools=bm25_tools, model='fake')
+    assert result.stop_reason == 'final' and result.response == '  model response\n'
     assert result.state.turn == 2
-    assert result.state.tool_calls == [call]
-    getattr(tools, name).assert_called_once_with(**call['function']['arguments'])
-    for other in {'match', 'search', 'read'} - {name}:
-        getattr(tools, other).assert_not_called()
-    assert len(model.requests[0]['messages']) == 2
+    assert [c.name for c in result.trace.tool_calls] == [name, 'finish']
     for request in model.requests:
-        assert request['model'] == 'fake'
-        assert request['stream'] is False
-        assert request['think'] is True
+        assert request['model'] == 'fake' and request['stream'] is False and request['think'] is True
         assert request['messages'][0] == {'role': 'system', 'content': SYSTEM_INSTRUCTION}
-        assert [d['function']['name'] for d in request['tools']] == ['match', 'search', 'read']
-        assert all(d['type'] == 'function' for d in request['tools'])
-        assert set(request['tools'][1]['function']['parameters']['properties']) == {'query', 'source', 'limit', 'mode'}
+        assert [d['function']['name'] for d in request['tools']] == ['match', 'search', 'read', 'finish']
 
 
 def test_ordinary_input_can_finish_without_tools(tools, engine):
-    final = reply('Hello!')
+    final = complete('Hello!', status='answered', constrained=True)
     model = ScriptedModel(final)
     result = run_agent('Hello', client=model, tools=tools, model='fake', max_turns=1)
-    assert result.response == final.message.content
+    assert result.response == 'Hello!'
     assert result.stop_reason == 'final'
     assert result.state.turn == 1
     assert result.state.tool_calls == []
-    assert [m['role'] for m in result.state.messages] == ['system', 'user', 'assistant']
+    assert [m['role'] for m in result.state.messages] == ['system', 'user', 'system', 'assistant']
     engine.search.assert_not_called()
 
 
@@ -75,8 +56,7 @@ def test_ordinary_input_can_finish_without_tools(tools, engine):
 def test_think_is_forwarded_on_every_turn_without_changing_loop_semantics(tools, think):
     first = reply(calls=[tool_call('read', source='a.md')])
     first.message.thinking = 'Provider reasoning accompanying the tool call.'
-    final = reply('Final response')
-    final.message.thinking = 'Provider reasoning accompanying the final answer.'
+    final = complete('Final response')
     model = ScriptedModel(first, final)
     result = run_agent('Read a.md', client=model, tools=tools, model='fake', think=think)
     assert result.response == 'Final response' and result.state.turn == 2
@@ -89,8 +69,10 @@ def test_think_is_forwarded_on_every_turn_without_changing_loop_semantics(tools,
 def test_thinking_alone_is_not_a_final_response(tools):
     response = reply()
     response.message.thinking = 'Still considering what to do.'
-    with pytest.raises(ValueError, match='neither tool calls nor a final response'):
-        run_agent('Question', client=ScriptedModel(response), tools=tools, model='fake', think=True)
+    result = run_agent('Question', client=ScriptedModel(response, complete('Missing evidence', constrained=True)),
+                       tools=tools, model='fake', think=True)
+    assert result.final.status == 'insufficient_evidence' and result.state.turn == 2
+
 
 
 def test_multiple_calls_in_one_turn_preserve_order_and_are_all_observed(tools):
@@ -103,13 +85,13 @@ def test_multiple_calls_in_one_turn_preserve_order_and_are_all_observed(tools):
         assert [m['tool_name'] for m in messages[3:]] == ['match', 'read', 'read']
         assert json.loads(messages[4]['content'])['result']['source'] == 'a.md'
         assert json.loads(messages[5]['content'])['result']['source'] == 'b.md'
-        return reply('complete')
+        return complete('complete')(messages)
 
     model = ScriptedModel(reply('Inspecting documents', calls=calls), after_batch)
     result = run_agent('Read matching notes', client=model, tools=tools, model='fake')
     assert result.stop_reason == 'final'
     assert result.state.turn == 2
-    assert result.state.tool_calls == calls
+    assert result.state.tool_calls[:-1] == calls
 
 
 @pytest.mark.parametrize('max_turns', [1, 3, 4])
@@ -118,12 +100,12 @@ def test_repeated_calls_stop_at_exact_turn_limit_without_an_extra_model_request(
     model = Mock()
     model.chat.return_value = reply('Still searching', calls=[call])
     result = run_agent('question', client=model, tools=tools, model='fake', max_turns=max_turns)
-    assert result.stop_reason == 'max_turns'
+    assert result.stop_reason == 'error' and result.final.termination_reason == 'invalid_final_output'
     assert result.response is None
     assert result.state.turn == model.chat.call_count == max_turns
     assert result.state.tool_calls == [call] * max_turns
-    assert len([m for m in result.state.messages if m['role'] == 'tool']) == max_turns
-    assert result.state.messages[-1]['role'] == 'tool'
+    assert len([m for m in result.state.messages if m['role'] == 'tool']) == max_turns - 1
+    assert result.state.messages[-1]['role'] == 'assistant'
 
 
 def test_empty_results_remain_observations_and_allow_a_followup(tools):
@@ -131,10 +113,10 @@ def test_empty_results_remain_observations_and_allow_a_followup(tools):
         assert json.loads(messages[-1]['content'])['results'] == []
         return reply(calls=[tool_call('match', query='foo()')])
 
-    model = ScriptedModel(reply(calls=[tool_call('search', query='missing')]), broaden, reply('done'))
+    model = ScriptedModel(reply(calls=[tool_call('search', query='missing')]), broaden, complete('done'))
     result = run_agent('Find notes', client=model, tools=tools, model='fake')
     assert result.stop_reason == 'final'
-    assert [c['function']['name'] for c in result.state.tool_calls] == ['search', 'match']
+    assert [c['function']['name'] for c in result.state.tool_calls] == ['search', 'match', 'finish']
 
 
 def test_repeated_search_evidence_is_reported_without_blocking_a_known_source(bm25_tools):
@@ -149,10 +131,10 @@ def test_repeated_search_evidence_is_reported_without_blocking_a_known_source(bm
         return reply(calls=[tool_call('read', source='a.md')])
 
     def after_read(messages):
-        assert messages[-1]['tool_name'] == 'read'
-        assert json.loads(messages[-1]['content'])['result']['source'] == 'a.md'
-        assert len([m for m in messages if m['role'] == 'system']) == 2
-        return reply('  final from the model\n')
+        assert messages[-2]['tool_name'] == 'read'
+        assert json.loads(messages[-2]['content'])['result']['source'] == 'a.md'
+        assert len([m for m in messages if m['role'] == 'system']) == 3
+        return complete('  final from the model\n', constrained=True)(messages)
 
     model = ScriptedModel(reply(calls=[tool_call('search', query='foo')]),
                           reply(calls=[tool_call('search', query='foo rare')]),
@@ -165,7 +147,8 @@ def test_repeated_search_evidence_is_reported_without_blocking_a_known_source(bm
     assert model.requests[2]['messages'][-1]['role'] == 'tool'
     assert [call.name for call in result.trace.tool_calls] == ['search', 'search', 'search', 'read']
     assert all(call.result is not None for call in result.trace.tool_calls)
-    assert all(request['tools'] == model.requests[0]['tools'] for request in model.requests)
+    assert all(request['tools'] == model.requests[0]['tools'] for request in model.requests[:-1])
+    assert 'format' in model.requests[-1] and 'tools' not in model.requests[-1]
 
 
 @pytest.mark.parametrize('first,followups,stalled', [
@@ -180,13 +163,13 @@ def test_search_progress_accounts_for_empty_results_and_the_entire_turn(bm25_too
     model = ScriptedModel(reply(calls=[tool_call('search', **first)]),
                           reply(calls=[tool_call('search', **first)]),
                           reply(calls=[tool_call('search', **options) for options in followups]),
-                          reply('finished'))
+                          complete('finished', constrained=True))
     result = run_agent('Find notes', client=model, tools=bm25_tools, model='fake', max_turns=4)
     # An empty first search can be reformulated. Later reminders never split a
     # batch of observations or overlook new evidence from an earlier batch call.
     assert model.requests[1]['messages'][-1]['role'] == 'tool'
     assert model.requests[2]['messages'][-1]['role'] == 'tool'
-    assert (model.requests[3]['messages'][-1]['role'] == 'system') is stalled
+    assert any('no new evidence' in m.get('content', '') for m in model.requests[3]['messages'] if m['role'] == 'system') is stalled
     assert result.response == 'finished' and result.state.turn == 4
     assert len(result.trace.tool_calls) == 2 + len(followups)
     assert all(call.result is not None for call in result.trace.tool_calls)
@@ -194,6 +177,7 @@ def test_search_progress_accounts_for_empty_results_and_the_entire_turn(bm25_too
 
 def test_new_chunk_in_a_known_source_is_search_progress(documents):
     note = Note('Facts', 'alpha\nbeta', 'a.md')
+    (documents.directory / 'a.md').write_text('# Facts\nalpha\nbeta')
     chunks = [Chunk('alpha', note.title, note.source, 0, 0, 5),
               Chunk('beta', note.title, note.source, 1, 6, 10)]
     records = [ChunkRecord.from_note(chunk, note=note, vault_id='v') for chunk in chunks]
@@ -201,20 +185,20 @@ def test_new_chunk_in_a_known_source_is_search_progress(documents):
     tools = AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine, mode='bm25')
     model = ScriptedModel(reply(calls=[tool_call('search', query='alpha')]),
                           reply(calls=[tool_call('search', query='alpha')]),
-                          reply(calls=[tool_call('search', query='beta')]), reply('both facts'))
+                          reply(calls=[tool_call('search', query='beta')]), complete('both facts', constrained=True))
     result = run_agent('Find both facts', client=model, tools=tools, model='fake', max_turns=4)
     assert [call.result['results'][0]['content'] for call in result.trace.tool_calls] == ['alpha', 'alpha', 'beta']
-    assert all(m['role'] != 'system' for m in model.requests[3]['messages'][1:])
+    assert not any('no new evidence' in m.get('content', '') for m in model.requests[3]['messages'] if m['role'] == 'system')
     assert result.response == 'both facts'
 
 
 def test_runs_have_independent_conversations(tools):
-    model = ScriptedModel(reply(calls=[tool_call('read', source='a.md')]), reply('first'), reply('second'))
+    model = ScriptedModel(reply(calls=[tool_call('read', source='a.md')]), complete('first'), complete('second'))
     first = run_agent('Read a.md', client=model, tools=tools, model='fake')
     second = run_agent('Hello', client=model, tools=tools, model='fake')
     assert first.state is not second.state
     assert first.state.turn == 2 and second.state.turn == 1
-    assert second.state.tool_calls == []
+    assert [c.name for c in second.trace.tool_calls] == ['finish']
     assert [m['role'] for m in model.requests[2]['messages']] == ['system', 'user']
     left, right = AgentState(), AgentState()
     left.messages.append({'role': 'user', 'content': 'left'})
@@ -235,64 +219,50 @@ def test_invalid_run_options_fail_before_model_or_tools(options):
 
 
 @pytest.mark.parametrize('name', ['bm25', 'semantic', 'hybrid', 'rrf', 'rerank', '_documents', '__init__', 'tool_definitions'])
-def test_only_public_tools_can_be_dispatched(name):
-    tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
-    model = ScriptedModel(reply(calls=[tool_call(name, query='x')]))
-    with pytest.raises(ValueError, match='Unknown agent tool'):
-        run_agent('x', client=model, tools=tools, model='fake')
-    assert tools.mock_calls == [call.tool_definitions()]
+def test_only_public_tools_can_be_dispatched(tools, name):
+    model = ScriptedModel(reply(calls=[tool_call(name, query='x')]), complete('unsupported', constrained=True))
+    result = run_agent('x', client=model, tools=tools, model='fake', max_turns=2)
+    assert result.stop_reason == 'final'
+    assert result.trace.tool_calls[0].result['error']['code'] == 'unknown_tool'
 
 
-@pytest.mark.parametrize('call,error_type', [
-    (tool_call('search'), TypeError),
-    (tool_call('search', query='x', mode='unknown'), ValueError),
-    (tool_call('search', query='x', limit=True), ValueError),
-    (tool_call('match', query='[', regex=True), ValueError),
-    (tool_call('read', source='absent.md'), LookupError),
-    (tool_call('read', source='a.md', document_id='0' * 64), LookupError),
-])
-def test_invalid_calls_propagate_without_followup_or_fake_success(tools, call, error_type):
-    model = ScriptedModel(reply(calls=[call]))
-    with pytest.raises(error_type):
-        run_agent('x', client=model, tools=tools, model='fake')
-    assert len(model.requests) == 1
+@pytest.mark.parametrize('bad', [tool_call('search'), tool_call('search', query='x', mode='unknown'),
+    tool_call('search', query='x', limit=True), tool_call('match', query='[', regex=True),
+    tool_call('read', source='absent.md'), tool_call('read', source='a.md', document_id='0'*64)])
+def test_invalid_calls_allow_followup_without_fake_success(tools, bad):
+    model = ScriptedModel(reply(calls=[bad]), complete('Insufficient evidence', constrained=True))
+    result = run_agent('x', client=model, tools=tools, model='fake', max_turns=2)
+    assert result.trace.tool_calls[0].result['status'] == 'recoverable_error'
+    assert result.stop_reason == 'final' and len(model.requests) == 2
 
 
 @pytest.mark.parametrize('error', [ConnectionError('model offline'), ResponseError('failed', 503)])
-def test_model_errors_propagate_unchanged(tools, error):
-    client = Mock()
-    client.chat.side_effect = error
-    with pytest.raises(type(error)) as raised:
-        run_agent('x', client=client, tools=tools, model='fake')
-    assert raised.value is error
+def test_model_errors_retain_original_type_and_message(tools, error):
+    client = Mock(chat=Mock(side_effect=error))
+    result = run_agent('x', client=client, tools=tools, model='fake')
+    assert result.stop_reason == 'error'
+    assert result.final.error['type'] == type(error).__name__
+    assert result.final.error['message'] == str(error)
     assert client.chat.call_count == 1
 
 
-def test_backend_errors_propagate_unchanged(tools, engine):
-    error = RuntimeError('backend unavailable')
-    engine.search.side_effect = error
+def test_backend_errors_are_structured_without_retry(tools, engine):
+    engine.search.side_effect = RuntimeError('backend unavailable')
     model = ScriptedModel(reply(calls=[tool_call('search', query='x')]))
-    with pytest.raises(RuntimeError) as raised:
-        run_agent('x', client=model, tools=tools, model='fake')
-    assert raised.value is error
+    result = run_agent('x', client=model, tools=tools, model='fake')
+    assert result.stop_reason == 'error' and result.final.error['type'] == 'RuntimeError'
     assert len(model.requests) == 1
 
 
-@pytest.mark.parametrize('response,pattern', [
-    (reply(), 'neither tool calls nor a final response'),
-    (reply('  '), 'neither tool calls nor a final response'),
-    (reply('partial', done_reason='length'), 'truncated'),
-    (reply(calls=[tool_call('read', source='a.md')], done_reason='length'), 'truncated'),
-])
-def test_empty_or_truncated_responses_are_not_successful_finals(response, pattern):
-    tools = Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS))
-    with pytest.raises(ValueError, match=pattern):
-        run_agent('x', client=ScriptedModel(response), tools=tools, model='fake')
-    assert tools.mock_calls == [call.tool_definitions()]
+@pytest.mark.parametrize('response', [reply('partial', done_reason='length'),
+    reply(calls=[tool_call('read', source='a.md')], done_reason='length')])
+def test_truncated_responses_are_not_successful_finals(tools, response):
+    result = run_agent('x', client=ScriptedModel(response), tools=tools, model='fake')
+    assert result.stop_reason == 'error' and 'truncated' in result.final.error['message']
+    assert not result.observation['tools']
 
 
 def test_non_assistant_response_is_rejected(tools):
-    response = reply('invalid role')
-    response.message.role = 'user'
-    with pytest.raises(ValueError, match='assistant message'):
-        run_agent('x', client=ScriptedModel(response), tools=tools, model='fake')
+    response = reply('invalid role'); response.message.role = 'user'
+    result = run_agent('x', client=ScriptedModel(response), tools=tools, model='fake')
+    assert result.stop_reason == 'error' and 'assistant message' in result.final.error['message']

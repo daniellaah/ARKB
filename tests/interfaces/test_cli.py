@@ -162,7 +162,7 @@ def test_ask_turn_limit_reports_no_fabricated_answer(runtime, capsys, json_outpu
     output = capsys.readouterr()
     if json_output:
         assert json.loads(output.out) == {'response': None, 'stop_reason': 'max_turns',
-                                          'state': {'messages': [], 'turn': 1}}
+                                          'state': {'messages': [], 'turn': 1}, 'final': None}
     else:
         assert output.out == ''
     assert '[1] max_turns' in output.err and 'without a final response' in output.err

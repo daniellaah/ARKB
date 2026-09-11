@@ -2,6 +2,26 @@
 from copy import deepcopy
 
 
+def evidence_hits(raw, name, references=None):
+    """Read either archived v1 evidence or v2 evidence with its diagnostic map."""
+    if raw is None or raw.get('status', 'success') != 'success':
+        return []
+    hits = [raw.get('result')] if name == 'read' else raw.get('results', [])
+    result = []
+    for hit in hits:
+        if not isinstance(hit, dict) or not isinstance(hit.get('content'), str):
+            raise ValueError('Malformed retained evidence.')
+        if 'ref' in hit:
+            if references is None or hit['ref'] not in references:
+                raise ValueError('Missing evidence reference mapping.')
+            internal = references[hit['ref']]
+            if any(hit[k] != internal[k] for k in ('source', 'title', 'content')):
+                raise ValueError('Evidence reference mapping disagrees with observation.')
+            hit = {**deepcopy(internal), **hit}
+        result.append(hit)
+    return result
+
+
 def evidence_packet(result, source_map):
     """Separate returned, delivered and model-submitted nonempty body evidence.
 
@@ -19,7 +39,7 @@ def evidence_packet(result, source_map):
         if submitted!=expected:raise ValueError('Evidence submission flags disagree with model requests.')
         raw=event.get('raw_result')
         if raw is None:continue
-        hits=[raw.get('result')] if event['name']=='read' else raw.get('results',[])
+        hits=evidence_hits(raw, event['name'], observation.get('evidence_references'))
         for hit in hits:
             if not isinstance(hit,dict) or not isinstance(hit.get('content'),str):
                 raise ValueError('Malformed retained evidence.')

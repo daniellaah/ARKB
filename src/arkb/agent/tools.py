@@ -1,4 +1,4 @@
-"""Three agent-facing primitives; capability objects are supplied by the runtime."""
+"""Low-level capability adapters and the schemas advertised by ToolSession."""
 
 from copy import deepcopy
 from typing import TypedDict
@@ -43,7 +43,8 @@ def _evidence(result: SearchResult) -> Evidence:
 
 
 def _query_result(response: SearchResponse) -> QueryResult:
-    return QueryResult(query=response.query, results=[_evidence(hit) for hit in response.results])
+    return {**QueryResult(query=response.query, results=[_evidence(hit) for hit in response.results]),
+            **({'index_id': response.index_id} if response.index_id is not None else {})}
 
 
 def tool_definitions(modes: tuple[str, ...], *, default_mode: str) -> tuple[dict[str, ConfigValue], ...]:
@@ -94,11 +95,12 @@ class AgentTools:
         return tool_definitions(tuple(modes), default_mode=self._mode)
 
     def match(self, query: str, *, target: str = 'content', regex: bool = False,
-              case_sensitive: bool = True, source: str | None = None, limit: int = 5) -> QueryResult:
+              case_sensitive: bool = True, source: str | None = None, limit: int = 5,
+              timeout: float = 30) -> QueryResult:
         """Use when you know an exact word, phrase, symbol, filename, or text pattern."""
         return _query_result(self._exact.search(
             query, target=target, regex=regex, case_sensitive=case_sensitive,
-            filters={'source': source} if source is not None else None, top_k=limit,
+            filters={'source': source} if source is not None else None, top_k=limit, timeout=timeout,
         ))
 
     def search(self, query: str, *, source: str | None = None, limit: int = 5,
@@ -153,7 +155,7 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
         'description': 'Use to discover relevant knowledge about a question, topic, or '
                        'concept when you do not know the exact wording. Results are ordered '
                        'by relevance. Choose an available strategy from the mode parameter, '
-                       'or omit it for the default. Use read with a returned document_id to expand context.',
+                       'or omit it for the default. Use read with a returned ref to expand context.',
         'parameters': {
             'type': 'object', 'required': ['query'], 'additionalProperties': False,
             'properties': {
@@ -168,25 +170,35 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
     },
     {
         'name': 'read',
-        'description': 'Read current original text or expand context. Supply '
-                       'document_id from a result or source for a known filename. '
-                       'If both are supplied, they must identify the same document. '
-                       'Select a section or character range, not both. '
-                       'Ranges address the current body: zero-based, end-exclusive; omitted '
-                       'endpoints use document boundaries. Search locations can become stale '
-                       'after files are edited.',
+        'description': 'Expand returned evidence using ref. Alternatively read a known source filename. '
+                       'Supply exactly one selector. References are bound to their source revision; '
+                       'if stale, search again or read the filename to get current text.',
         'parameters': {
-            'type': 'object', 'anyOf': [{'required': ['document_id']}, {'required': ['source']}],
+            'type': 'object', 'oneOf': [{'required': ['ref']}, {'required': ['source']}],
             'additionalProperties': False,
             'properties': {
-                'document_id': {'type': 'string', 'pattern': '^[0-9a-f]{64}$',
-                                'description': 'Use a document ID returned by match or search.'},
+                'ref': {'type': 'string', 'minLength': 1},
                 'source': {'type': 'string', 'minLength': 1,
-                           'description': 'Exact knowledge-relative filename, e.g. rag.md.'},
-                'section_id': {'type': ['string', 'null'], 'pattern': '^[0-9a-f]{64}$'},
-                'start_char': {'type': ['integer', 'null'], 'minimum': 0},
-                'end_char': {'type': ['integer', 'null'], 'minimum': 0},
+                           'description': 'Known filename in the knowledge base, e.g. rag.md.'},
+                'expand': {'type': 'string', 'enum': ['document', 'snippet'], 'default': 'document'},
+            },
+        },
+    },
+    {
+        'name': 'finish',
+        'description': 'Return your final answer with supporting evidence refs. Use insufficient_evidence '
+                       'when the available evidence cannot answer the question; explain gaps in answer. '
+                       'For a greeting or other request needing no retrieval, refs can be empty.',
+        'parameters': {
+            'type': 'object', 'required': ['answer', 'status', 'evidence_refs'],
+            'additionalProperties': False,
+            'properties': {
+                'answer': {'type': 'string', 'minLength': 1},
+                'status': {'type': 'string', 'enum': ['answered', 'partial', 'insufficient_evidence']},
+                'evidence_refs': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True},
             },
         },
     },
 )
+
+FINAL_SCHEMA = deepcopy(TOOL_DEFINITIONS[-1]['parameters'])

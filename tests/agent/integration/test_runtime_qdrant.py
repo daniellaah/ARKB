@@ -50,9 +50,9 @@ def trajectory_metrics(messages):
         function = next(functions)
         if function['name'] != 'search':
             continue
-        hits = json.loads(message['content'])['results']
+        hits = json.loads(message['content']).get('results', [])
         sources = {hit['source'] for hit in hits}
-        snippets = {(hit['document_id'], hit['chunk_id'], hit['start_char'], hit['end_char'], hit['content'])
+        snippets = {(hit['source'], hit['ref'], hit['content'])
                     for hit in hits}
         steps.append({'arguments': function['arguments'], 'result_count': len(hits),
                       'sources': sorted(sources), 'new_sources': len(sources - sources_seen),
@@ -181,9 +181,11 @@ def test_real_runtime_with_persisted_hybrid_retrieval(persisted_knowledge, case,
         assert [m['tool_name'] for m in observations] == names
         assert result.state.turn <= max_turns
         if case == 'F-limit':
-            assert result.stop_reason == 'max_turns'
-            assert result.response is None and result.state.turn == 1
-            assert names and observations
+            assert result.stop_reason == 'final'
+            assert result.response and result.state.turn == 1
+            assert result.final.termination_reason == 'max_turns'
+            assert result.final.status == 'insufficient_evidence'
+            assert not names and not observations
         else:
             assert result.stop_reason == 'final', names
             assert result.response and result.response.strip()
@@ -198,7 +200,8 @@ def test_real_runtime_with_persisted_hybrid_retrieval(persisted_knowledge, case,
                 assert '30' in result.response or 'thirty' in result.response
                 assert any(data['code'] in m['content'] for m in observations)
             if case == 'E-direct':
-                assert names == [] and result.state.turn == 1
+                assert not any(n in ('match', 'search', 'read') for n in names)
+                assert result.final.status == 'answered'
         report['checks_passed'] = True
     except Exception as error:
         report['error'] = {'type': type(error).__name__, 'message': str(error)}
@@ -213,8 +216,8 @@ def test_real_runtime_with_persisted_hybrid_retrieval(persisted_knowledge, case,
 
 @pytest.mark.parametrize('case,query,max_turns,expected_exit,flags', [
     ('CLI-materials', MATERIAL_QUERY, 8, 0, []),
-    ('CLI-limit', 'Read rag.md and explain RAG using the note.', 1, 1, ['--think']),
-    ('CLI-limit-no-think', 'Read rag.md and explain RAG using the note.', 1, 1, ['--no-think']),
+    ('CLI-limit', 'Read rag.md and explain RAG using the note.', 1, 0, ['--think']),
+    ('CLI-limit-no-think', 'Read rag.md and explain RAG using the note.', 1, 0, ['--no-think']),
 ])
 def test_real_ask_cli_uses_runtime_entry_point(persisted_knowledge, case, query, max_turns, expected_exit, flags):
     data = persisted_knowledge
@@ -234,10 +237,12 @@ def test_real_ask_cli_uses_runtime_entry_point(persisted_knowledge, case, query,
     calls = [call for message in result['state']['messages'] if message['role'] == 'assistant'
              for call in message.get('tool_calls', [])]
     names = [call['function']['name'] for call in calls]
-    assert names and f'[1] {names[0]}' in completed.stderr
+    if names: assert f'[1] {names[0]}' in completed.stderr
     if max_turns == 1:
-        assert result['response'] is None and result['stop_reason'] == 'max_turns'
-        assert 'without a final response' in completed.stderr
+        assert result['response'] and result['stop_reason'] == 'final'
+        assert result['final']['termination_reason'] == 'max_turns'
+        assert result['final']['status'] == 'insufficient_evidence'
+        assert not calls
     else:
         assert result['stop_reason'] == 'final'
         assert 'search' in names and 'read' in names

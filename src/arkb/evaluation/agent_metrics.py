@@ -64,7 +64,7 @@ def evaluate_case(case: AgentEvalCase, trace: AgentTrace | None) -> AgentEvalRes
     read = extract_retrieved_sources(trace, tool_names=('read',))
     expected = set(case.expected_sources)
     recall = len(expected.intersection(retrieved)) / len(expected) if expected else None
-    sequence = tuple(call.name for call in trace.tool_calls)
+    sequence = tuple(call.name for call in trace.tool_calls if call.name != 'finish')
     requested = Counter(sequence)
     counts = {name: requested[name] for name in sorted(set(requested) | KNOWLEDGE_TOOLS)}
     forbidden = {name: count for name, count in counts.items() if count and name in case.forbidden_tools}
@@ -200,4 +200,3 @@ def render_agent_report(summary: dict) -> str:
             lines.append(f'| runtime error | {_cell(failed["error"]["type"] + ": " + failed["error"]["message"])} |')
         lines.append('')
     return '\n'.join(lines).rstrip() + '\n'
-

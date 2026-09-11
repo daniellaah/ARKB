@@ -60,10 +60,10 @@ class AgentObserver:
             self.reason='max_elapsed_ms';return True
         return False
 
-    def start_model(self,turn,request):
+    def start_model(self,turn,request, *, phase='tools'):
         for event in self.tools:
             if event['delivered_to_conversation']:event['submitted_to_model']=True
-        event={'turn':turn,'request':deepcopy(request),'response':None,'status':'running',
+        event={'turn':turn,'phase':phase,'request':deepcopy(request),'response':None,'status':'running',
                'started_ms':self.elapsed(),'elapsed_ms':None,'usage':None,
                'request_json_reference_tokens':self.count(json.dumps(request,ensure_ascii=False,sort_keys=True)),
                'error':None}
@@ -90,7 +90,7 @@ class AgentObserver:
     def permit_tool(self,event):
         if self.deadline():return False
         if self.budget:
-            executed=[e for e in self.tools if e['executed']]
+            executed=[e for e in self.tools if e['executed'] and e['name'] != 'finish']
             checks=[('max_tool_calls',len(executed)),
                     ('max_query_calls',sum(e['name'] in ('match','search') for e in executed)),
                     ('max_read_calls',sum(e['name']=='read' for e in executed))]
@@ -104,10 +104,13 @@ class AgentObserver:
     def start_tool(self,event):
         event.update(executed=True,status='running',started_ms=self.elapsed())
 
-    def end_tool(self,event,result):
-        event.update(status='success',elapsed_ms=self.elapsed()-event['started_ms'],raw_result=deepcopy(result))
+    def end_tool(self,event,result, *, references=None):
+        event.update(status=result.get('status','success'),elapsed_ms=self.elapsed()-event['started_ms'],raw_result=deepcopy(result),
+                     error=deepcopy(result.get('error')))
         hits=[result.get('result')] if event['name']=='read' else result.get('results',[])
         texts=[h for h in hits if isinstance(h,dict) and isinstance(h.get('content'),str)]
+        if references is not None:
+            texts=[references[h['ref']] for h in texts]
         count=sum(self.count(h['content']) for h in texts) if self.counter is not None else None
         event['returned_evidence_tokens']=count
         if self.deadline():return False
@@ -125,7 +128,7 @@ class AgentObserver:
         self.error=detail
         target=event if event is not None else (self.models[-1] if stage in ('model_request','model_protocol') and self.models else None)
         if target is not None:
-            target.update(status='error',error=detail)
+            target.update(status='fatal_error',error=detail)
             if target['started_ms'] is not None:target['elapsed_ms']=self.elapsed()-target['started_ms']
 
     def finish(self,stop_reason):
@@ -137,14 +140,14 @@ class AgentObserver:
             known=[v for v in values if type(v) is int and v>=0]
             return {'total':sum(known) if len(known)==len(values) else None,
                     'known_total':sum(known),'defined_requests':len(known),'requests':len(values)}
-        return deepcopy({'schema_version':'arkb-agent-observation-v1','budget':asdict(self.budget) if self.budget else None,
+        return deepcopy({'schema_version':'arkb-agent-observation-v2','budget':asdict(self.budget) if self.budget else None,
             'counter_identity':self.counter_identity,'models':self.models,'tools':self.tools,
             'stop_reason':stop_reason,'budget_stop_reason':self.reason,'error':self.error,'elapsed_ms':self.elapsed(),
             'usage':{key:usage(key) for key in ('prompt_eval_count','eval_count')},
             'evidence':{'returned_tokens':sum(e['returned_evidence_tokens'] or 0 for e in self.tools) if self.counter else None,
                         'delivered_tokens':sum(e['delivered_evidence_tokens'] or 0 for e in self.tools) if self.counter else None,
                         'unique_exact_excerpt_tokens':sum(self._unique.values()) if self.counter else None},
-            'limits':['Deadline is cooperative; in-flight work may exceed it and is not cancelled.',
+            'limits':['Exact execution is bounded and cancellable; other in-flight provider work uses transport timeouts and a cooperative run deadline.',
                       'Reference JSON tokens are not provider-rendered context tokens.',
                       'Exact-excerpt deduplication still counts overlapping different excerpts.',
                       'Delivered observations on the last tool turn may never be submitted to a model.']})

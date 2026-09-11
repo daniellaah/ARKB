@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 from tokenizers import Tokenizer,models,pre_tokenizers
-from tests.agent.helpers import ScriptedModel,reply,tool_call
+from tests.agent.helpers import ScriptedModel,reply,tool_call,complete
 from arkb.agent import run_agent,AgentBudget,AgentObserver,AgentTools
 from arkb.knowledge.documents import DocumentAccess
 from arkb.knowledge.embeddings import count_tokens,tokenizer_fingerprint
@@ -30,8 +30,8 @@ def test_offline_agent_replay_catches_incorrect_evidence_totals(tmp_path):
     tools=AgentTools(documents=documents,exact=ExactRetriever(documents),engine=RetrievalEngine(bm25=retriever,semantic=retriever))
     source=next(s for s,d in data.source_map().items() if d=='a')
     scripted=[ScriptedModel(reply(calls=[tool_call('search',query='alpha',mode='bm25')]),
-                reply(calls=[tool_call('read',source=source)]),reply('alpha')),
-              ScriptedModel(reply(calls=[tool_call('search',query='beta',mode='bm25')]))]
+                reply(calls=[tool_call('read',source=source)]),complete('alpha')),
+              ScriptedModel(reply(calls=[tool_call('search',query='beta',mode='bm25')]), complete('Insufficient evidence', constrained=True))]
     rows=[]
     for i,(qid,query) in enumerate(data.queries.items()):
         observer=AgentObserver(budget=AgentBudget(max_tool_calls=12,max_query_calls=10,max_read_calls=6,
@@ -39,7 +39,7 @@ def test_offline_agent_replay_catches_incorrect_evidence_totals(tmp_path):
             counter_identity='reference-text:'+tokenizer_fingerprint(tokenizer))
         result=run_agent(query,client=scripted[i],tools=tools,model='qwen3.5:4b',max_turns=8,think=True,observer=observer)
         rows.append({'case_index':i,'id':qid,'result':asdict(result),'error':None,'stop_reason':result.stop_reason,'elapsed_ms':0})
-    assert [r['stop_reason'] for r in rows]==['final','budget']
+    assert [r['stop_reason'] for r in rows]==['final','final']
     write_json(run/'agentic_sample_ids.json',{'tasks':{'fixture':['1','2']}})
     write_json(run/'protocol.json',{'track':'bright','model':'qwen3.5:4b','think':True,'max_turns':8,
         'budget':{'tools':12,'queries':10,'reads':6,'evidence_tokens':4000,'cooperative_deadline_ms':120000},

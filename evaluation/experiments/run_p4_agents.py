@@ -13,7 +13,7 @@ import sys
 from time import perf_counter
 
 from arkb.evaluation.external import ExternalDataset, digest, load_external, write_json, verify_checksums
-from arkb.evaluation.multihop import OUTPUT_INSTRUCTION, parse_prediction, musique_metrics
+from arkb.evaluation.multihop import canonical_prediction, musique_metrics
 
 
 def index_musique_context(runtime, output, case_index, directory):
@@ -83,7 +83,7 @@ def execute(a):
                         directory=out/'contexts'/str(i);d.materialize(directory)
                         db,build,context_index_ms=index_musique_context(runtime,out,i,directory)
                         vault='p4-musique';source_map={k:int(v) for k,v in d.source_map().items()}
-                        prompt=case['question']+OUTPUT_INSTRUCTION
+                        prompt=case['question']
                     else:
                         directory=a.dataset/'corpus';db=a.index_run/'index.sqlite';vault=data.name
                         build=None;prompt=case['question'];source_map=data.source_map()
@@ -102,6 +102,8 @@ def execute(a):
                                 result=runtime.run_agent(prompt,tools=tools,model='qwen3.5:4b',max_turns=8,think=True,observer=observer)
                         except Exception as e:
                             error={'type':type(e).__name__,'message':str(e)};result=getattr(e,'agent_result',None)
+                    if result is not None and result.final.status=='error':
+                        error=result.final.error or {'type':'AgentFailure','message':result.final.termination_reason}
                     row={'case_index':i,'id':case['id'],'elapsed_ms':(perf_counter()-start)*1000,'error':error,
                          'result':asdict(result) if result is not None else None,
                          'stop_reason':result.stop_reason if result is not None else 'error'}
@@ -110,8 +112,7 @@ def execute(a):
                     row['loaded_models_after']=[{k:m.model_dump(mode='json').get(k) for k in ('model','digest','size','size_vram','context_length')}
                         for m in runtime.model_client().ps().models if m.model in ('qwen3.5:4b','qwen3-embedding:0.6b')]
                     if a.track=='musique':
-                        prediction,parse_error=parse_prediction(result.trace.final_response if result else '',source_map,
-                                                                stopped=row['stop_reason'])
+                        prediction,parse_error=canonical_prediction(result.final if result else None,source_map)
                         prediction={'id':case['id'],**prediction};predictions.append(prediction)
                         row.update(prediction=prediction,parse_error=parse_error,answerable_gold=case['answerable'])
                     else:
@@ -168,12 +169,12 @@ def main():
     shutil.copyfile(__file__,a.output/'run_p4_agents.py')
     shutil.copyfile(a.selected if a.track=='musique' else a.samples,a.output/('selected.json' if a.track=='musique' else 'agentic_sample_ids.json'))
     if a.dataset:shutil.copyfile(a.dataset/'manifest.json',a.output/'data-manifest.json')
-    write_json(a.output/'protocol.json',{'schema':'arkb-p4-agent-v3' if a.track=='musique' else 'arkb-p4-agent-v2','track':a.track,'model':'qwen3.5:4b',
+    write_json(a.output/'protocol.json',{'schema':'arkb-phase-a-agent-v1','track':a.track,'model':'qwen3.5:4b',
         'trials':1,'max_turns':8,'think':True,'budget':{'tools':12,'queries':10,'reads':6,'evidence_tokens':4000,'cooperative_deadline_ms':120000},
-        'query_suffix':OUTPUT_INSTRUCTION if a.track=='musique' else '',
+        'query_suffix':'',
         'harness_hard_deadline_ms':180000,
         'hard_deadline_scope':'Each run_agent call, excluding per-case index preparation. POSIX timer raises a retained execution error; server-side work cancellation is not guaranteed. Native code may defer signal handling; actual elapsed time is reported.',
-        'instrumentation_revision':'v2.1 records MuSiQue per-context indexing costs and uses a RuntimeError deadline subtype to avoid HTTP transport remapping. The 180-second limit, prompts, selection, tools and product budgets match v2. SO v2 had only a tool timeout and no model-request errors.',
+        'instrumentation_revision':'Phase A: canonical final output, reference-based tools, recoverable errors and reserved finalization. Historical P4 runs keep their frozen source and protocol.',
         'amendment':'v1 first Bright Stack Overflow attempt interrupted after more than 17 minutes in exact matching, before any completed case. v2 adds an evaluation-only hard deadline; product code and cooperative budget are unchanged. v1 is retained as an incomplete attempt.',
         'selection_sha256':digest(a.output/('selected.json' if a.track=='musique' else 'agentic_sample_ids.json')),
         'dataset_manifest_sha256':digest(a.dataset/'manifest.json') if a.dataset else None,
@@ -183,7 +184,7 @@ def main():
             'chunking':'none','batch_size':32,'scope':'Each variant has a separate SQLite database and active snapshot. Embedding caches are not shared between variants. Answers, answerability and support labels are scoring-side only.',
             'cost':'Per-case context indexing elapsed time and BuildReport recorded separately from Agent elapsed time and the run_agent hard deadline.'} if a.track=='musique' else None,
         'chat_context':'Uses current product request options (temperature=0) and server defaults; effective loaded context_length retained after each attempt. Submitted evidence is not proof of provider consumption when requests fail or the provider truncates context.',
-        'failure_prediction':'null answerability cannot earn correct abstention credit',
+        'failure_prediction':'null answerability cannot earn correct abstention credit; partial maps to answerable=false without parsing answer prose',
         'release_eligible':False,'protocol_scope':'ARKB agent diagnostic, not replication of benchmark paper agent'})
     cmd=[sys.executable,'-u',str(a.output/'run_p4_agents.py'),'--execute','--output',str(a.output),
          '--track',a.track,'--qdrant-url',a.qdrant_url]

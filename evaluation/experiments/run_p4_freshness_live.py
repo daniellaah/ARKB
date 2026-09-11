@@ -17,6 +17,7 @@ def execute(output, url):
     from arkb.knowledge.sqlite import SQLiteStorage
     from arkb.knowledge.documents import DocumentAccess
     from arkb.knowledge.qdrant import QdrantIndex
+    from arkb.agent.session import ToolSession
     notes=output/'corpus';notes.mkdir()
     original={'policy.md':'# Policy\nquota 17', 'deleted.md':'# Deleted\nretired 43', 'renamed.md':'# Rename\nbridge 59'}
     for name,body in original.items():(notes/name).write_text(body)
@@ -29,6 +30,10 @@ def execute(output, url):
             engine=runtime.retrieval_engine(old_storage,build.manifest,modes=('bm25','semantic'),exact=True)
             old_hits=engine.search('quota bridge retired',mode='semantic',top_k=3).results
             old={h.source:h for h in old_hits}
+            session=ToolSession(runtime.agent_tools(engine=engine,directory=notes,vault_id='p4-live-freshness'))
+            found=session.invoke('search',{'query':'quota bridge retired','limit':3})
+            session.deliver(found)
+            refs={h['source']:h['ref'] for h in found['results']}
             (notes/'policy.md').write_text('# Policy\nquota 23')
             (notes/'deleted.md').unlink();(notes/'renamed.md').rename(notes/'moved.md')
             access=DocumentAccess(notes,vault_id='p4-live-freshness')
@@ -37,7 +42,10 @@ def execute(output, url):
             checks['live_match_before_rebuild']=bool(runtime.match('23',db=output/'index.sqlite',vault_id='p4-live-freshness').results)
             stale=engine.search('quota bridge retired',mode='semantic',top_k=3).results
             checks['old_semantic_snapshot_stays_frozen']={h.source:h.content for h in stale}=={h.source:h.content for h in old_hits}
+            checks['edited_reference_rejected']=session.invoke('read',{'ref':refs['policy.md']})['error']['code']=='stale_reference'
+            checks['known_source_refreshes_reference']=session.invoke('read',{'source':'policy.md'})['result']['ref']!=refs['policy.md']
             for name in ('deleted.md','renamed.md'):
+                checks[name+'_reference_rejected']=session.invoke('read',{'ref':refs[name]})['error']['code']=='source_unavailable'
                 try:access.read(old[name].source_id);checks[name+'_old_read_rejected']=False
                 except LookupError:checks[name+'_old_read_rejected']=True
             after=runtime.index(db=output/'index.sqlite',vault_id='p4-live-freshness',notes_dir=notes,chunking='none')

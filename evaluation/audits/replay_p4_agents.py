@@ -44,16 +44,26 @@ def replay(run,dataset):
                               {'q':case['question']},{'q':{}},{},{})
             notes={n.source:n for n in d.notes()};source_map={k:int(v) for k,v in d.source_map().items()};vault='p4-musique'
         value=row['result'];text=value['response'] if value else None
+        canonical=bool(value and value.get('final'))
         if is_mu:
-            prediction,error=parse_prediction(text or '',source_map,stopped=row['stop_reason'])
+            if canonical:
+                from arkb.agent.state import AgentFinal
+                from arkb.evaluation.multihop import canonical_prediction
+                prediction,error=canonical_prediction(AgentFinal(**value['final']),source_map)
+            else:
+                prediction,error=parse_prediction(text or '',source_map,stopped=row['stop_reason'])
             prediction={'id':case['id'],**prediction};predictions.append(prediction)
             if prediction!=row['prediction'] or error!=row['parse_error']:raise ValueError('Prediction parse differs.')
         if value is None:
             if row['error'] is None:raise ValueError('Missing result without retained failure.')
             missing+=1;continue
         report=value['observation'];state=AgentState(**value['state'])
-        trace=AgentResult(value['response'],value['stop_reason'],state).trace
-        query=case['question']+(OUTPUT_INSTRUCTION if is_mu else '')
+        if canonical:
+            from arkb.agent.state import ObservedAgentResult
+            trace=ObservedAgentResult(value['response'],value['stop_reason'],state,report).trace
+        else:
+            trace=AgentResult(value['response'],value['stop_reason'],state).trace
+        query=case['question']+(OUTPUT_INSTRUCTION if is_mu and not canonical else '')
         if state.messages[:2]!=[{'role':'system','content':SYSTEM_INSTRUCTION},{'role':'user','content':query}]:raise ValueError('Initial prompt mismatch.')
         if trace.stop_reason!=row['stop_reason'] or report['stop_reason']!=row['stop_reason']:raise ValueError('Stop reason mismatch.')
         if report['counter_identity']!=identity or report['budget']!=expected_budget:raise ValueError('Budget or tokenizer mismatch.')
@@ -62,18 +72,34 @@ def replay(run,dataset):
             request=model['request']
             if request['messages']!=state.messages[:len(request['messages'])]:raise ValueError('Request differs from conversation history.')
             if (request['model']!=protocol['model'] or request['think']!=protocol['think'] or request['options']!={'temperature':0}
-                    or request['stream'] is not False or request['tools']!=schemas):raise ValueError('Request configuration mismatch.')
+                    or request['stream'] is not False):raise ValueError('Request configuration mismatch.')
+            if canonical and model.get('phase')=='finalization':
+                from arkb.agent.tools import FINAL_SCHEMA
+                if request.get('format')!=FINAL_SCHEMA or 'tools' in request:raise ValueError('Finalization configuration mismatch.')
+            elif request.get('tools')!=schemas:raise ValueError('Tool schemas differ.')
             if model['request_json_reference_tokens']!=count(json.dumps(request,ensure_ascii=False,sort_keys=True)):raise ValueError('Request token count mismatch.')
             if model['usage'] is not None and any(v!=model['response'].get(k) for k,v in model['usage'].items()):raise ValueError('Provider usage mismatch.')
             model_checks+=1
-        if row['stop_reason']=='final' and report['models'][-1]['response']['message']['content']!=text:raise ValueError('Final text differs from model output.')
+        if row['stop_reason']=='final':
+            if canonical:
+                if value['final']!=report['final'] or value['final']['answer']!=text:raise ValueError('Canonical final differs.')
+                message=report['models'][-1]['response']['message']
+                proposal=(next(c['function']['arguments'] for c in message['tool_calls'] if c['function']['name']=='finish')
+                          if message.get('tool_calls') else json.loads(message['content']))
+                if proposal['answer']!=text or proposal['status']!=value['final']['status']:raise ValueError('Final proposal differs.')
+            elif report['models'][-1]['response']['message']['content']!=text:raise ValueError('Final text differs from model output.')
         if len(trace.tool_calls)!=len(report['tools']):raise ValueError('Tool request counts differ.')
         delivered=returned=0;unique={}
         for event,tool in zip(report['tools'],trace.tool_calls):
             if (event['turn'],event['name'],event['arguments'])!=(tool.turn,tool.name,tool.arguments):raise ValueError('Tool request mismatch.')
-            if tool.result!=(event['raw_result'] if event['delivered_to_conversation'] else None):raise ValueError('Delivered observation mismatch.')
+            expected_result=(event.get('conversation_result') if canonical else (event['raw_result'] if event['delivered_to_conversation'] else None))
+            if tool.result!=expected_result:raise ValueError('Delivered observation mismatch.')
             if event['returned_evidence_tokens'] is not None:
-                hits=[event['raw_result']['result']] if event['name']=='read' else event['raw_result']['results']
+                if canonical:
+                    from arkb.evaluation.external_agent import evidence_hits
+                    hits=evidence_hits(event['raw_result'],event['name'],report['evidence_references'])
+                else:
+                    hits=[event['raw_result']['result']] if event['name']=='read' else event['raw_result']['results']
                 value_tokens=sum(count(h['content']) for h in hits)
                 if value_tokens!=event['returned_evidence_tokens']:raise ValueError('Returned token count differs.')
                 returned+=value_tokens
@@ -91,7 +117,7 @@ def replay(run,dataset):
             tool_checks+=1
         if report['evidence']!={'returned_tokens':returned,'delivered_tokens':delivered,'unique_exact_excerpt_tokens':sum(unique.values())}:
             raise ValueError('Evidence totals differ.')
-        executed=[e for e in report['tools'] if e['executed']]
+        executed=[e for e in report['tools'] if e['executed'] and not (canonical and e['name']=='finish')]
         if (len(executed)>budget['tools'] or sum(e['name'] in ('search','match') for e in executed)>budget['queries']
                 or sum(e['name']=='read' for e in executed)>budget['reads'] or delivered>budget['evidence_tokens']):raise ValueError('Budget exceeded.')
         for k in ('prompt_eval_count','eval_count'):

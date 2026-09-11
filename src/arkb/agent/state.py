@@ -1,7 +1,7 @@
 """Conversation and model-turn count for one in-memory agent run."""
 
 from copy import deepcopy
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 import json
 from typing import Any, Literal
 
@@ -45,10 +45,30 @@ class AgentTrace:
 
 
 @dataclass(frozen=True)
+class AgentFinal:
+    """Canonical Agent outcome; structural validity does not certify its claims.
+
+    Uses the existing generation status vocabulary, with error reserved for
+    runtime/protocol failures. Resolved citations retain their source revisions.
+    """
+
+    answer: str | None
+    status: Literal['answered', 'partial', 'insufficient_evidence', 'error']
+    citations: list[dict]
+    termination_reason: str
+    error: dict | None = None
+    schema_version: str = 'arkb-agent-final-v1'
+
+    def to_json(self) -> str:
+        return json.dumps(asdict(self), sort_keys=True, ensure_ascii=False, allow_nan=False)
+
+
+@dataclass(frozen=True)
 class AgentResult:
     response: str | None
     stop_reason: Literal['final', 'max_turns', 'error', 'budget']
     state: AgentState
+    final: AgentFinal | None = field(default=None, kw_only=True)
 
     @property
     def trace(self) -> AgentTrace:
@@ -72,6 +92,9 @@ class AgentResult:
                 calls[observation] = replace(calls[observation], result=json.loads(message['content']))
                 observation += 1
         query = next((m['content'] for m in self.state.messages if m['role'] == 'user'), '')
+        if isinstance(self, ObservedAgentResult):
+            calls = [AgentToolTrace(e['turn'], e['name'], deepcopy(e['arguments']),
+                        deepcopy(e.get('conversation_result'))) for e in self.observation['tools']]
         return AgentTrace(query, self.state.turn, calls, self.response, self.stop_reason)
 
 

@@ -11,7 +11,7 @@ from arkb.evaluation.agent_metrics import evaluate_case, summarize_agent_results
 from arkb.knowledge.documents import DocumentAccess
 from arkb.retrieval.exact import ExactRetriever
 from arkb.runtime import Runtime
-from tests.agent.helpers import ScriptedModel, reply, tool_call
+from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
 from tests.evaluation.test_agent_dataset import DATASET, NOTES
 
 
@@ -36,7 +36,7 @@ def test_exact_labels_equal_real_body_occurrences(index):
 @pytest.mark.parametrize('index', range(6))
 def test_direct_read_dataset_runs_through_real_runtime_and_trace(tmp_path, index):
     case = [c for c in load_agent_eval_dataset(DATASET) if c.task_type == 'direct_read'][index]
-    client = ScriptedModel(reply(calls=[tool_call('read', source=case.expected_sources[0])]), reply('Done'))
+    client = ScriptedModel(reply(calls=[tool_call('read', source=case.expected_sources[0])]), complete('Done'))
     with Runtime() as runtime:
         result = runtime.ask(case.query, db=tmp_path / 'absent.sqlite', notes_dir=NOTES,
                              model='scripted', client=client)
@@ -62,12 +62,12 @@ def test_real_search_read_search_read_and_partial_tool_error_feed_metrics():
     def read_first_hit(messages):
         import json
         hit = json.loads(messages[-1]['content'])['results'][0]
-        return reply(calls=[tool_call('read', document_id=hit['document_id'])])
+        return reply(calls=[tool_call('read', ref=hit['ref'])])
 
     client = ScriptedModel(
         reply(calls=[tool_call('search', query='LangMem', mode='bm25')]), read_first_hit,
         reply(calls=[tool_call('search', query='compaction', mode='bm25', source='06_context_compaction.md')]),
-        read_first_hit, reply('Done'),
+        read_first_hit, complete('Done'),
     )
     with Runtime() as runtime:
         tools = runtime.agent_tools(engine=engine, directory=NOTES, vault_id='eval', mode='bm25')
@@ -80,15 +80,15 @@ def test_real_search_read_search_read_and_partial_tool_error_feed_metrics():
             tool_call('read', source=case.expected_sources[0]),
             tool_call('read', source='absent.md'),
             tool_call('read', source=case.expected_sources[1]),
-        ]))
-        with pytest.raises(LookupError) as raised:
-            runtime.run_agent(case.query, tools=tools, client=broken, model='scripted')
-        failed = evaluate_case(case, raised.value.agent_result.trace)
-    assert not failed.success and failed.stop_reason == 'error'
-    assert failed.source_recall == .5
+        ]), complete('Recovered'))
+        recovered = runtime.run_agent(case.query, tools=tools, client=broken, model='scripted')
+        assert recovered.trace.tool_calls[1].result['status'] == 'recoverable_error'
+        failed = evaluate_case(case, recovered.trace)
+    assert failed.success and failed.stop_reason == 'final'
+    assert failed.source_recall == 1
     assert failed.tool_call_count == 3
-    assert failed.read_sources == (case.expected_sources[0],)
-    assert summarize_agent_results([metrics, failed])['task_success_rate'] == .5
+    assert failed.read_sources == case.expected_sources
+    assert summarize_agent_results([metrics, failed])['task_success_rate'] == 1
 
 
 def test_complete_runner_loop_uses_published_index_real_runtime_and_all_task_types(
@@ -131,6 +131,8 @@ def test_complete_runner_loop_uses_published_index_real_runtime_and_all_task_typ
     embedding.reset_mock()
     dataset = tmp_path / 'cases.jsonl'
     dataset.write_text(''.join(json.dumps(asdict(c), ensure_ascii=False) + '\n' for c in cases), encoding='utf-8')
+    def provider_failure(messages):
+        raise ConnectionError('provider unavailable after recovered read error')
     steps = []
     for case in cases:
         for trial in range(2):
@@ -147,8 +149,9 @@ def test_complete_runner_loop_uses_published_index_real_runtime_and_all_task_typ
                 steps.append(reply(calls=[tool_call('search', query='trials', mode='bm25')]))
             elif case.id == 'failed_read':
                 steps.append(reply(calls=[tool_call('read', source='missing.md')]))
+                steps.append(provider_failure)
                 continue
-            steps.append(reply('Done'))
+            steps.append(complete('Done'))
     client = ScriptedModel(*steps)
     with Runtime() as runtime:
         run = run_agent_evaluation(AgentEvalConfig(
@@ -157,19 +160,19 @@ def test_complete_runner_loop_uses_published_index_real_runtime_and_all_task_typ
         ), runtime=runtime, client=client)
         # Evaluation leaves an injected runtime open.
         assert runtime.ask('hello', db=db, vault_id='eval', notes_dir=notes,
-                           client=ScriptedModel(reply('Hello')), model='scripted').stop_reason == 'final'
+                           client=ScriptedModel(complete('Hello', status='answered')), model='scripted').stop_reason == 'final'
     assert run.summary['total_cases'] == 7 and run.summary['total_trials'] == 14
     assert run.summary['success_count'] == 12 and run.summary['failure_count'] == 2
     assert len(run.summary['by_task_type']) == 6
     assert sum(len(r['messages']) == 2 for r in client.requests) == 14
     assert [r.metrics.stop_reason for r in run.results[-2:]] == ['error', 'error']
-    assert all(r.trace.tool_calls[0].result is None for r in run.results[-2:])
+    assert all(r.trace.tool_calls[0].result['status'] == 'recoverable_error' for r in run.results[-2:])
     metadata = json.loads((run.output_dir / 'run_metadata.json').read_text())
     snapshot = metadata['knowledge_before']['snapshot']
     assert snapshot['manifest']['index_version'] == indexed.manifest.index_version
     assert len(snapshot['corpus']) == len(sources)
     assert metadata['knowledge_changed'] is False
     rows = [json.loads(line) for line in (run.output_dir / 'results.jsonl').read_text().splitlines()]
-    assert len(rows) == 14 and rows[-1]['error']['type'] == 'LookupError'
+    assert len(rows) == 14 and rows[-1]['error']['type'] == 'ConnectionError'
     assert 'failed_read / trial 1' in (run.output_dir / 'report.md').read_text()
     embedding.embed.assert_not_called()

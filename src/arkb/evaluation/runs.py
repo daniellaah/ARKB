@@ -95,7 +95,10 @@ def _run_trial(case, trial, *, runtime, config, metadata, client):
     if client is not None:
         options['client'] = client
     try:
-        trace = runtime.ask(case.query, **options).trace
+        result = runtime.ask(case.query, **options)
+        trace = result.trace
+        if result.final is not None and result.final.status == 'error':
+            error = result.final.error or {'type': 'AgentFailure', 'message': result.final.termination_reason}
     except Exception as failure:
         partial = getattr(failure, 'agent_result', None)
         if isinstance(partial, AgentResult):

@@ -219,10 +219,10 @@ def test_default_output_creates_distinct_runs_and_records_input_drift(config, mo
 
 def test_thin_cli_uses_owned_real_runtime_without_extending_main_cli(config, monkeypatch, capsys):
     from arkb.runtime import Runtime
-    from tests.agent.helpers import ScriptedModel, reply
+    from tests.agent.helpers import ScriptedModel, reply, complete
 
     # All requests answer directly: retrieval tasks fail evaluation but the run completes.
-    client = ScriptedModel(*[reply('Hello') for _ in range(6)])
+    client = ScriptedModel(*[complete('Hello', status='answered') for _ in range(6)])
     monkeypatch.setattr(Runtime, 'model_client', lambda self: client)
     assert main(['--dataset', str(config.dataset_path), '--output', str(config.output_dir),
                  '--notes-dir', str(config.notes_dir), '--db', str(config.db),

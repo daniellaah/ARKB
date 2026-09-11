@@ -60,7 +60,7 @@ def test_search_default_is_host_configured_and_agent_can_override_it(documents, 
     with pytest.raises(TypeError):
         tools.search('question', rerank=True)
     definitions = json.loads(json.dumps(TOOL_DEFINITIONS))
-    assert [d['name'] for d in definitions] == ['match', 'search', 'read']
+    assert [d['name'] for d in definitions] == ['match', 'search', 'read', 'finish']
     assert set(definitions[1]['parameters']['properties']) == {'query', 'source', 'limit', 'mode'}
     assert definitions[1]['parameters']['properties']['mode']['enum'] == ['bm25', 'semantic', 'hybrid', None]
 

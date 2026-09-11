@@ -11,6 +11,18 @@ OUTPUT_INSTRUCTION = ('\n\nUse only evidence in this knowledge base. Return a JS
     'does not contain sufficient evidence, set answerable to false and explain no facts beyond that evidence.')
 
 
+def canonical_prediction(final, sources):
+    """Map ARKB's canonical outcome; no model prose parsing or gold access."""
+    failure = {'predicted_answer': '', 'predicted_answerable': None, 'predicted_support_idxs': []}
+    if final is None or final.status == 'error':
+        return failure, 'execution_did_not_finish'
+    source_names = list(dict.fromkeys(c['source'] for c in final.citations))
+    if any(source not in sources for source in source_names):
+        raise ValueError('Citation is outside the registered benchmark context.')
+    return {'predicted_answer': final.answer, 'predicted_answerable': final.status == 'answered',
+            'predicted_support_idxs': [sources[s] for s in source_names]}, None
+
+
 def parse_prediction(text, sources, *, stopped='final'):
     failure={'predicted_answer':'','predicted_answerable':None,'predicted_support_idxs':[]}
     if stopped!='final': return failure,'execution_did_not_finish'

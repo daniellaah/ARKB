@@ -4,6 +4,7 @@ import hashlib
 import json
 
 from arkb.evaluation.v2 import evidence_scores
+from arkb.evaluation.external_agent import evidence_hits
 
 
 def fingerprint(value):
@@ -16,7 +17,7 @@ def submitted_evidence(observation):
     for event in observation['tools']:
         if not event['submitted_to_model'] or not event['delivered_to_conversation']:continue
         raw=event['raw_result']
-        hits=[raw['result']] if event['name']=='read' else raw['results']
+        hits=evidence_hits(raw, event['name'], observation.get('evidence_references'))
         for index,hit in enumerate(hits):
             evidence.append({**hit,'id':f'E{event["index"]}_{index}','tool':event['name']})
     return evidence
@@ -81,7 +82,7 @@ def score_agent_output(case,answer,stop_reason,report,dataset,*,review=None):
     packet=output_packet(case,answer,submitted_evidence(report),stop_reason=stop_reason,
                          execution_error=report['error'])
     scored=score_output(packet,dataset,review=review)
-    requested=report['tools']
+    requested=[e for e in report['tools'] if e['name'] != 'finish']
     constraints=[]
     if case['task_type']=='no_retrieval' and requested:constraints.append('unnecessary_retrieval_requested')
     if case['task_type']=='direct_read' and not any(e['tool']=='read' and e['source']==case['read_source'] for e in packet['evidence']):

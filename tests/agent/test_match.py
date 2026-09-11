@@ -50,7 +50,7 @@ def test_match_delegates_once_and_propagates_failure(documents, engine):
     assert tools.match('term', target='source', regex=True, case_sensitive=False,
                        source='b.md', limit=3)['results'] == []
     exact.search.assert_called_once_with('term', target='source', regex=True,
-                                        case_sensitive=False, filters={'source': 'b.md'}, top_k=3)
+                                        case_sensitive=False, filters={'source': 'b.md'}, top_k=3, timeout=30)
     error = OSError('reader failed')
     exact.search.side_effect = error
     with pytest.raises(OSError) as raised:

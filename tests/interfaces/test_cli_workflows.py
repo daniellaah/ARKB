@@ -180,7 +180,7 @@ def test_match_uses_saved_directory_and_live_content_from_another_cwd(
 
 def test_ask_runs_multiple_agent_selected_modes_on_one_snapshot(indexed_client, workspace, monkeypatch, capsys):
     from arkb.retrieval import BM25Retriever
-    from tests.agent.helpers import ScriptedModel, reply, tool_call
+    from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
 
     db = workspace / '.arkb/index.sqlite'
     captured_versions = []
@@ -206,8 +206,9 @@ def test_ask_runs_multiple_agent_selected_modes_on_one_snapshot(indexed_client, 
         return reply(calls=[tool_call('search', query='habit', mode='hybrid', source='habits.md')])
 
     def finish(messages):
-        assert json.loads(messages[-1]['content'])['results'][0]['content'] == 'A cue starts a habit.'
-        return reply('Found the saved evidence and checked the live note.')
+        assert json.loads(messages[-2]['content'])['results'][0]['content'] == 'A cue starts a habit.'
+        live = next(json.loads(m['content'])['result'] for m in messages if m.get('tool_name') == 'read')
+        return reply(json.dumps({'answer': 'Checked current habit body.', 'status': 'answered', 'evidence_refs': [live['ref']]}))
 
     model = ScriptedModel(reply(calls=[tool_call('search', query='habit', mode='bm25', source='habits.md')]),
                            after_first_search, after_read, finish)
@@ -223,9 +224,9 @@ def test_ask_runs_multiple_agent_selected_modes_on_one_snapshot(indexed_client, 
 def test_ask_cli_keeps_json_clean_with_real_loop_and_bm25_only_calls(
     indexed_client, monkeypatch, client_factory, tokenizer_download, capsys,
 ):
-    from tests.agent.helpers import ScriptedModel, reply, tool_call
+    from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
 
-    model = ScriptedModel(reply(calls=[tool_call('search', query='habit', mode='bm25')]), reply('Found habits.md'))
+    model = ScriptedModel(reply(calls=[tool_call('search', query='habit', mode='bm25')]), complete('Found habits.md', constrained=True))
     monkeypatch.setattr(Runtime, 'model_client', lambda self: model)
     client_factory.reset_mock()
     tokenizer_download.reset_mock()
@@ -250,13 +251,18 @@ def test_ask_cli_shows_partial_trace_on_errors_without_changing_execution(
 
     first = reply(calls=[tool_call('read', source='habits.md')])
     second = (ReadTimeout('model unavailable') if failure == 'model' else
-              reply(calls=[tool_call('read', source='missing.md'), tool_call('read', source='never.md')]))
+              reply(calls=[tool_call('search', query='q'), tool_call('read', source='never.md')]))
     model = Mock(chat=Mock(side_effect=[first, second]))
     monkeypatch.setattr(Runtime, 'model_client', lambda self: model)
     args = ['ask', 'Read notes'] + (['--trace'] if trace_enabled else []) + (['--json'] if json_output else [])
     assert main(args) == 1
     output = capsys.readouterr()
-    assert output.out == '' and 'Error:' in output.err
+    assert 'without a final response' in output.err
+    if json_output:
+        payload = json.loads(output.out)
+        assert payload['final']['status'] == 'error' and payload['response'] is None
+    else:
+        assert output.out == ''
     assert ('[1] read\nsource: "habits.md"' in output.err) is trace_enabled
     assert ('error\n' in output.err) is trace_enabled
     assert model.chat.call_count == 2

@@ -73,11 +73,11 @@ def test_runtime_runs_agent_with_reused_owned_model_client(monkeypatch):
     from arkb.agent import AgentTools, TOOL_DEFINITIONS
     from arkb.config import DEFAULT_GENERATION_MODEL, RuntimeConfig
     from arkb.runtime import Runtime
-    from tests.agent.helpers import reply
+    from tests.agent.helpers import reply, complete
 
     client = MagicMock()
     client.__enter__.return_value = client
-    client.chat.return_value = reply('hello')
+    client.chat.side_effect = lambda **request: complete('hello', status='answered', constrained='format' in request)(request['messages'])
     factory = Mock(return_value=client)
     monkeypatch.setattr('ollama.Client', factory)
     with Runtime(RuntimeConfig(host='http://model', timeout=12)) as runtime:
@@ -100,13 +100,13 @@ def test_runtime_runs_agent_with_reused_owned_model_client(monkeypatch):
 def test_runtime_leaves_injected_model_client_caller_owned(monkeypatch):
     from arkb.agent import AgentTools, TOOL_DEFINITIONS
     from arkb.runtime import Runtime
-    from tests.agent.helpers import reply
+    from tests.agent.helpers import reply, complete
 
     factory, vector_factory = Mock(), Mock()
     monkeypatch.setattr('ollama.Client', factory)
     monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', vector_factory)
     client = MagicMock()
-    client.chat.return_value = reply('hello')
+    client.chat.side_effect = lambda **request: complete('hello', status='answered', constrained='format' in request)(request['messages'])
     with Runtime() as runtime:
         result = runtime.run_agent('Hello', tools=Mock(spec=AgentTools, tool_definitions=Mock(return_value=TOOL_DEFINITIONS)), client=client)
         assert result.stop_reason == 'final'
@@ -123,7 +123,7 @@ def test_agent_vertical_slice_uses_real_tools_and_retrieval_over_multiple_turns(
     from arkb.knowledge.documents import DocumentAccess
     from arkb.retrieval import BM25Retriever, RetrievalEngine
     from arkb.runtime import Runtime
-    from tests.agent.helpers import ScriptedModel, reply, tool_call
+    from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
 
     (tmp_path / 'memory.md').write_text(
         '# Memory\nAgent Memory keeps useful experience.\nFollow-up: episodic retention', encoding='utf-8')
@@ -136,7 +136,7 @@ def test_agent_vertical_slice_uses_real_tools_and_retrieval_over_multiple_turns(
         observation = json.loads(messages[-1]['content'])
         hit = observation['results'][0]
         assert hit['source'] == 'memory.md'
-        return reply(calls=[tool_call('read', document_id=hit['document_id'])])
+        return reply(calls=[tool_call('read', ref=hit['ref'])])
 
     def follow_reference(messages):
         observation = json.loads(messages[-1]['content'])
@@ -145,9 +145,9 @@ def test_agent_vertical_slice_uses_real_tools_and_retrieval_over_multiple_turns(
         return reply(calls=[tool_call('search', query=query)])
 
     def finish_with_evidence(messages):
-        observation = json.loads(messages[-1]['content'])
+        observation = json.loads(messages[-2]['content'])
         assert any(hit['source'] == 'episodic.md' for hit in observation['results'])
-        return reply('Enough material collected.')
+        return complete('Enough material collected.', constrained=True)(messages)
 
     client = ScriptedModel(reply(calls=[tool_call('search', query='Agent Memory')]),
                            read_found_document, follow_reference, finish_with_evidence)
@@ -159,7 +159,7 @@ def test_agent_vertical_slice_uses_real_tools_and_retrieval_over_multiple_turns(
     assert [c['function']['name'] for c in result.state.tool_calls] == ['search', 'read', 'search']
     assert [c.args[0] for c in engine.search.call_args_list] == ['Agent Memory', 'episodic retention']
     assert [m['role'] for m in result.state.messages] == [
-        'system', 'user', 'assistant', 'tool', 'assistant', 'tool', 'assistant', 'tool', 'assistant']
+        'system', 'user', 'assistant', 'tool', 'assistant', 'tool', 'assistant', 'tool', 'system', 'assistant']
 
 
 def test_match_entry_point_uses_exact_capability_without_index_or_services(tmp_path, monkeypatch):
@@ -186,11 +186,11 @@ def test_match_entry_point_uses_exact_capability_without_index_or_services(tmp_p
 
 def test_ask_entry_point_composes_real_live_tools_without_loading_ranked_capabilities(tmp_path, monkeypatch):
     from arkb.runtime import Runtime
-    from tests.agent.helpers import ScriptedModel, reply, tool_call
+    from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
 
     (tmp_path / 'a.md').write_text('# Title\nRAG', encoding='utf-8')
     model = ScriptedModel(reply(calls=[tool_call('match', query='RAG')]),
-                          reply(calls=[tool_call('read', source='a.md')]), reply('a.md mentions RAG'))
+                          reply(calls=[tool_call('read', source='a.md')]), complete('a.md mentions RAG', constrained=True))
     factory, vector, tokenizer = Mock(), Mock(), Mock()
     monkeypatch.setattr('ollama.Client', factory)
     monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', vector)
@@ -207,22 +207,22 @@ def test_ask_entry_point_composes_real_live_tools_without_loading_ranked_capabil
 
 def test_ask_requires_an_index_only_when_agent_requests_search(tmp_path):
     from arkb.runtime import Runtime
-    from tests.agent.helpers import ScriptedModel, reply, tool_call
+    from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
 
     with Runtime() as runtime:
-        direct = runtime.ask('Hello', db=tmp_path / 'absent.sqlite', client=ScriptedModel(reply('Hello')))
+        direct = runtime.ask('Hello', db=tmp_path / 'absent.sqlite', client=ScriptedModel(complete('Hello', status='answered')))
         assert direct.stop_reason == 'final'
-        with pytest.raises(ValueError, match='No published index'):
-            runtime.ask('Q', db=tmp_path / 'absent.sqlite', client=ScriptedModel(
+        failed = runtime.ask('Q', db=tmp_path / 'absent.sqlite', client=ScriptedModel(
                 reply(calls=[tool_call('search', query='Q', mode='bm25')])))
+        assert failed.stop_reason == 'error' and 'No published index' in failed.final.error['message']
 
 
 @pytest.mark.parametrize('options,expected', [({}, True), ({'think': True}, True), ({'think': False}, False)])
 def test_ask_forwards_thinking_to_the_agent_model(tmp_path, options, expected):
     from arkb.runtime import Runtime
-    from tests.agent.helpers import ScriptedModel, reply
+    from tests.agent.helpers import ScriptedModel, reply, complete
 
-    model = ScriptedModel(reply('Hello'))
+    model = ScriptedModel(complete('Hello', status='answered'))
     with Runtime() as runtime:
         assert runtime.ask('Hello', db=tmp_path / 'absent.sqlite', client=model, **options).response == 'Hello'
     assert model.requests[0]['think'] is expected

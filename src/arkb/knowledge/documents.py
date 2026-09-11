@@ -8,6 +8,10 @@ from arkb.knowledge.chunking import _sections, whole_note_chunks
 from arkb.knowledge.models import ChunkRecord, Note, _document_id, _require_digest, _require_text
 
 
+class DocumentNotFound(LookupError):
+    """A live document or requested section no longer resolves in this scope."""
+
+
 @dataclass(frozen=True)
 class DocumentSlice:
     """Current document text in body coordinates, without an indexed chunk identity."""
@@ -125,16 +129,16 @@ class DocumentAccess:
         path = next((path for path in self._paths(source) if document_id is None
                      or _document_id(self.vault_id, path.name) == document_id), None)
         if path is None:
-            raise LookupError(f'No document matches document_id={document_id!r}, source={source!r}.')
+            raise DocumentNotFound(f'No document matches document_id={document_id!r}, source={source!r}.')
         try:
             note = _load_note(path)
         except FileNotFoundError as error:
-            raise LookupError(f'Document no longer exists: {path.name}.') from error
+            raise DocumentNotFound(f'Document no longer exists: {path.name}.') from error
         heading_path = ()
         if section_id is not None:
             section = next((s for s in _sections(note) if s.section_id == section_id), None)
             if section is None:
-                raise LookupError(f'Unknown section: {section_id}.')
+                raise DocumentNotFound(f'Unknown section: {section_id}.')
             start, end = section.blocks[0].start, section.blocks[-1].end
             heading_path = section.heading_path
         else:
