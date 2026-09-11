@@ -36,7 +36,7 @@ def test_reranker_empty_ties_invalid_scores_and_duplicate_identity():
     reranker = Reranker(scorer)
     assert reranker.rerank('query', []) == ()
     scorer.score.assert_not_called()
-    assert [h.chunk_id for h in reranker.rerank('query', list(reversed(candidates())))] == ['a', 'b']
+    assert [h.chunk_id for h in reranker.rerank('query', list(reversed(candidates())))] == ['b', 'a']
     for scores in ([1.], [True, 1.], [float('nan'), 1.], [[1.], [2.]]):
         scorer.score.return_value = scores
         with pytest.raises(ValueError, match='one finite score'):
@@ -57,3 +57,32 @@ def test_frozen_candidate_evaluation_isolates_ranking_changes_and_latency():
     assert row['rank_changes'][0] == {'identity': ['b', 'chunk', 'b'], 'before': 2, 'after': 1}
     assert row['latency_ms'] >= 0
     assert len(row['candidates']) == 2 and len(row['results']) == 1
+
+
+@pytest.mark.parametrize('scores, expected', [
+    ([2., 1., 2., 1.], ['z', 'b', 'y', 'a']),
+    ([3., 3., 3., 3.], ['z', 'y', 'b', 'a']),
+    ([1., 2., 3., 4.], ['a', 'b', 'y', 'z']),
+])
+def test_score_groups_preserve_upstream_order_and_every_candidate(scores, expected):
+    from dataclasses import replace
+    from arkb.retrieval.rerank import Reranker
+    before = tuple(replace(candidates()[0], source_id=name, source=name+'.md', chunk_id=name)
+                   for name in ('z', 'y', 'b', 'a'))
+    scorer = SimpleNamespace(identity='frozen', score_type='logit', score=lambda *_: scores)
+    after = Reranker(scorer).rerank('query', before)
+    assert [h.chunk_id for h in after] == expected
+    assert {h.identity for h in after} == {h.identity for h in before}
+    original = {h.identity: h for h in before}
+    assert all(h.content == original[h.identity].content for h in after)
+
+
+def test_distinct_chunks_of_one_source_remain_distinct_candidates():
+    from dataclasses import replace
+    from arkb.retrieval.rerank import Reranker
+    first = candidates()[0]
+    second = replace(first, chunk_id='second-chunk', content='Other evidence.')
+    scorer = SimpleNamespace(identity='frozen', score_type='logit', score=lambda *_: [0., 1.])
+    after = Reranker(scorer).rerank('query', [first, second])
+    assert [h.chunk_id for h in after] == ['second-chunk', first.chunk_id]
+    assert [h.source for h in after] == [first.source, first.source]

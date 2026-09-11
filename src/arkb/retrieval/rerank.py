@@ -47,8 +47,8 @@ class Reranker:
             type(score) not in (int, float) or not math.isfinite(score) for score in scores
         ):
             raise ValueError('Scorer must return one finite score per candidate.')
-        # Stable identity resolves score ties independently of candidate order.
-        order = sorted(range(len(candidates)), key=lambda i: (-scores[i], candidates[i].identity))
+        # Equal model scores express no preference: preserve the upstream order.
+        order = sorted(range(len(candidates)), key=lambda i: -scores[i])
         return tuple(replace(candidates[i], method='reranked', score=scores[i], score_type=self.scorer.score_type,
                              metadata={**candidates[i].metadata, 'rerank': {
                                  'scorer': self.scorer.identity, 'input_rank': i + 1,
