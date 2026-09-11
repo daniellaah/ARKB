@@ -1,0 +1,144 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 1152 items / 1093 deselected / 59 selected
+
+tests/agent/integration/test_qwen_agent.py::test_real_model_selects_tools_and_finishes[Which notes mention RAG-allowed_first_tools0] PASSED [  1%]
+tests/agent/integration/test_qwen_agent.py::test_real_model_selects_tools_and_finishes[Which notes relate to RAG-allowed_first_tools1] PASSED [  3%]
+tests/agent/integration/test_qwen_agent.py::test_real_model_selects_tools_and_finishes[Read rag.md-allowed_first_tools2] PASSED [  5%]
+tests/agent/integration/test_qwen_agent.py::test_real_model_selects_tools_and_finishes[Find material about Agent Memory-allowed_first_tools3] PASSED [  6%]
+tests/agent/integration/test_qwen_agent.py::test_real_model_selects_tools_and_finishes[Hello-allowed_first_tools4] PASSED [  8%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_runtime_with_persisted_hybrid_retrieval[A-match-Which notes mention RAG-match] PASSED [ 10%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_runtime_with_persisted_hybrid_retrieval[B-search-Which notes relate to RAG-search] PASSED [ 11%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_runtime_with_persisted_hybrid_retrieval[C-read-Read rag.md-read] PASSED [ 13%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_runtime_with_persisted_hybrid_retrieval[D-materials-Find material for an article about Agent Memory. Read candidate notes and check their linked policy. Report the episodic-memory retention period and experiment verification code, with supporting filenames.-None] PASSED [ 15%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_runtime_with_persisted_hybrid_retrieval[E-direct-Hello-None] PASSED [ 16%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_runtime_with_persisted_hybrid_retrieval[F-limit-Find material for an article about Agent Memory. Read candidate notes and check their linked policy. Report the episodic-memory retention period and experiment verification code, with supporting filenames.-None] PASSED [ 18%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_ask_cli_uses_runtime_entry_point[CLI-materials-Find material for an article about Agent Memory. Read candidate notes and check their linked policy. Report the episodic-memory retention period and experiment verification code, with supporting filenames.-8-0-flags0] PASSED [ 20%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_ask_cli_uses_runtime_entry_point[CLI-limit-Read rag.md and explain RAG using the note.-1-0-flags1] PASSED [ 22%]
+tests/agent/integration/test_runtime_qdrant.py::test_real_ask_cli_uses_runtime_entry_point[CLI-limit-no-think-Read rag.md and explain RAG using the note.-1-0-flags2] PASSED [ 23%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[False-material-Find material for an article about Agent Memory. Read candidate notes and check their linked policy. Report the episodic-memory retention period and experiment verification code, with supporting filenames.-1] PASSED [ 25%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[False-material-Find material for an article about Agent Memory. Read candidate notes and check their linked policy. Report the episodic-memory retention period and experiment verification code, with supporting filenames.-2] PASSED [ 27%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[False-related-Which notes relate to RAG-1] PASSED [ 28%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[False-related-Which notes relate to RAG-2] PASSED [ 30%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[True-material-Find material for an article about Agent Memory. Read candidate notes and check their linked policy. Report the episodic-memory retention period and experiment verification code, with supporting filenames.-1] PASSED [ 32%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[True-material-Find material for an article about Agent Memory. Read candidate notes and check their linked policy. Report the episodic-memory retention period and experiment verification code, with supporting filenames.-2] PASSED [ 33%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[True-related-Which notes relate to RAG-1] PASSED [ 35%]
+tests/agent/integration/test_runtime_qdrant.py::test_thinking_configuration_quality_and_work[True-related-Which notes relate to RAG-2] PASSED [ 37%]
+tests/generation/integration/test_generation_counter.py::test_generation_token_count_matches_ollama[english] PASSED [ 38%]
+tests/generation/integration/test_generation_counter.py::test_generation_token_count_matches_ollama[unicode] PASSED [ 40%]
+tests/generation/integration/test_generation_counter.py::test_generation_token_count_matches_ollama[long-code] PASSED [ 42%]
+tests/generation/integration/test_generation_counter.py::test_generation_token_count_matches_ollama[special-marker] PASSED [ 44%]
+tests/generation/integration/test_qwen_citations.py::test_real_citation_schema_and_message_counts[What is the project code?-The project code is ORCHID-42.] PASSED [ 45%]
+tests/generation/integration/test_qwen_citations.py::test_real_citation_schema_and_message_counts[What is the project code?-The project code is ORCHID-42. Verbatim characters: e\u0301 \U0001f9e0.] PASSED [ 47%]
+tests/generation/integration/test_qwen_citations.py::test_real_output_truncation_is_reported PASSED [ 49%]
+tests/generation/integration/test_qwen_citations.py::test_citation_python_api_uses_cli_built_snapshot PASSED [ 50%]
+tests/generation/integration/test_qwen_citations.py::test_citation_evaluation_cli_records_results_without_modifying_index PASSED [ 52%]
+tests/generation/integration/test_qwen_citations.py::test_real_quoted_generation_preserves_unicode_and_computes_offsets PASSED [ 54%]
+tests/interfaces/integration/test_indexing_lifecycle.py::test_new_process_search_and_incremental_cli_lifecycle PASSED [ 55%]
+tests/knowledge/integration/test_qdrant_indexing.py::test_qdrant_publication_hnsw_and_failure_recovery PASSED [ 57%]
+tests/knowledge/integration/test_qwen_chunking.py::test_qwen_chunks_obey_token_budgets_and_preserve_the_original[english] PASSED [ 59%]
+tests/knowledge/integration/test_qwen_chunking.py::test_qwen_chunks_obey_token_budgets_and_preserve_the_original[markdown] PASSED [ 61%]
+tests/knowledge/integration/test_qwen_chunking.py::test_qwen_chunks_obey_token_budgets_and_preserve_the_original[code-and-crlf] PASSED [ 62%]
+tests/knowledge/integration/test_qwen_chunking.py::test_qwen_chunks_obey_token_budgets_and_preserve_the_original[unicode] PASSED [ 64%]
+tests/knowledge/integration/test_qwen_chunking.py::test_qwen_chunks_obey_token_budgets_and_preserve_the_original[boundary] PASSED [ 66%]
+tests/knowledge/integration/test_qwen_embeddings.py::test_prepared_input_count_matches_the_embedding_request[document-Body cafe\u0301 \U0001f9e0\r\n```py\nx = 1\n```] PASSED [ 67%]
+tests/knowledge/integration/test_qwen_embeddings.py::test_prepared_input_count_matches_the_embedding_request[document-Literal marker.<|endoftext|>] PASSED [ 69%]
+tests/knowledge/integration/test_qwen_embeddings.py::test_prepared_input_count_matches_the_embedding_request[query-How to preserve e\u0301 and Markdown?] PASSED [ 71%]
+tests/knowledge/integration/test_qwen_embeddings.py::test_prepared_input_count_matches_the_embedding_request[raw-query-  Original question?\r\n] PASSED [ 72%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[english] PASSED [ 74%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[markdown] PASSED [ 76%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[code] PASSED [ 77%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[emoji] PASSED [ 79%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[composed-characters] PASSED [ 81%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[combining-characters] PASSED [ 83%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[511-tokens] PASSED [ 84%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[512-tokens] PASSED [ 86%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[513-tokens] PASSED [ 88%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[literal-end-marker] PASSED [ 89%]
+tests/knowledge/integration/test_qwen_tokenizer.py::test_counts_match_qwen_and_ollama[title-and-body] PASSED [ 91%]
+tests/retrieval/integration/test_qdrant_retrieval.py::test_server_persistence_filters_and_scores PASSED [ 93%]
+tests/retrieval/integration/test_qwen_reranker_model.py::test_real_qwen_promotes_evidence_and_handles_padding_truncation_and_batches FAILED [ 94%]
+tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[bm25] SKIPPED [ 96%]
+tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[semantic] SKIPPED [ 98%]
+tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[hybrid] SKIPPED [100%]
+
+=================================== FAILURES ===================================
+_ test_real_qwen_promotes_evidence_and_handles_padding_truncation_and_batches __
+.venv/lib/python3.13/site-packages/transformers/utils/hub.py:438: in cached_files
+    hf_hub_download(
+.venv/lib/python3.13/site-packages/huggingface_hub/utils/_validators.py:88: in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/huggingface_hub/file_download.py:1028: in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+.venv/lib/python3.13/site-packages/huggingface_hub/file_download.py:1175: in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+.venv/lib/python3.13/site-packages/huggingface_hub/file_download.py:1906: in _raise_on_head_call_error
+    raise LocalEntryNotFoundError(
+E   huggingface_hub.errors.LocalEntryNotFoundError: Cannot find the requested files in the disk cache and outgoing traffic has been disabled. To enable hf.co look-ups and downloads online, set 'local_files_only' to False.
+
+The above exception was the direct cause of the following exception:
+.venv/lib/python3.13/site-packages/transformers/models/auto/tokenization_auto.py:773: in from_pretrained
+    config = AutoConfig.from_pretrained(
+.venv/lib/python3.13/site-packages/transformers/models/auto/configuration_auto.py:388: in from_pretrained
+    config_dict, unused_kwargs = PreTrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/configuration_utils.py:747: in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/configuration_utils.py:802: in _get_config_dict
+    resolved_config_file = cached_file(
+.venv/lib/python3.13/site-packages/transformers/utils/hub.py:294: in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/utils/hub.py:521: in cached_files
+    raise OSError(
+E   OSError: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+E   Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
+
+During handling of the above exception, another exception occurred:
+.venv/lib/python3.13/site-packages/transformers/utils/hub.py:438: in cached_files
+    hf_hub_download(
+.venv/lib/python3.13/site-packages/huggingface_hub/utils/_validators.py:88: in _inner_fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/huggingface_hub/file_download.py:1028: in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+.venv/lib/python3.13/site-packages/huggingface_hub/file_download.py:1175: in _hf_hub_download_to_cache_dir
+    _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+.venv/lib/python3.13/site-packages/huggingface_hub/file_download.py:1906: in _raise_on_head_call_error
+    raise LocalEntryNotFoundError(
+E   huggingface_hub.errors.LocalEntryNotFoundError: Cannot find the requested files in the disk cache and outgoing traffic has been disabled. To enable hf.co look-ups and downloads online, set 'local_files_only' to False.
+
+The above exception was the direct cause of the following exception:
+tests/retrieval/integration/test_qwen_reranker_model.py:35: in test_real_qwen_promotes_evidence_and_handles_padding_truncation_and_batches
+    scorer = QwenRerankerScorer(cache_folder=os.environ.get('ARKB_RERANKER_CACHE'),
+src/arkb/retrieval/qwen_rerank.py:40: in __init__
+    self.tokenizer = AutoTokenizer.from_pretrained(QWEN_MODEL, padding_side='left', **options)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/models/auto/tokenization_auto.py:777: in from_pretrained
+    config = PreTrainedConfig.from_pretrained(pretrained_model_name_or_path, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/configuration_utils.py:706: in from_pretrained
+    config_dict, kwargs = cls.get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/configuration_utils.py:747: in get_config_dict
+    config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/configuration_utils.py:802: in _get_config_dict
+    resolved_config_file = cached_file(
+.venv/lib/python3.13/site-packages/transformers/utils/hub.py:294: in cached_file
+    file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/transformers/utils/hub.py:521: in cached_files
+    raise OSError(
+E   OSError: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+E   Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
+------------ generated xml file: /tmp/arkb-phase-a-integration.xml -------------
+=========================== short test summary info ============================
+FAILED tests/retrieval/integration/test_qwen_reranker_model.py::test_real_qwen_promotes_evidence_and_handles_padding_truncation_and_batches
+===== 1 failed, 55 passed, 3 skipped, 1093 deselected in 208.94s (0:03:28) =====

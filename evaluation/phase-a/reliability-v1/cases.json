@@ -1,0 +1,250 @@
+[
+  {
+    "dataset": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-stackoverflow",
+    "dataset_manifest_sha256": "c1489ae76055218991517963d5cb1bccd61d018d72e16b8d11f84eda7bae86df",
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-bright-stackoverflow-indexed/index.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-stackoverflow/corpus",
+    "domain": "stackoverflow",
+    "id": "7",
+    "index_manifest": {
+      "chunk_count": 246224,
+      "chunking_fingerprint": "5218ef8e553560c586665eead65d09e9aebd23025c43e64de8d3cefdd6f8b716",
+      "document_count": 109188,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "fd2276dee04548ff99f56a5f0dc79c22",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "bright-stackoverflow"
+    },
+    "key": "bright-stackoverflow:7",
+    "query": "Create a New Column Based on the Value of two Columns in Pandas with conditionals\n\nI have a dataframe with two different columns i need to use to calculate a score:\n```\nid        Pos        Player        GW        VP        Final        Drop        TournamentPoints\n0        1        1        Alessio Bianchi        2        7.0        5.0        NaN\n1        2        2        Gianluca Bianco        2        7.0        0.0        NaN\n2        3        2        Sara Rossi        1        5.0        0.0        NaN\n3        4        2        Gabriele Verdi        1        4.5        0.0        NaN\n4        5        2        Luca Gialli        1        3.0        0.0        NaN\n```\n\nTournament points is calculated from GW and VP with a formula:\n```\ndf['TournamentPoints'] = ((number_of_players / 10) * (df[\"VP\"] + 1)) + (df['GW'] * x)\n```\nwhere number_of_players and X are calculated previously.\n\nHowever i need another step:\n1. add 50 to the row with the highest value in \"Final\" columns (in this case Alessio Bianchi)\n2. if two rows have the same value in \"Final\" and it's the highest, only the row with the lowest \"Pos\" must receive the 50 boost",
+    "sqlite_sha256": "66956ffd6a5a556c461325df65d268a1534881096e00a49e17aa8e278de6b123",
+    "track": "bright",
+    "vault": "bright-stackoverflow"
+  },
+  {
+    "dataset": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-stackoverflow",
+    "dataset_manifest_sha256": "c1489ae76055218991517963d5cb1bccd61d018d72e16b8d11f84eda7bae86df",
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-bright-stackoverflow-indexed/index.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-stackoverflow/corpus",
+    "domain": "stackoverflow",
+    "id": "9",
+    "index_manifest": {
+      "chunk_count": 246224,
+      "chunking_fingerprint": "5218ef8e553560c586665eead65d09e9aebd23025c43e64de8d3cefdd6f8b716",
+      "document_count": 109188,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "fd2276dee04548ff99f56a5f0dc79c22",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "bright-stackoverflow"
+    },
+    "key": "bright-stackoverflow:9",
+    "query": "I have a dataframe with people and the food they like:\n\n```\ndf_class = pl.DataFrame(\n    {\n        'people': ['alan', 'bob', 'charlie'],\n        'food': [['orange', 'apple'], ['banana', 'cherry'], ['banana', 'grape']]\n    }\n)\nprint(df_class)\n\nshape: (3, 2)\n┌──────┬─────┐\n│ people    ┆ food      │\n│ ---           ┆ ---          │\n│ str           ┆ list[str]   │\n╞═════╪═════════════╡\n│ alan     ┆ [\"orange\", \"apple\"]   │\n│ bob      ┆ [\"banana\", \"cherry\"] │\n│ charlie ┆ [\"banana\", \"grape\"]  │\n└─────┴─────────────┘\n```\n\nAnd, I have a data structure with animals and the things they like to eat:\n\n```\nanimals = [\n    ('squirrel', ('acorn', 'almond')),\n    ('parrot', ('cracker', 'grape', 'guava')),\n    ('dog', ('chicken', 'bone')),\n    ('monkey', ('banana', 'plants'))\n]\n```\n\nI want to add a new column pets in df_class, such that pets is a list of the animals that have at least one food in common with the corresponding person:\n\n```\ndf_class.with_columns(pets=???)   # <-- not sure what to do here\n\nshape: (3, 3)\n┌─────────┬─────────────┬──────────┐\n│ people            ┆ fruits                          ┆ pets                 │\n│ ---                   ┆ ---                               ┆ ---                     │\n│ str                  ┆ list[str]                         ┆ list[str]              │\n╞═════════╪══════════════╪══════════╡\n│ alan               ┆ [\"orange\", \"apple\"]      ┆ []                       │\n│ bob                ┆ [\"banana\", \"cherry\"]    ┆ [\"monkey\"]        │\n│ charlie           ┆ [\"banana\", \"grape\"]      ┆ [\"monkey\", \"parrot\"] │\n└─────────┴──────────────┴─────────────┘\n```\n\n1. I have some flexibility in the data structure for animals, in case for e.g. this is easier to do with some sort of set intersection\n2. the order of pets is unimportant\n3. pets should contain unique values\n4. I'm looking for a single expression that would achieve the desired result, so as to fit within a larger framework of a list of expressions that perform transformations on other columns of my actual dataset\n\nSide note: my title seems kind of clunky and I'm open to suggestions to reword so that it's easier to find by others that might be trying to solve a similar problem.",
+    "sqlite_sha256": "66956ffd6a5a556c461325df65d268a1534881096e00a49e17aa8e278de6b123",
+    "track": "bright",
+    "vault": "bright-stackoverflow"
+  },
+  {
+    "dataset": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-robotics",
+    "dataset_manifest_sha256": "c9cb46e9ce805ebc9b72f9c802cd94fc11ef1044322e265f2833055eaa483643",
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-bright-robotics-indexed/index.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-robotics/corpus",
+    "domain": "robotics",
+    "id": "4",
+    "index_manifest": {
+      "chunk_count": 80135,
+      "chunking_fingerprint": "5218ef8e553560c586665eead65d09e9aebd23025c43e64de8d3cefdd6f8b716",
+      "document_count": 63920,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "da3d0fb55e4d4b47b1ec9a2a981380ef",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "bright-robotics"
+    },
+    "key": "bright-robotics:4",
+    "query": "ldlidar ros 2, colcon build error, pthread mutex init/lock/unlock not declared\n\nSo i am trying to use the LD19 Lidar from ldrobot with ros2_iron. I am following this tutorial: https://github.com/ldrobotSensorTeam/ldlidar_stl_ros2. When i enter colcon build in the console it runs to 87% and then fails. I am using Rasbian OS on Raspberry Pi 5. The console shows this:\n\nStarting >>> ldlidar_stl_ros2\n--- stderr: ldlidar_stl_ros2                              \n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp: In member function 'void LogModule::InitLock()':\n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp:172:3: error: 'pthread_mutex_init' was not declared in this scope; did you mean 'pthread_mutex_t'?\n  172 |   pthread_mutex_init(&mutex_lock_,NULL);\n      |   ^~~~~~~~~~~~~~~~~~\n      |   pthread_mutex_t\n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp: In member function 'void LogModule::RealseLock()':\n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp:180:9: error: 'pthread_mutex_unlock' was not declared in this scope; did you mean 'pthread_mutex_t'?\n  180 |         pthread_mutex_unlock(&mutex_lock_);\n      |         ^~~~~~~~~~~~~~~~~~~~\n      |         pthread_mutex_t\n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp: In member function 'void LogModule::Lock()':\n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp:188:9: error: 'pthread_mutex_lock' was not declared in this scope; did you mean 'pthread_mutex_t'?\n  188 |         pthread_mutex_lock(&mutex_lock_);\n      |         ^~~~~~~~~~~~~~~~~~\n      |         pthread_mutex_t\n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp: In member function 'void LogModule::UnLock()':\n/home/pi/ldlidar_ros2_ws/src/ldlidar_stl_ros2/ldlidar_driver/src/logger/log_module.cpp:196:9: error: 'pthread_mutex_unlock' was not declared in this scope; did you mean 'pthread_mutex_t'?\n  196 |         pthread_mutex_unlock(&mutex_lock_);\n      |         ^~~~~~~~~~~~~~~~~~~~\n      |         pthread_mutex_t\ngmake[2]: *** [CMakeFiles/ldlidar_stl_ros2_node.dir/build.make:132: CMakeFiles/ldlidar_stl_ros2_node.dir/ldlidar_driver/src/logger/log_module.cpp.o] Fehler 1\ngmake[2]: *** Es wird auf noch nicht beendete Prozesse gewartet....\ngmake[1]: *** [CMakeFiles/Makefile2:137: CMakeFiles/ldlidar_stl_ros2_node.dir/all] Fehler 2\ngmake: *** [Makefile:146: all] Fehler 2\n---\nFailed   <<< ldlidar_stl_ros2 [12.7s, exited with code 2]\n\nSummary: 0 packages finished [13.0s]\n  1 package failed: ldlidar_stl_ros2\n  1 package had stderr output: ldlidar_stl_ros2\n```\n",
+    "sqlite_sha256": "6ddbb83f64434f5c25af3ad3f04a0e8a7bddf847cd8fcc40bc774f002e5f4dea",
+    "track": "bright",
+    "vault": "bright-robotics"
+  },
+  {
+    "dataset": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-robotics",
+    "dataset_manifest_sha256": "c9cb46e9ce805ebc9b72f9c802cd94fc11ef1044322e265f2833055eaa483643",
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-bright-robotics-indexed/index.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-data/bright-robotics/corpus",
+    "domain": "robotics",
+    "id": "7",
+    "index_manifest": {
+      "chunk_count": 80135,
+      "chunking_fingerprint": "5218ef8e553560c586665eead65d09e9aebd23025c43e64de8d3cefdd6f8b716",
+      "document_count": 63920,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "da3d0fb55e4d4b47b1ec9a2a981380ef",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "bright-robotics"
+    },
+    "key": "bright-robotics:7",
+    "query": "Is it possible to modify or extend pre-existing Gazebo Sim plugins?\n\nQuestion\nIs it possible to modify or extend a pre-existing Gazebo Sim (Garden) plugin, such as the gz-sim-multicopter-control-system plugin to publish the quadcopter rotor velocities as Gazebo topics? How can this be done?\n\nSummary\nI am using Gazebo Garden (gz-sim7) to simulate a quadcopter. I have implemented two of Gazebo's pre-existing plugins for the quadcopter model flight. The plugins are gz-sim-multicopter-motor-model-system and gz-sim-multicopter-control-system, and their use in the model.sdf file is shown below. You can also find a more detailed version of the plugin implementation at multicopter_velocity_control.sdf.\n\n<?xml version=\"1.0\"?>\n<sdf version=\"1.8\">\n    <model name=\"quadcopter\">\n        <!-- The links of the quadcopter model -->\n        <!-- The links of the quadcopter model -->\n\n        <!-- Multicopter Motor Model plugin for each rotor -->\n        <!-- Rotor 0 -->\n        <plugin\n            filename=\"gz-sim-multicopter-motor-model-system\"\n            name=\"gz::sim::systems::MulticopterMotorModel\">\n            <robotNamespace>quadcopter</robotNamespace>\n            <jointName>rotor_0_joint</jointName>\n            <linkName>rotor_0</linkName>\n\n            <!-- More Multicopter Motor Model plugin components -->\n\n            <commandSubTopic>gazebo/command/motor_speed</commandSubTopic>\n            <actuator_number>0</actuator_number>\n            <motorSpeedPubTopic>motor_speed/0</motorSpeedPubTopic>\n            <motorType>velocity</motorType>\n        </plugin>\n\n        <!-- Similarly define Rotor 1, Rotor 2 and Rotor 3 -->\n\n        <!-- Multicopter Control plugin -->\n        <plugin\n            filename=\"gz-sim-multicopter-control-system\"\n            name=\"gz::sim::systems::MulticopterVelocityControl\">\n            <robotNamespace>quadcopter</robotNamespace>\n            <comLinkName>base_link</comLinkName>\n            <commandSubTopic>gazebo/command/twist</commandSubTopic>\n            <enableSubTopic>enable</enableSubTopic>\n\n            <!-- More Multicopter Control plugin components -->\n\n            <rotorConfiguration>\n                <rotor>\n                    <jointName>rotor_0_joint</jointName>\n\n                    <!-- More Multicopter Control plugin rotor configuration components -->\n\n                </rotor>\n\n                <!-- Similarly configure Rotor 1, Rotor 2 and Rotor 3 -->\n\n            </rotorConfiguration>\n        </plugin>\n    </model>\n</sdf>\nIs it possible to publish the rotor velocities using Gazebo topics? If not, is it possible to modify or extend the functionalities of the pre-existing plugins to publish the rotor velocities to topics after calculating them?\n\nFurther Info\nI am using Gazebo Garden and ROS 2 Humble for this project. I have used the Gazebo's ros_gz_project_template as a starting framework for my project. There are four main packages in the workspace (my_package_application, my_package_bringup, my_package_description and my_package_gazebo), and the src directory looks something like this.\n\nsrc\n├── ros_gz\n├── sdformat_urdf\n├── my_package_application\n├── my_package_bringup\n├── my_package_description\n│   ├── CMakeLists.txt\n│   ├── hooks\n│   ├── include\n│   │   └── my_package_description\n│   │       └── MotorVelocityPublisher.hh\n│   ├── models\n│   │   └──quadcopter\n│   │       ├── model.config\n│   │       └── model.sdf\n│   ├── package.xml\n│   └── src\n│       └── MotorVelocityPublisher.cc\n└── my_package_gazebo\n    ├── CMakeLists.txt\n    ├── hooks\n    ├── include\n    ├── package.xml\n    ├── src\n    └── worlds\n        └── quadcopter.sdf\nMy initial idea was to create a custom plugin called MotorVelocityPublisher which would access the rotor velocity data from the gz-sim-multicopter-control-system but the plugin doesn't make the rotor velocity data easily accessible.\n\nI have also thought about modifying or extending the existing gz-sim-multicopter-control-system plugin to publish the rotor velocity data. More specifically, creating a new RotorVelocitiesComponent.hh component to store the rotor velocity values.\n\n// RotorVelocitiesComponent.hh\n\n#ifndef ROTOR_VELOCITIES_COMPONENT_HH_\n#define ROTOR_VELOCITIES_COMPONENT_HH_\n\n#include <gz/sim/components/Component.hh>\n\nnamespace multicopter_control\n{\n    // Define a new Gazebo component to store rotor velocities\n    GZ_SIM_DEFINE_COMPONENT(RotorVelocities, std::vector<double>)\n}\n\n#endif  // ROTOR_VELOCITIES_COMPONENT_HH_\nExtending the PreUpdate method in the MulticopterVelocityControl.cc library to save the rotor velocity values into the component.\n\n// Add the component header in MulticopterVelocityControl.cc\n#include \"RotorVelocitiesComponent.hh\"\n\n// Existing Multicopter Velocity Control methods\n\nvoid MulticopterVelocityControl::PreUpdate(\n    const UpdateInfo &_info,\n    EntityComponentManager &_ecm)\n{\n    GZ_PROFILE(\"MulticopterVelocityControl::PreUpdate\");\n\n    // Existing code for the Multicopter Velocity Control Pre-Update\n\n    this->velocityController->CalculateRotorVelocities(*frameData, cmdVel,\n                                                       this->rotorVelocities);\n\n    // New code to store the rotor velocities in the component\n    auto rotorVelocitiesComp = _ecm.Component<multicopter_control::RotorVelocities>(this->model.Entity());\n    if (!rotorVelocitiesComp)\n    {\n        _ecm.CreateComponent(this->model.Entity(), multicopter_control::RotorVelocities(this->rotorVelocities));\n    }\n    else\n    {\n        rotorVelocitiesComp->Data() = this->rotorVelocities;\n    }   // New code ends here\n\n    this->PublishRotorVelocities(_ecm, this->rotorVelocities);\n}\nThe problem with this solution is that I don't know how to correctly save the extended gz-sim-multicopter-control-system plugin, build it, link it, etc. I'm not sure if this method will work or not.\n\n",
+    "sqlite_sha256": "6ddbb83f64434f5c25af3ad3f04a0e8a7bddf847cd8fcc40bc774f002e5f4dea",
+    "track": "bright",
+    "vault": "bright-robotics"
+  },
+  {
+    "context_index": 0,
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/context-indexes/0.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/contexts/0",
+    "id": "2hop__373544_66723",
+    "index_manifest": {
+      "chunk_count": 20,
+      "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+      "document_count": 20,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "c799596a09fd46698d5bc54f5fdaa3de",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "p4-musique"
+    },
+    "key": "musique:0:2hop__373544_66723",
+    "query": "Who was the first black student admitted to where Robert Khayat was educated?",
+    "sqlite_sha256": "8efc75ca9a8bba272235456d9b2d46bf62f0a30d61eb0cef0e6161f2cf9ab9ab",
+    "track": "musique",
+    "vault": "p4-musique"
+  },
+  {
+    "context_index": 1,
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/context-indexes/1.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/contexts/1",
+    "id": "2hop__373544_66723",
+    "index_manifest": {
+      "chunk_count": 20,
+      "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+      "document_count": 20,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "0258a74cee124253a8f537242bd64d83",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "p4-musique"
+    },
+    "key": "musique:1:2hop__373544_66723",
+    "query": "Who was the first black student admitted to where Robert Khayat was educated?",
+    "sqlite_sha256": "c9243762549861b34860a23c0ec4e8c0edd106cee719965489b667bec5ec74a4",
+    "track": "musique",
+    "vault": "p4-musique"
+  },
+  {
+    "context_index": 2,
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/context-indexes/2.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/contexts/2",
+    "id": "2hop__242753_658778",
+    "index_manifest": {
+      "chunk_count": 20,
+      "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+      "document_count": 20,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "dac3ad531e4941aa84f82368b8b7c044",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "p4-musique"
+    },
+    "key": "musique:2:2hop__242753_658778",
+    "query": "What group is the creator of Judith and the Head of Holofernes a member of?",
+    "sqlite_sha256": "572796b99f2ee562d1bf47778e8ae8055d3959b18e927e958cfd59537db00047",
+    "track": "musique",
+    "vault": "p4-musique"
+  },
+  {
+    "context_index": 3,
+    "db": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/context-indexes/3.sqlite",
+    "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p4-musique-agent-v3/contexts/3",
+    "id": "2hop__242753_658778",
+    "index_manifest": {
+      "chunk_count": 20,
+      "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+      "document_count": 20,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "b4c3c14257f347e88b0e7dd1f66cc9a4",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "p4-musique"
+    },
+    "key": "musique:3:2hop__242753_658778",
+    "query": "What group is the creator of Judith and the Head of Holofernes a member of?",
+    "sqlite_sha256": "3bff2535a4e8da2e8a1a382cd4539e5f3c9729e45d30cf1eea0e16a4acdeb75b",
+    "track": "musique",
+    "vault": "p4-musique"
+  }
+]

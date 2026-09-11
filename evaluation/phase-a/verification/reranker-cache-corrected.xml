@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="3" failures="0" skipped="0" tests="4" time="6.473" timestamp="2026-09-11T11:38:07.625024-07:00" hostname="Mac.lan"><testcase classname="tests.retrieval.integration.test_qwen_reranker_model" name="test_real_qwen_promotes_evidence_and_handles_padding_truncation_and_batches" time="6.363" /><testcase classname="tests.retrieval.integration.test_qwen_reranker_model" name="test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[bm25]" time="0.003"><error message="failed on setup with &quot;ValueError: Unsupported storage version: 1. Rebuild with arkb index --db &lt;new-database-path&gt;.&quot;">tests/retrieval/integration/test_qwen_reranker_model.py:68: in snapshot
+    status = runtime.status(**options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/runtime.py:154: in status
+    with SQLiteStorage(Path(db), read_only=True) as storage:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/knowledge/sqlite.py:86: in __init__
+    raise ValueError(f"Unsupported storage version: {version}. "
+E   ValueError: Unsupported storage version: 1. Rebuild with arkb index --db &lt;new-database-path&gt;.</error></testcase><testcase classname="tests.retrieval.integration.test_qwen_reranker_model" name="test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[semantic]" time="0.000"><error message="failed on setup with &quot;ValueError: Unsupported storage version: 1. Rebuild with arkb index --db &lt;new-database-path&gt;.&quot;">tests/retrieval/integration/test_qwen_reranker_model.py:68: in snapshot
+    status = runtime.status(**options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/runtime.py:154: in status
+    with SQLiteStorage(Path(db), read_only=True) as storage:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/knowledge/sqlite.py:86: in __init__
+    raise ValueError(f"Unsupported storage version: {version}. "
+E   ValueError: Unsupported storage version: 1. Rebuild with arkb index --db &lt;new-database-path&gt;.</error></testcase><testcase classname="tests.retrieval.integration.test_qwen_reranker_model" name="test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[hybrid]" time="0.000"><error message="failed on setup with &quot;ValueError: Unsupported storage version: 1. Rebuild with arkb index --db &lt;new-database-path&gt;.&quot;">tests/retrieval/integration/test_qwen_reranker_model.py:68: in snapshot
+    status = runtime.status(**options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/runtime.py:154: in status
+    with SQLiteStorage(Path(db), read_only=True) as storage:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/knowledge/sqlite.py:86: in __init__
+    raise ValueError(f"Unsupported storage version: {version}. "
+E   ValueError: Unsupported storage version: 1. Rebuild with arkb index --db &lt;new-database-path&gt;.</error></testcase></testsuite></testsuites>

@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.5, pytest-9.1.1, pluggy-1.6.0 -- /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 4 items / 1 deselected / 3 selected
+
+tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[bm25] PASSED [ 33%]
+tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[semantic] PASSED [ 66%]
+tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[hybrid] PASSED [100%]
+
+---------- generated xml file: /tmp/arkb-phase-a-reranker-runtime.xml ----------
+======================= 3 passed, 1 deselected in 12.32s =======================

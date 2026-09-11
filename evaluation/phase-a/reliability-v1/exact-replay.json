@@ -1,0 +1,19 @@
+{
+  "source_commit": "c47a015",
+  "original_agent_case": "bright-stackoverflow:7",
+  "arguments": {
+    "query": "pandas add column based on conditionals",
+    "target": "content"
+  },
+  "old_agent_tool_elapsed_ms": 173944.5644998923,
+  "old_error": {
+    "stage": "tool_execution",
+    "type": "EvaluationDeadlineExceeded",
+    "message": "Evaluation hard deadline of 180 seconds exceeded."
+  },
+  "new_elapsed_ms": 19891.660457942635,
+  "new_subprocesses": 0,
+  "new_results": 0,
+  "new_error": null,
+  "scope": "One fixed exact-call replay; no Agent model invocation. Old observation hit the 180-second harness cap."
+}

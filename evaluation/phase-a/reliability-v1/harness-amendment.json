@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-09-11T18:53:38.256794+00:00",
+  "scope": "Harness preparation only; measured sources and all registered cases unchanged.",
+  "reason": "The harness constructed MuSiQue source-map names using context instead of the original musique-{context_index}; file-set verification rejected the mismatch before any MuSiQue Agent call.",
+  "fix": "Use the original P4 context dataset name. Resume the four unexecuted MuSiQue cases and retain the four completed Bright cases exactly once.",
+  "completed_keys": [
+    "bright-stackoverflow:7",
+    "bright-stackoverflow:9",
+    "bright-robotics:4",
+    "bright-robotics:7"
+  ]
+}

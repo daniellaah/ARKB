@@ -1,0 +1,25 @@
+{
+  "normal": {
+    "passed": 1102
+  },
+  "evaluation_regression_subset": 235,
+  "integration-initial": {
+    "passed": 55,
+    "failed": 1,
+    "skipped": 3
+  },
+  "reranker-cache-corrected": {
+    "passed": 1,
+    "error": 3
+  },
+  "reranker-current-snapshot": {
+    "passed": 3
+  },
+  "integration_final_distinct": {
+    "passed": 59
+  },
+  "freshness": {
+    "passed": 16,
+    "failed": 0
+  }
+}

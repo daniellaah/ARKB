@@ -1,0 +1,686 @@
+{
+  "arms": {
+    "new": {
+      "answer_quality_bright": "No independent semantic judgments; coverage is not answer correctness.",
+      "audit": {
+        "final_references_verified": 7,
+        "model_requests_verified": 42,
+        "runs": 8,
+        "source_spans_verified": 127
+      },
+      "cases": [
+        {
+          "answer_status": "answered",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.25,
+              "unique_documents": 13,
+              "weighted_aspect_coverage": 0.2857142857142857
+            },
+            "returned": {
+              "positive_document_recall": 0.25,
+              "unique_documents": 17,
+              "weighted_aspect_coverage": 0.2857142857142857
+            },
+            "submitted": {
+              "positive_document_recall": 0.25,
+              "unique_documents": 13,
+              "weighted_aspect_coverage": 0.2857142857142857
+            }
+          },
+          "elapsed_ms": 33033.39962498285,
+          "error": null,
+          "key": "bright-stackoverflow:7",
+          "stop_reason": "final",
+          "termination_reason": "max_evidence_tokens",
+          "tool_statuses": {
+            "success": 5
+          }
+        },
+        {
+          "answer_status": "answered",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            },
+            "returned": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            },
+            "submitted": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            }
+          },
+          "elapsed_ms": 10990.062499884516,
+          "error": null,
+          "key": "bright-stackoverflow:9",
+          "stop_reason": "final",
+          "termination_reason": "finish",
+          "tool_statuses": {
+            "success": 1
+          }
+        },
+        {
+          "answer_status": "answered",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.75,
+              "unique_documents": 7,
+              "weighted_aspect_coverage": 1.0
+            },
+            "returned": {
+              "positive_document_recall": 0.75,
+              "unique_documents": 7,
+              "weighted_aspect_coverage": 1.0
+            },
+            "submitted": {
+              "positive_document_recall": 0.75,
+              "unique_documents": 7,
+              "weighted_aspect_coverage": 1.0
+            }
+          },
+          "elapsed_ms": 17960.952874971554,
+          "error": null,
+          "key": "bright-robotics:4",
+          "stop_reason": "final",
+          "termination_reason": "finish",
+          "tool_statuses": {
+            "success": 4
+          }
+        },
+        {
+          "answer_status": "error",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 19,
+              "weighted_aspect_coverage": 0.0
+            },
+            "returned": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 19,
+              "weighted_aspect_coverage": 0.0
+            },
+            "submitted": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 19,
+              "weighted_aspect_coverage": 0.0
+            }
+          },
+          "elapsed_ms": 20978.81770809181,
+          "error": {
+            "message": "Expecting value: line 1 column 1 (char 0)",
+            "type": "JSONDecodeError"
+          },
+          "key": "bright-robotics:7",
+          "stop_reason": "error",
+          "termination_reason": "invalid_final_output",
+          "tool_statuses": {
+            "success": 7
+          }
+        },
+        {
+          "answer_status": "answered",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 9,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 9,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 9,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 9886.071500135586,
+          "error": null,
+          "key": "musique:0:2hop__373544_66723",
+          "stop_reason": "final",
+          "termination_reason": "finish",
+          "tool_statuses": {
+            "success": 4
+          }
+        },
+        {
+          "answer_status": "insufficient_evidence",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": null,
+              "unique_documents": 12,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": null,
+              "unique_documents": 12,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": null,
+              "unique_documents": 12,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 22472.417416982353,
+          "error": null,
+          "key": "musique:1:2hop__373544_66723",
+          "stop_reason": "final",
+          "termination_reason": "max_turns",
+          "tool_statuses": {
+            "success": 7
+          }
+        },
+        {
+          "answer_status": "answered",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 7,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 7,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 7,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 10079.16170801036,
+          "error": null,
+          "key": "musique:2:2hop__242753_658778",
+          "stop_reason": "final",
+          "termination_reason": "finish",
+          "tool_statuses": {
+            "success": 3
+          }
+        },
+        {
+          "answer_status": "insufficient_evidence",
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 10,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 10,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 10,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 18954.455834114924,
+          "error": null,
+          "key": "musique:3:2hop__242753_658778",
+          "stop_reason": "final",
+          "termination_reason": "max_turns",
+          "tool_statuses": {
+            "recoverable_error": 1,
+            "success": 6
+          }
+        }
+      ],
+      "coverage_defined_cases": {
+        "delivered": {
+          "positive_document_recall": 7,
+          "weighted_aspect_coverage": 4
+        },
+        "returned": {
+          "positive_document_recall": 7,
+          "weighted_aspect_coverage": 4
+        },
+        "submitted": {
+          "positive_document_recall": 7,
+          "weighted_aspect_coverage": 4
+        }
+      },
+      "evidence_coverage_macro": {
+        "delivered": {
+          "positive_document_recall": 0.5714285714285714,
+          "weighted_aspect_coverage": 0.3214285714285714
+        },
+        "returned": {
+          "positive_document_recall": 0.5714285714285714,
+          "weighted_aspect_coverage": 0.3214285714285714
+        },
+        "submitted": {
+          "positive_document_recall": 0.5714285714285714,
+          "weighted_aspect_coverage": 0.3214285714285714
+        }
+      },
+      "musique_metrics": {
+        "answer_em": 0.0,
+        "answer_f1": 0.07857142857142857,
+        "answerability_accuracy": 1.0,
+        "group_answer_sufficiency_f1": 0.07857142857142857,
+        "group_support_sufficiency_f1": 1.0,
+        "groups": 2,
+        "rows": 4,
+        "support_f1": 1.0
+      },
+      "reliability": {
+        "average_attempted_collection_calls": 4.25,
+        "average_elapsed_ms": 18044.417395896744,
+        "average_finish_calls": 0.5,
+        "average_model_turns": 5.25,
+        "average_requested_collection_calls": 4.25,
+        "canonical_envelope_validity": {
+          "count": 8,
+          "denominator": 8,
+          "rate": 1.0
+        },
+        "collection_tool_validation_errors": {
+          "count": 1,
+          "denominator": 34,
+          "rate": 0.029411764705882353
+        },
+        "exact_match_errors": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "exact_match_timeouts": {
+          "count": 0,
+          "denominator": 0,
+          "rate": null
+        },
+        "fatal_tool_errors": {
+          "count": 0,
+          "denominator": 34,
+          "rate": 0.0
+        },
+        "finish_validation_errors": 0,
+        "limits": [
+          "Rates use attempted collection calls, excluding finish; requested-but-skipped calls remain in requested cost.",
+          "Old validation classification uses recorded exception types; new classification uses explicit error codes.",
+          "Bright had no old structured-output requirement; MuSiQue is the common structured-validity denominator.",
+          "Canonical error envelopes count as serializable, but never as successful final answers."
+        ],
+        "musique_structured_prediction_validity": {
+          "count": 4,
+          "denominator": 4,
+          "rate": 1.0
+        },
+        "recoverable_tool_errors": {
+          "count": 1,
+          "denominator": 34,
+          "rate": 0.029411764705882353
+        },
+        "runs": 8,
+        "runs_with_final_output": {
+          "count": 7,
+          "denominator": 8,
+          "rate": 0.875
+        },
+        "stop_reasons": {
+          "error": 1,
+          "final": 7
+        },
+        "termination_reasons": {
+          "finish": 4,
+          "invalid_final_output": 1,
+          "max_evidence_tokens": 1,
+          "max_turns": 2
+        }
+      }
+    },
+    "old": {
+      "answer_quality_bright": "No independent semantic judgments; coverage is not answer correctness.",
+      "audit": {
+        "final_references_verified": 0,
+        "model_requests_verified": 38,
+        "runs": 8,
+        "source_spans_verified": 117
+      },
+      "cases": [
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            },
+            "returned": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            },
+            "submitted": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            }
+          },
+          "elapsed_ms": 180089.3170000054,
+          "error": {
+            "message": "Evaluation hard deadline of 180 seconds exceeded.",
+            "type": "EvaluationDeadlineExceeded"
+          },
+          "key": "bright-stackoverflow:7",
+          "stop_reason": "error",
+          "termination_reason": null,
+          "tool_statuses": {
+            "error": 1
+          }
+        },
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            },
+            "returned": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            },
+            "submitted": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 0,
+              "weighted_aspect_coverage": 0.0
+            }
+          },
+          "elapsed_ms": 12291.016041999683,
+          "error": null,
+          "key": "bright-stackoverflow:9",
+          "stop_reason": "final",
+          "termination_reason": null,
+          "tool_statuses": {}
+        },
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.25,
+              "unique_documents": 4,
+              "weighted_aspect_coverage": 0.5
+            },
+            "returned": {
+              "positive_document_recall": 0.25,
+              "unique_documents": 4,
+              "weighted_aspect_coverage": 0.5
+            },
+            "submitted": {
+              "positive_document_recall": 0.25,
+              "unique_documents": 4,
+              "weighted_aspect_coverage": 0.5
+            }
+          },
+          "elapsed_ms": 20124.390583019704,
+          "error": null,
+          "key": "bright-robotics:4",
+          "stop_reason": "final",
+          "termination_reason": null,
+          "tool_statuses": {
+            "success": 2
+          }
+        },
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 16,
+              "weighted_aspect_coverage": 0.0
+            },
+            "returned": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 16,
+              "weighted_aspect_coverage": 0.0
+            },
+            "submitted": {
+              "positive_document_recall": 0.0,
+              "unique_documents": 16,
+              "weighted_aspect_coverage": 0.0
+            }
+          },
+          "elapsed_ms": 28373.5955839511,
+          "error": null,
+          "key": "bright-robotics:7",
+          "stop_reason": "budget",
+          "termination_reason": null,
+          "tool_statuses": {
+            "success": 8
+          }
+        },
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 9,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 9,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 9,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 20456.52887504548,
+          "error": null,
+          "key": "musique:0:2hop__373544_66723",
+          "stop_reason": "final",
+          "termination_reason": null,
+          "tool_statuses": {
+            "success": 5
+          }
+        },
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": null,
+              "unique_documents": 14,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": null,
+              "unique_documents": 14,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": null,
+              "unique_documents": 14,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 20710.37270897068,
+          "error": null,
+          "key": "musique:1:2hop__373544_66723",
+          "stop_reason": "max_turns",
+          "termination_reason": null,
+          "tool_statuses": {
+            "success": 8
+          }
+        },
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 6,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 6,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 6,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 25320.01716690138,
+          "error": null,
+          "key": "musique:2:2hop__242753_658778",
+          "stop_reason": "final",
+          "termination_reason": null,
+          "tool_statuses": {
+            "success": 5
+          }
+        },
+        {
+          "answer_status": null,
+          "coverage": {
+            "delivered": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 5,
+              "weighted_aspect_coverage": null
+            },
+            "returned": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 5,
+              "weighted_aspect_coverage": null
+            },
+            "submitted": {
+              "positive_document_recall": 1.0,
+              "unique_documents": 5,
+              "weighted_aspect_coverage": null
+            }
+          },
+          "elapsed_ms": 13996.522333007306,
+          "error": null,
+          "key": "musique:3:2hop__242753_658778",
+          "stop_reason": "final",
+          "termination_reason": null,
+          "tool_statuses": {
+            "success": 5
+          }
+        }
+      ],
+      "coverage_defined_cases": {
+        "delivered": {
+          "positive_document_recall": 7,
+          "weighted_aspect_coverage": 4
+        },
+        "returned": {
+          "positive_document_recall": 7,
+          "weighted_aspect_coverage": 4
+        },
+        "submitted": {
+          "positive_document_recall": 7,
+          "weighted_aspect_coverage": 4
+        }
+      },
+      "evidence_coverage_macro": {
+        "delivered": {
+          "positive_document_recall": 0.4642857142857143,
+          "weighted_aspect_coverage": 0.125
+        },
+        "returned": {
+          "positive_document_recall": 0.4642857142857143,
+          "weighted_aspect_coverage": 0.125
+        },
+        "submitted": {
+          "positive_document_recall": 0.4642857142857143,
+          "weighted_aspect_coverage": 0.125
+        }
+      },
+      "musique_metrics": {
+        "answer_em": 0.5,
+        "answer_f1": 0.5,
+        "answerability_accuracy": 0.25,
+        "group_answer_sufficiency_f1": 0.0,
+        "group_support_sufficiency_f1": 0.0,
+        "groups": 2,
+        "rows": 4,
+        "support_f1": 0.5
+      },
+      "reliability": {
+        "average_attempted_collection_calls": 4.25,
+        "average_elapsed_ms": 40170.22003661259,
+        "average_finish_calls": 0.0,
+        "average_model_turns": 4.75,
+        "average_requested_collection_calls": 4.25,
+        "canonical_envelope_validity": null,
+        "collection_tool_validation_errors": {
+          "count": 0,
+          "denominator": 34,
+          "rate": 0.0
+        },
+        "exact_match_errors": {
+          "count": 1,
+          "denominator": 4,
+          "rate": 0.25
+        },
+        "exact_match_timeouts": {
+          "count": 1,
+          "denominator": 4,
+          "rate": 0.25
+        },
+        "fatal_tool_errors": {
+          "count": 1,
+          "denominator": 34,
+          "rate": 0.029411764705882353
+        },
+        "finish_validation_errors": 0,
+        "limits": [
+          "Rates use attempted collection calls, excluding finish; requested-but-skipped calls remain in requested cost.",
+          "Old validation classification uses recorded exception types; new classification uses explicit error codes.",
+          "Bright had no old structured-output requirement; MuSiQue is the common structured-validity denominator.",
+          "Canonical error envelopes count as serializable, but never as successful final answers."
+        ],
+        "musique_structured_prediction_validity": {
+          "count": 1,
+          "denominator": 4,
+          "rate": 0.25
+        },
+        "recoverable_tool_errors": {
+          "count": 0,
+          "denominator": 34,
+          "rate": 0.0
+        },
+        "runs": 8,
+        "runs_with_final_output": {
+          "count": 5,
+          "denominator": 8,
+          "rate": 0.625
+        },
+        "stop_reasons": {
+          "budget": 1,
+          "error": 1,
+          "final": 5,
+          "max_turns": 1
+        },
+        "termination_reasons": {
+          "budget": 1,
+          "error": 1,
+          "final": 5,
+          "max_turns": 1
+        }
+      }
+    }
+  },
+  "release_eligible": false,
+  "schema": "arkb-phase-a-comparison-v1",
+  "scope": "Eight fixed cases per arm; protocol reliability only, no score tuning or benchmark claim."
+}

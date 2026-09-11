@@ -1,0 +1,31 @@
+{
+  "baseline_commit": "ea6e395",
+  "budget": {
+    "max_elapsed_ms": 120000,
+    "max_evidence_tokens": 4000,
+    "max_query_calls": 10,
+    "max_read_calls": 6,
+    "max_tool_calls": 12
+  },
+  "candidate_commit": "c47a0155bfd8d67214e32f1b983b8742c518d874",
+  "cases_per_arm": 8,
+  "cases_sha256": "40ad0de77beaf2b8b3757b444423982bbd5f37c1d4c628d2cd2fd0588e111f81",
+  "confounds": [
+    "Necessary tool schemas, evidence serialization and finalization instructions differ.",
+    "The old MuSiQue prompt requests a short answer; the new canonical answer may contain explanations. F1 is diagnostic.",
+    "One trial per case with temperature 0 is not a reproducibility or statistical-significance claim."
+  ],
+  "harness_deadline_seconds": 180,
+  "max_turns": 8,
+  "model": "qwen3.5:4b",
+  "musique_gold_sha256": "b06ce4dd404cc12fb2a0b6c718c07d4f3be7dad3c820b8fb836c2abc35573f4d",
+  "new_query_suffix": "None; production finish/constrained schema maps through canonical_prediction.",
+  "old_query_suffix": "Existing MuSiQue OUTPUT_INSTRUCTION, unchanged from P4.",
+  "registered_at": "2026-09-11T18:45:36.320392+00:00",
+  "release_eligible": false,
+  "schema": "arkb-phase-a-reliability-v1",
+  "selection": "First two registered SO cases, first two Robotics cases, first two MuSiQue pairs; no score-based selection.",
+  "temperature": 0,
+  "think": true,
+  "trials": 1
+}
