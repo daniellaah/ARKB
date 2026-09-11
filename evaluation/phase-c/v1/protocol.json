@@ -1,0 +1,29 @@
+{
+  "registered_at": "2026-09-11T22:37:44.922677+00:00",
+  "architecture_and_protocol_sha256": "c9b0d7f7874b4198174b9ef8057d7747df389c9734d51684fa193b2ce092bd45",
+  "c0_diagnostics_sha256": "93c8ca62ab71c3dd57591a0f339755b3cc5b813c10f2f43fc69b61e3e6fd8585",
+  "policies": [
+    "C0",
+    "C1",
+    "C2"
+  ],
+  "conditional_policy": "C3 only if documented redundancy gate passes",
+  "k": 60,
+  "leg_depth": 500,
+  "top_sources": 100,
+  "representative": "R0 proportional final-vote attribution",
+  "seed": 20260911,
+  "bootstrap_resamples": 10000,
+  "rerank": false,
+  "development_order": [
+    "scifact",
+    "bright-stackoverflow",
+    "bright-robotics"
+  ],
+  "validation_order": [
+    "nfcorpus",
+    "fiqa",
+    "browsecomp-plus"
+  ],
+  "validation_query_sampling": null
+}

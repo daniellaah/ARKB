@@ -1,0 +1,26 @@
+{
+  "selected_policy": "C0",
+  "checks": {
+    "C1": {
+      "scifact_ndcg_preserved": true,
+      "bright_ndcg_preserved": false,
+      "recall_preserved": true,
+      "bright_aspects_preserved": false,
+      "convincing_bright_gain": false
+    },
+    "C2": {
+      "scifact_ndcg_preserved": false,
+      "bright_ndcg_preserved": true,
+      "recall_preserved": false,
+      "bright_aspects_preserved": true,
+      "convincing_bright_gain": true
+    }
+  },
+  "c3": "skipped: no domain met the preregistered redundant-chunk domination gate",
+  "production_decision": "A: keep current chunk-level Hybrid fusion",
+  "validation_rule": "Evaluate once; no further architecture tuning; selected C0 shares the control run.",
+  "frozen_at": "2026-09-11T22:44:07.640817+00:00",
+  "development_summary_sha256": "ed4d6d9a5c83b7c8e6f06c35b3cd215a008ca89c93f6279fd0ba2929cbaa6309",
+  "protocol_sha256": "0973287e74e51b0c0137a844355b56eb0825e5eec8f5fb69d60e21355b61862f",
+  "fusion_source_sha256": "24d5330cb4ba537188b3c6a1babef96d05ede596b6835e1d6c6fa68605d47c78"
+}
