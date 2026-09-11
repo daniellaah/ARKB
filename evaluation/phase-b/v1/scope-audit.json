@@ -1,0 +1,19 @@
+{
+  "accepted_phase_a_commit": "c47a015",
+  "starting_clean_commit": "00e9bb7",
+  "allocation_measured_commit": "24046cb",
+  "final_production_commit": "75ba733",
+  "changed_production_files": [
+    "src/arkb/retrieval/qwen_inputs.py",
+    "src/arkb/retrieval/qwen_rerank.py",
+    "src/arkb/retrieval/rerank.py"
+  ],
+  "changed_file_sha256": {
+    "src/arkb/retrieval/qwen_inputs.py": "d6d8815a1c1a71921175259a38b790d2701b84db9bb32af9824f04a37e4ccbc9",
+    "src/arkb/retrieval/qwen_rerank.py": "a5a5bffed7c74e3a26f9e0b27ba961c599b3e915d81183efb8fd00b95ad7f333",
+    "src/arkb/retrieval/rerank.py": "490d6123973d7e64e5b78ac065cf421f1025f95d45715076ea1924a3bf952460"
+  },
+  "other_production_files_unchanged": true,
+  "model_unchanged": true,
+  "verification": "git diff against accepted Phase A; final B5 input identity and fixed-query score checks."
+}

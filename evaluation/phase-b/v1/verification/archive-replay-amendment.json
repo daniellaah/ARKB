@@ -1,0 +1,8 @@
+{
+  "initial_failure": "Temporary path used /var while resolved members used /private/var; containment check rejected an unchanged file.",
+  "evidence": "B0-execution.log content SHA-256 matched the sealed archive manifest before the fix.",
+  "change": "Resolve the temporary root before containment comparison.",
+  "experiment_changes": false,
+  "archive_bytes_changed": false,
+  "successful_replay_sha256": "a75baf3cf360491495a02aff4301bc0a0924bdad1a8f8ebae230c25a5cbbf012"
+}

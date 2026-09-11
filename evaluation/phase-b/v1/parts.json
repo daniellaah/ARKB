@@ -1,0 +1,32 @@
+{
+  "schema": "arkb-phase-b-multipart-v1",
+  "archive": "experiments.tar.gz",
+  "root": "phase-b-v1",
+  "archive_bytes": 131290615,
+  "archive_sha256": "c2e6847c24fed5fb882590ceab9715adf54fd1019c17231eb5e2013cec8d8783",
+  "parts": [
+    {
+      "name": "experiments.tar.gz.part-000",
+      "bytes": 33554432,
+      "sha256": "0d08e8584f6138f348c4020e67a94f7ff9a4603fd872af43e6abd15b218a1630"
+    },
+    {
+      "name": "experiments.tar.gz.part-001",
+      "bytes": 33554432,
+      "sha256": "1c05fa8fb5ec003cf73808b29b966ae28aacf0dd8ba5531c5f9be4c2a13e0e6f"
+    },
+    {
+      "name": "experiments.tar.gz.part-002",
+      "bytes": 33554432,
+      "sha256": "bfbd8d16e67375f0df405762bfd53df20d34d89ceed9a53eb0bb6a2b643beb5d"
+    },
+    {
+      "name": "experiments.tar.gz.part-003",
+      "bytes": 30627319,
+      "sha256": "4048aa19794698607335f88a1d8fc9659253cb85ef8d29cc84e5f1c9179d76f7"
+    }
+  ],
+  "archive_manifest": "archive-manifest.json",
+  "archive_manifest_sha256": "e4e478f401705995ed2a54545f28bfc0cff91df1071cb74f4d38be25612c5f3a",
+  "release_eligible": false
+}

@@ -1,0 +1,174 @@
+................FF..................FF                                   [100%]
+=================================== FAILURES ===================================
+_ test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic[scores0] _
+
+scores = [1.0, 1.0]
+
+    @pytest.mark.parametrize('scores', [[1., 1.], [0., -0.]])
+    def test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic(scores):
+        from arkb.retrieval.rerank import Reranker
+        scorer = SimpleNamespace(identity='fixed', score_type='logit', score=lambda *_: scores)
+        before = tuple(reversed(candidates()))
+        after = Reranker(scorer).rerank('query', before, top_k=1)
+        assert len(after) == 1 and after[0].identity == before[0].identity
+>       assert (after[0].method, after[0].score, after[0].score_type) == (
+            before[0].method, before[0].score, before[0].score_type)
+E       AssertionError: assert ('reranked', 1.0, 'logit') == ('semantic', ...e_similarity')
+E         
+E         At index 0 diff: 'reranked' != 'semantic'
+E         Use -v to get more diff
+
+tests/retrieval/test_rerank.py:129: AssertionError
+_ test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic[scores1] _
+
+scores = [0.0, -0.0]
+
+    @pytest.mark.parametrize('scores', [[1., 1.], [0., -0.]])
+    def test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic(scores):
+        from arkb.retrieval.rerank import Reranker
+        scorer = SimpleNamespace(identity='fixed', score_type='logit', score=lambda *_: scores)
+        before = tuple(reversed(candidates()))
+        after = Reranker(scorer).rerank('query', before, top_k=1)
+        assert len(after) == 1 and after[0].identity == before[0].identity
+>       assert (after[0].method, after[0].score, after[0].score_type) == (
+            before[0].method, before[0].score, before[0].score_type)
+E       AssertionError: assert ('reranked', 0.0, 'logit') == ('semantic', ...e_similarity')
+E         
+E         At index 0 diff: 'reranked' != 'semantic'
+E         Use -v to get more diff
+
+tests/retrieval/test_rerank.py:129: AssertionError
+______ test_all_body_empty_preserves_hybrid_without_calling_model[False] _______
+
+tokenizer = TokenizersBackend(name_or_path='', vocab_size=417, model_max_length=1000000000000000019884624838656, padding_side='lef...al=False),
+	417: AddedToken("[PAD]", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
+})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1189fc640>
+legacy_truncation = False
+
+    @pytest.mark.parametrize('legacy_truncation', [False, True])
+    def test_all_body_empty_preserves_hybrid_without_calling_model(tokenizer, monkeypatch, legacy_truncation):
+        from unittest.mock import Mock
+        import transformers
+        from arkb.retrieval.qwen_rerank import QwenRerankerScorer
+        from arkb.retrieval.rerank import Reranker
+        tokenizer.add_tokens(['yes', 'no'])
+        tokenizer.padding_side = 'left'
+        model = Mock(side_effect=AssertionError('Empty input must not invoke model inference.'))
+        model.to.return_value = model.eval.return_value = model
+        monkeypatch.setattr(transformers.AutoTokenizer, 'from_pretrained', lambda *a, **k: tokenizer)
+        monkeypatch.setattr(transformers.AutoModelForCausalLM, 'from_pretrained', lambda *a, **k: model)
+        scorer = QwenRerankerScorer(query_cap=None if legacy_truncation else 128)
+        query = 'query ' * 1000 if legacy_truncation else 'An English question?'
+        hits = tuple(reversed(candidates())) if legacy_truncation else tuple(
+            replace(h, content='') for h in reversed(candidates()))
+        assert all(d['body_empty'] for d in scorer.prepare_inputs(query, hits))
+>       after = Reranker(scorer).rerank(query, hits)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/retrieval/test_qwen_inputs.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/arkb/retrieval/rerank.py:46: in rerank
+    output = self.scorer.score(query, candidates)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/retrieval/qwen_rerank.py:87: in score
+    logits = self._model(**inputs, use_cache=False, logits_to_keep=1).logits[:, -1, :]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/unittest/mock.py:1169: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/unittest/mock.py:1173: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Mock id='4686622608'>, args = ()
+kwargs = {'input_ids': tensor([[263, 265,  62, 283, 266, 398, 198, 415, 413, 262, 361, 406, 262, 410,
+         379, 302, 262, 4... 1, 1, 1, 1, 1, 1, 1,
+         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]), 'use_cache': False, 'logits_to_keep': 1}
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               AssertionError: Empty input must not invoke model inference.
+
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/unittest/mock.py:1228: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+
+
+
+_______ test_all_body_empty_preserves_hybrid_without_calling_model[True] _______
+
+tokenizer = TokenizersBackend(name_or_path='', vocab_size=417, model_max_length=1000000000000000019884624838656, padding_side='lef...al=False),
+	417: AddedToken("[PAD]", rstrip=False, lstrip=False, single_word=False, normalized=False, special=True),
+})
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11fb21130>
+legacy_truncation = True
+
+    @pytest.mark.parametrize('legacy_truncation', [False, True])
+    def test_all_body_empty_preserves_hybrid_without_calling_model(tokenizer, monkeypatch, legacy_truncation):
+        from unittest.mock import Mock
+        import transformers
+        from arkb.retrieval.qwen_rerank import QwenRerankerScorer
+        from arkb.retrieval.rerank import Reranker
+        tokenizer.add_tokens(['yes', 'no'])
+        tokenizer.padding_side = 'left'
+        model = Mock(side_effect=AssertionError('Empty input must not invoke model inference.'))
+        model.to.return_value = model.eval.return_value = model
+        monkeypatch.setattr(transformers.AutoTokenizer, 'from_pretrained', lambda *a, **k: tokenizer)
+        monkeypatch.setattr(transformers.AutoModelForCausalLM, 'from_pretrained', lambda *a, **k: model)
+        scorer = QwenRerankerScorer(query_cap=None if legacy_truncation else 128)
+        query = 'query ' * 1000 if legacy_truncation else 'An English question?'
+        hits = tuple(reversed(candidates())) if legacy_truncation else tuple(
+            replace(h, content='') for h in reversed(candidates()))
+        assert all(d['body_empty'] for d in scorer.prepare_inputs(query, hits))
+>       after = Reranker(scorer).rerank(query, hits)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/retrieval/test_qwen_inputs.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/arkb/retrieval/rerank.py:46: in rerank
+    output = self.scorer.score(query, candidates)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/retrieval/qwen_rerank.py:87: in score
+    logits = self._model(**inputs, use_cache=False, logits_to_keep=1).logits[:, -1, :]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/unittest/mock.py:1169: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/unittest/mock.py:1173: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Mock id='4825513136'>, args = ()
+kwargs = {'input_ids': tensor([[263, 265,  62,  ..., 304,  29, 355],
+        [263, 265,  62,  ..., 304,  29, 355]]), 'attention_mask': tensor([[1, 1, 1,  ..., 1, 1, 1],
+        [1, 1, 1,  ..., 1, 1, 1]]), 'use_cache': False, 'logits_to_keep': 1}
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+    
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               AssertionError: Empty input must not invoke model inference.
+
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/unittest/mock.py:1228: AssertionError
+---------------------------- Captured stdout setup -----------------------------
+
+
+
+=========================== short test summary info ============================
+FAILED tests/retrieval/test_rerank.py::test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic[scores0]
+FAILED tests/retrieval/test_rerank.py::test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic[scores1]
+FAILED tests/retrieval/test_qwen_inputs.py::test_all_body_empty_preserves_hybrid_without_calling_model[False]
+FAILED tests/retrieval/test_qwen_inputs.py::test_all_body_empty_preserves_hybrid_without_calling_model[True]
+4 failed, 34 passed in 2.71s

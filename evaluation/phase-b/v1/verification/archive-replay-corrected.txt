@@ -1,0 +1,28 @@
+reproduced B0
+reproduced B1
+reproduced B2
+reproduced B3
+reproduced B4
+reproduced B5
+{
+  "schema": "arkb-phase-b-offline-replay-v1",
+  "status": "completed",
+  "parts_verified": 4,
+  "archive_byte_identity": true,
+  "archive_sha256": "c2e6847c24fed5fb882590ceab9715adf54fd1019c17231eb5e2013cec8d8783",
+  "files_verified": 620,
+  "analysis_summaries_byte_identical": {
+    "B0": "3c81a0082844ccdc7da38bfde9439c23e2924ec65446ea18d89df4cd2e015ad8",
+    "B1": "16cf22dbc11645a2ac32fac161ecfada1e31302c1ba556a34942a7b25ec37779",
+    "B2": "d6fa016bb28503599311c577ae31213969e2b135335520dc8b546af64b7e993f",
+    "B3": "57674210b832540102f298b10c014a02060c260f16bd771b86c037b37f63d4e5",
+    "B4": "bb11d2ea86258d6a8c1c48df0ed1fcbd830427f416850e3aef886047faef09f5",
+    "B5": "396de1f6d5039a173d0e08013cb6c042a059458d0d2cff053d47d1b7f7a4b278"
+  },
+  "selection_byte_identical": true,
+  "hybrid_boundary_byte_identical": true,
+  "new_model_calls": 0,
+  "upstream_retrieval_calls": 0,
+  "replayer_sha256": "3fcc40e8e1dcac29356678c95566f71d87da21ee36057918b1e6e50cbf8cf4b2",
+  "release_eligible": false
+}

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/audits/replay_phase_b_archive.py", line 107, in <module>
+    main()
+    ~~~~^^
+  File "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/audits/replay_phase_b_archive.py", line 70, in main
+    raise ValueError('Extracted file changed: ' + name)
+ValueError: Extracted file changed: B0-execution.log

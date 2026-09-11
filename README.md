@@ -330,6 +330,13 @@ uv run --locked --extra rerank arkb search \
 ```
 
 The current reranker uses the pinned `Qwen/Qwen3-Reranker-0.6B` model locally through PyTorch and Transformers.
+It uses a 512-token input limit, with up to 128 query tokens (head and tail),
+64 title tokens, and the remaining space for document body. It reserves at least
+128 body tokens when the body is that long. Equal scores preserve incoming order;
+all-equal scores, all-empty bodies, invalid scores, or expected scoring failures
+preserve incoming ranking and score semantics with explicit fallback metadata.
+Reranking remains optional: the [Phase B evaluation](docs/phase-b-report.md) retains
+SciFact gains but still finds regressions against Hybrid on long technical queries.
 
 ### Exact text vs exact vector search
 

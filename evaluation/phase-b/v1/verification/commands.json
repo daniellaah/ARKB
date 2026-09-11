@@ -1,0 +1,20 @@
+{
+  "production_commit": "75ba733",
+  "normal": "OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 TOKENIZERS_PARALLELISM=false .venv/bin/python -m pytest -m 'not integration' -q --junitxml=evaluation/results/phase-b-v1/verification/normal.xml",
+  "integration": ".venv/bin/python -m pytest -m integration -q --junitxml=evaluation/results/phase-b-v1/verification/integration.xml",
+  "integration_environment": {
+    "ARKB_RUN_MODEL_TESTS": "1",
+    "ARKB_RUN_RERANKER_TESTS": "1",
+    "ARKB_QDRANT_URL": "http://127.0.0.1:32776",
+    "ARKB_RERANKER_OFFLINE": "1",
+    "ARKB_RERANKER_CACHE": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.arkb/models",
+    "ARKB_RERANKER_TEST_DB": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p0-current-20260910-r2/index.sqlite",
+    "ARKB_RERANKER_TEST_VAULT": "p0-current-20260910-r2",
+    "ARKB_RERANKER_TEST_QDRANT_URL": "http://127.0.0.1:32776",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4",
+    "TOKENIZERS_PARALLELISM": "false"
+  },
+  "freshness": ".venv/bin/python evaluation/experiments/run_p4_freshness_live.py --output evaluation/results/phase-b-freshness-live",
+  "note": "Use new output paths for repeats; model/service tests require existing local services and cached models."
+}

@@ -1,0 +1,197 @@
+{
+  "schema": "arkb-phase-b-verification-v1",
+  "groups_overlap": true,
+  "deterministic": {
+    "cases": 1152,
+    "passed": 1152,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "service_integration": {
+    "cases": 60,
+    "passed": 60,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "evaluation_regression": {
+    "cases": 248,
+    "passed": 248,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "phase_a_regression": {
+    "cases": 378,
+    "passed": 378,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "reranker_focused": {
+    "cases": 48,
+    "passed": 48,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "new_reranker_deterministic": {
+    "cases": 38,
+    "passed": 38,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "reranker_integration": {
+    "cases": 5,
+    "passed": 5,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "new_real_long_query_integration": {
+    "cases": 1,
+    "passed": 1,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "new_case_ids": [
+    "tests.evaluation.test_phase_b_replay::test_audit_rejects_an_order_not_justified_by_saved_scores",
+    "tests.evaluation.test_phase_b_replay::test_audit_rejects_reordering_outside_the_rerank_pool",
+    "tests.evaluation.test_phase_b_replay::test_audit_requires_evidence_for_fallback_trigger[all_equal_scores-scores0-inputs0]",
+    "tests.evaluation.test_phase_b_replay::test_audit_requires_evidence_for_fallback_trigger[empty_body-scores1-inputs1]",
+    "tests.evaluation.test_phase_b_replay::test_audit_requires_evidence_for_fallback_trigger[scoring_error-scores2-inputs2]",
+    "tests.evaluation.test_phase_b_replay::test_audit_requires_evidence_for_fallback_trigger[unregistered_heuristic-scores3-inputs3]",
+    "tests.evaluation.test_phase_b_replay::test_exact_equal_fallback_is_audited_as_identity_without_new_scores",
+    "tests.evaluation.test_phase_b_replay::test_legacy_score_replay_inherits_verified_input_diagnostics",
+    "tests.evaluation.test_phase_b_replay::test_selection_cli_applies_one_registered_policy_across_domains[values0-B3]",
+    "tests.evaluation.test_phase_b_replay::test_selection_cli_applies_one_registered_policy_across_domains[values1-B4]",
+    "tests.evaluation.test_phase_b_replay::test_selection_cli_applies_one_registered_policy_across_domains[values2-B4]",
+    "tests.evaluation.test_phase_b_replay::test_selection_cli_applies_one_registered_policy_across_domains[values3-B2]",
+    "tests.evaluation.test_phase_b_replay::test_stable_score_replay_preserves_tail_and_recovers_known_positive",
+    "tests.retrieval.test_qwen_inputs::test_all_body_empty_preserves_hybrid_without_calling_model[False]",
+    "tests.retrieval.test_qwen_inputs::test_all_body_empty_preserves_hybrid_without_calling_model[True]",
+    "tests.retrieval.test_qwen_inputs::test_allocations_protect_body_and_both_ends_of_a_long_query[128]",
+    "tests.retrieval.test_qwen_inputs::test_allocations_protect_body_and_both_ends_of_a_long_query[192]",
+    "tests.retrieval.test_qwen_inputs::test_current_policy_reconstructs_official_tokens_and_measures_body_loss",
+    "tests.retrieval.test_qwen_inputs::test_empty_title_does_not_count_document_separator_as_title",
+    "tests.retrieval.test_qwen_inputs::test_impossible_body_reservation_is_explicit",
+    "tests.retrieval.test_qwen_inputs::test_invalid_allocation_configuration_is_rejected[kwargs0]",
+    "tests.retrieval.test_qwen_inputs::test_invalid_allocation_configuration_is_rejected[kwargs1]",
+    "tests.retrieval.test_qwen_inputs::test_invalid_allocation_configuration_is_rejected[kwargs2]",
+    "tests.retrieval.test_qwen_inputs::test_invalid_allocation_configuration_is_rejected[kwargs3]",
+    "tests.retrieval.test_qwen_inputs::test_invalid_allocation_configuration_is_rejected[kwargs4]",
+    "tests.retrieval.test_qwen_inputs::test_query_budget_cannot_silently_remove_every_complete_character[1]",
+    "tests.retrieval.test_qwen_inputs::test_query_budget_cannot_silently_remove_every_complete_character[3]",
+    "tests.retrieval.test_qwen_inputs::test_scorer_sends_exact_instrumented_tokens_to_model[False]",
+    "tests.retrieval.test_qwen_inputs::test_scorer_sends_exact_instrumented_tokens_to_model[True]",
+    "tests.retrieval.test_qwen_inputs::test_short_input_is_byte_for_byte_unchanged",
+    "tests.retrieval.test_qwen_inputs::test_source_identity_and_unrelated_metadata_cannot_change_model_input",
+    "tests.retrieval.test_qwen_inputs::test_unicode_byte_boundaries_and_technical_delimiters_remain_valid[128]",
+    "tests.retrieval.test_qwen_inputs::test_unicode_byte_boundaries_and_technical_delimiters_remain_valid[129]",
+    "tests.retrieval.test_qwen_inputs::test_unicode_byte_boundaries_and_technical_delimiters_remain_valid[191]",
+    "tests.retrieval.test_qwen_inputs::test_unicode_byte_boundaries_and_technical_delimiters_remain_valid[192]",
+    "tests.retrieval.test_rerank::test_distinct_chunks_of_one_source_remain_distinct_candidates",
+    "tests.retrieval.test_rerank::test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic[scores0]",
+    "tests.retrieval.test_rerank::test_equal_score_fallback_keeps_hybrid_score_semantics_and_model_diagnostic[scores1]",
+    "tests.retrieval.test_rerank::test_near_equal_scores_are_not_merged_and_single_candidate_remains_scored",
+    "tests.retrieval.test_rerank::test_programming_and_configuration_errors_are_not_hidden[error0]",
+    "tests.retrieval.test_rerank::test_programming_and_configuration_errors_are_not_hidden[error1]",
+    "tests.retrieval.test_rerank::test_programming_and_configuration_errors_are_not_hidden[error2]",
+    "tests.retrieval.test_rerank::test_score_groups_preserve_upstream_order_and_every_candidate[scores0-expected0]",
+    "tests.retrieval.test_rerank::test_score_groups_preserve_upstream_order_and_every_candidate[scores1-expected1]",
+    "tests.retrieval.test_rerank::test_score_groups_preserve_upstream_order_and_every_candidate[scores2-expected2]",
+    "tests.retrieval.test_rerank::test_scoring_execution_failure_preserves_original_scores_and_ranking[error0]",
+    "tests.retrieval.test_rerank::test_scoring_execution_failure_preserves_original_scores_and_ranking[error1]",
+    "tests.retrieval.test_rerank::test_unusable_score_containers_have_explicit_safe_fallback[5.0]",
+    "tests.retrieval.test_rerank::test_unusable_score_containers_have_explicit_safe_fallback[None]",
+    "tests.retrieval.test_rerank::test_unusable_score_containers_have_explicit_safe_fallback[scores2]",
+    "tests.retrieval.test_rerank::test_unusable_score_containers_have_explicit_safe_fallback[scores3]"
+  ],
+  "removed_case_ids": [
+    "tests.retrieval.test_qwen_rerank::test_truncation_reserves_scoring_suffix_and_retains_title_body_input"
+  ],
+  "freshness": {
+    "checks": {
+      "live_read_before_rebuild": true,
+      "revision_changed_before_rebuild": true,
+      "live_match_before_rebuild": true,
+      "old_semantic_snapshot_stays_frozen": true,
+      "edited_reference_rejected": true,
+      "known_source_refreshes_reference": true,
+      "deleted.md_reference_rejected": true,
+      "deleted.md_old_read_rejected": true,
+      "renamed.md_reference_rejected": true,
+      "renamed.md_old_read_rejected": true,
+      "new_publication": true,
+      "new_semantic_sources": true,
+      "new_semantic_content": true,
+      "new_bm25_removes_deleted": true,
+      "old_captured_engine_survives_publication": true,
+      "both_remote_snapshots_match_sqlite": true
+    },
+    "passed": 16,
+    "failed": 0,
+    "builds": {
+      "t0": {
+        "manifest": {
+          "index_version": "a445b0ed44624a51aa47f6e330bf6745",
+          "vault_id": "p4-live-freshness",
+          "embedding_spec": {
+            "model": "qwen3-embedding:0.6b",
+            "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+            "dimensions": 1024,
+            "document_template": "title-body-v1",
+            "provider": "ollama",
+            "normalization": "l2",
+            "dtype": "float64"
+          },
+          "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+          "document_count": 3,
+          "chunk_count": 3,
+          "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+          "status": "ready",
+          "schema_version": 2
+        },
+        "embedded_inputs": 3,
+        "cached_inputs": 0,
+        "reused_index": false,
+        "added_documents": 3,
+        "modified_documents": 0,
+        "deleted_documents": 0,
+        "build_seconds": 0.5166862080805004
+      },
+      "t1": {
+        "manifest": {
+          "index_version": "4435757915fa49b282535fa2a2ef3d83",
+          "vault_id": "p4-live-freshness",
+          "embedding_spec": {
+            "model": "qwen3-embedding:0.6b",
+            "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+            "dimensions": 1024,
+            "document_template": "title-body-v1",
+            "provider": "ollama",
+            "normalization": "l2",
+            "dtype": "float64"
+          },
+          "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+          "document_count": 2,
+          "chunk_count": 2,
+          "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+          "status": "ready",
+          "schema_version": 2
+        },
+        "embedded_inputs": 1,
+        "cached_inputs": 1,
+        "reused_index": false,
+        "added_documents": 1,
+        "modified_documents": 1,
+        "deleted_documents": 2,
+        "build_seconds": 0.5409719168674201
+      }
+    },
+    "scope": "controlled fixture with real local model, SQLite and Qdrant; not an asynchronous latency SLA"
+  }
+}
