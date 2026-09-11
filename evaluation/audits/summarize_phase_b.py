@@ -4,6 +4,7 @@ import argparse
 from collections import Counter
 import json
 from pathlib import Path
+import shutil
 
 import numpy as np
 
@@ -63,7 +64,7 @@ def input_summary(rows):
             'queries_over_512_tokens': [r['qid'] for r in rows if r['inputs'][0]['query_tokens_before'] > 512]}
 
 
-def audit_variant(pools, labels, rows):
+def audit_variant(pools, labels, rows, *, tie_policy='stable'):
     if [r['qid'] for r in rows] != [p['qid'] for p in pools]:
         raise ValueError('Variant must preserve the full registered query order.')
     scored = []; references = {}; hybrid_scores = []; old_scores = []
@@ -79,8 +80,23 @@ def audit_variant(pools, labels, rows):
         if m['recall@100'] != h['recall@100']:
             raise ValueError('Recall@100 changed.')
         scores = row.get('scores', [])
-        if scores and (len(scores) != 20 or not all(np.isfinite(scores))):
+        if scores and (len(scores) != 20 or not all(type(s) in (int, float) and np.isfinite(s) for s in scores)):
             raise ValueError('Invalid saved scores must be explicitly excluded from usable scores.')
+        if row.get('fallback'):
+            if ranking != before:
+                raise ValueError('Fallback did not preserve the complete Hybrid order.')
+        elif scores:
+            def key(i):
+                if tie_policy == 'identity':
+                    hit = pool['candidates'][i]
+                    return -scores[i], (hit['source_id'], 'chunk', hit['chunk_id'])
+                return -scores[i], i
+            order = sorted(range(20), key=key)
+            expected = [pool['candidate_document_ids'][i] for i in order] + before[20:]
+            if ranking != expected:
+                raise ValueError('Scores do not justify the recorded ranking under the declared tie policy.')
+        else:
+            raise ValueError('Missing scores without an explicit fallback.')
         unique = len(set(scores)) if scores else 0
         gold = {d for d, gain in labels['qrels'][qid].items() if gain > 0}
         positions = {d: i+1 for i, d in enumerate(before)}
@@ -156,7 +172,9 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args(); verify_checksums(args.run)
     args.output.mkdir(parents=True, exist_ok=False)
+    shutil.copyfile(__file__, args.output/'audit.py')
     result = {'schema': 'arkb-phase-b-analysis-v1', 'variant': args.variant,
+              'audit_sha256': digest(Path(__file__)),
               'pool_manifest_sha256': digest(args.run/'manifest.json'),
               'bootstrap': {'seed': 20260911, 'resamples': 10000, 'unit': 'query', 'multiple_comparison_adjustment': False},
               'category_counts_overlap': True, 'release_eligible': False, 'datasets': {}}
@@ -178,7 +196,17 @@ def main():
         else:
             verify_checksums(args.run/args.variant)
             rows = read_jsonl(args.run/args.variant/f'{ds}.jsonl')
-        summary, scored = audit_variant(pools, labels, rows)
+        if args.variant in ('B3', 'B4'):
+            prepared = read_jsonl(args.run/'allocations'/args.variant/f'{ds}.jsonl')
+            if len(prepared) != len(rows): raise ValueError('Registered inputs are incomplete.')
+            for row, expected in zip(rows, prepared):
+                if row['qid'] != expected['qid'] or len(row['inputs']) != len(expected['inputs']):
+                    raise ValueError('Registered input identity mismatch.')
+                for actual, original in zip(row['inputs'], expected['inputs']):
+                    if {k: v for k, v in actual.items() if k != 'score'} != original:
+                        raise ValueError('Actual model input or diagnostic differs from preregistration.')
+        summary, scored = audit_variant(pools, labels, rows,
+            tie_policy='identity' if args.variant in ('B0-saved', 'B0-inference') else 'stable')
         summary['changed_from_B0_rankings'] = sum(r['ranking'] != p['baseline_ranking'] for r, p in zip(rows, pools))
         result['datasets'][ds] = summary
         with (args.output/f'{ds}-attribution.jsonl').open('x') as f:

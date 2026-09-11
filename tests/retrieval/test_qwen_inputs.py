@@ -133,3 +133,12 @@ def test_scorer_sends_exact_instrumented_tokens_to_model(tokenizer, monkeypatch)
         assert len(ids) <= 512
         assert ids[:len(prefix)] == prefix
         assert ids[-len(suffix):] == suffix
+
+
+def test_source_identity_and_unrelated_metadata_cannot_change_model_input(tokenizer):
+    from arkb.retrieval.qwen_inputs import QwenInputBuilder
+    builder = QwenInputBuilder(tokenizer, query_cap=128, title_cap=64)
+    first = candidates()[0]
+    other = replace(first, source_id='different-document', source='different.md', chunk_id='different-chunk',
+                    score=.01, metadata={**first.metadata, 'unrelated_annotation': 'must not enter model input'})
+    assert builder.prepare('A question?', first)['input_ids'] == builder.prepare('A question?', other)['input_ids']
