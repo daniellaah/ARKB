@@ -1,0 +1,8 @@
+{
+  "chunks": 1883193,
+  "dimensions": 1024,
+  "python_list_and_float_bytes_per_vector": 32824,
+  "current_all_points_vector_lists_gib": 57.568705670535564,
+  "float64_matrix_gib": 14.367622375488281,
+  "note": "Exact CPython object-size extrapolation for vector lists only. Excludes PointStruct/payloads, records, original corpus, SQLite, validation temporaries and Qdrant Server. No model calls or corpus changes."
+}
