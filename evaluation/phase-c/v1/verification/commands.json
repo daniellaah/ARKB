@@ -1,0 +1,19 @@
+{
+  "normal": ".venv/bin/python -m pytest -m 'not integration' -q --junitxml=evaluation/results/phase-c-v1/normal-final.xml",
+  "integration": ".venv/bin/python -m pytest -m integration -q --junitxml=evaluation/results/phase-c-v1/service-final.xml",
+  "integration_environment": {
+    "ARKB_RUN_MODEL_TESTS": "1",
+    "ARKB_RUN_RERANKER_TESTS": "1",
+    "ARKB_QDRANT_URL": "http://127.0.0.1:6340",
+    "ARKB_RERANKER_OFFLINE": "1",
+    "ARKB_RERANKER_CACHE": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.arkb/models",
+    "ARKB_RERANKER_TEST_DB": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p0-current-20260910-r2/index.sqlite",
+    "ARKB_RERANKER_TEST_VAULT": "p0-current-20260910-r2",
+    "ARKB_RERANKER_TEST_QDRANT_URL": "http://127.0.0.1:32776",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4",
+    "TOKENIZERS_PARALLELISM": "false"
+  },
+  "freshness": ".venv/bin/python evaluation/experiments/run_p4_freshness_live.py --output evaluation/results/phase-c-v1/freshness-live --qdrant-url http://127.0.0.1:6340",
+  "note": "Use fresh output paths for future runs. Counts are from JUnit cases; subsets overlap."
+}

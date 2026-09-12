@@ -1,0 +1,29 @@
+{
+  "revision": "046949032b0328319cc9a02663a759ec601d9402",
+  "files": [
+    {
+      "path": "README.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8f180d4fbf7e10a0ae66b803444176755741e444",
+      "size": 10275,
+      "url": "https://api.github.com/repos/texttron/BrowseComp-Plus/git/blobs/8f180d4fbf7e10a0ae66b803444176755741e444"
+    },
+    {
+      "path": "topics-qrels/qrel_evidence.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d99a06aeb30dcf0dd9c41003c2bca8d775e4519c",
+      "size": 76162,
+      "url": "https://api.github.com/repos/texttron/BrowseComp-Plus/git/blobs/d99a06aeb30dcf0dd9c41003c2bca8d775e4519c"
+    },
+    {
+      "path": "topics-qrels/qrel_golds.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8129652990c139cfa153ce901b415e802f6fbdd7",
+      "size": 36336,
+      "url": "https://api.github.com/repos/texttron/BrowseComp-Plus/git/blobs/8129652990c139cfa153ce901b415e802f6fbdd7"
+    }
+  ]
+}

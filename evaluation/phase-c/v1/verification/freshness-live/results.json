@@ -1,0 +1,81 @@
+{
+  "checks": {
+    "live_read_before_rebuild": true,
+    "revision_changed_before_rebuild": true,
+    "live_match_before_rebuild": true,
+    "old_semantic_snapshot_stays_frozen": true,
+    "edited_reference_rejected": true,
+    "known_source_refreshes_reference": true,
+    "deleted.md_reference_rejected": true,
+    "deleted.md_old_read_rejected": true,
+    "renamed.md_reference_rejected": true,
+    "renamed.md_old_read_rejected": true,
+    "new_publication": true,
+    "new_semantic_sources": true,
+    "new_semantic_content": true,
+    "new_bm25_removes_deleted": true,
+    "old_captured_engine_survives_publication": true,
+    "both_remote_snapshots_match_sqlite": true
+  },
+  "passed": 16,
+  "failed": 0,
+  "builds": {
+    "t0": {
+      "manifest": {
+        "index_version": "7628e2129f944c25a7485ce1a42c5917",
+        "vault_id": "p4-live-freshness",
+        "embedding_spec": {
+          "model": "qwen3-embedding:0.6b",
+          "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+          "dimensions": 1024,
+          "document_template": "title-body-v1",
+          "provider": "ollama",
+          "normalization": "l2",
+          "dtype": "float64"
+        },
+        "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+        "document_count": 3,
+        "chunk_count": 3,
+        "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+        "status": "ready",
+        "schema_version": 2
+      },
+      "embedded_inputs": 3,
+      "cached_inputs": 0,
+      "reused_index": false,
+      "added_documents": 3,
+      "modified_documents": 0,
+      "deleted_documents": 0,
+      "build_seconds": 3.0570587078109384
+    },
+    "t1": {
+      "manifest": {
+        "index_version": "48c2dbe321fe4080b603555afca3bff5",
+        "vault_id": "p4-live-freshness",
+        "embedding_spec": {
+          "model": "qwen3-embedding:0.6b",
+          "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+          "dimensions": 1024,
+          "document_template": "title-body-v1",
+          "provider": "ollama",
+          "normalization": "l2",
+          "dtype": "float64"
+        },
+        "chunking_fingerprint": "b4bfce1d9c2fb53f35aa94cd6b9c9c1adf0e85a312fa4c85ae1cc2465be13e8b",
+        "document_count": 2,
+        "chunk_count": 2,
+        "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+        "status": "ready",
+        "schema_version": 2
+      },
+      "embedded_inputs": 1,
+      "cached_inputs": 1,
+      "reused_index": false,
+      "added_documents": 1,
+      "modified_documents": 1,
+      "deleted_documents": 2,
+      "build_seconds": 1.088817415991798
+    }
+  },
+  "scope": "controlled fixture with real local model, SQLite and Qdrant; not an asynchronous latency SLA"
+}

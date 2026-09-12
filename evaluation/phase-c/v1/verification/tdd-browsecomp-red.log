@@ -1,0 +1,17 @@
+...F                                                                     [100%]
+=================================== FAILURES ===================================
+_____ test_browsecomp_adapter_separates_queries_evidence_gold_and_answers ______
+
+tmp_path = PosixPath('/private/var/folders/bh/bjzg1vfj71bdnp0lnvd7fq680000gn/T/pytest-of-daboluo/pytest-457/test_browsecomp_adapter_separa0')
+
+    def test_browsecomp_adapter_separates_queries_evidence_gold_and_answers(tmp_path):
+        import base64,hashlib
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+>       from arkb.evaluation.browsecomp import import_browsecomp
+E       ModuleNotFoundError: No module named 'arkb.evaluation.browsecomp'
+
+tests/evaluation/test_public_benchmarks.py:42: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED tests/evaluation/test_public_benchmarks.py::test_browsecomp_adapter_separates_queries_evidence_gold_and_answers
+1 failed, 3 passed in 0.33s

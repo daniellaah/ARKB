@@ -1,0 +1,42 @@
+{
+  "external_disk_authorized": true,
+  "external_directory": "/Volumes/闪迪1T/arkb-phase-c-v1",
+  "apfs_image": "/Volumes/闪迪1T/arkb-phase-c-v1/arkb-phase-c.sparseimage",
+  "mount": "/Volumes/ARKBPhaseC",
+  "reason": "ExFAT allocation made the 57,638-document FiQA materialization occupy approximately 56 GiB; the equivalent APFS materialization uses 272 MiB.",
+  "original_downloads": "/Volumes/闪迪1T/arkb-phase-c-v1/inputs",
+  "full_corpora": {
+    "nfcorpus": 3633,
+    "fiqa": 57638,
+    "browsecomp-plus": 100195
+  },
+  "full_queries": {
+    "nfcorpus": 323,
+    "fiqa": 648,
+    "browsecomp-plus": 830
+  },
+  "failures_before_retrieval": [
+    {
+      "path": "/Volumes/闪迪1T/arkb-phase-c-v1/validation/nfcorpus",
+      "reason": "isolated external-mounted service did not start; connection refused"
+    },
+    {
+      "path": "/Volumes/ARKBPhaseC/validation/nfcorpus",
+      "reason": "existing Qdrant collection creation timed out; no embeddings or rankings produced"
+    }
+  ],
+  "cache_staging": "same production chunker/input preparation/model/SQLite keys, no index publication or scoring",
+  "validation_service": {
+    "container": "arkb-phase-c-native-v1",
+    "url": "http://127.0.0.1:6340",
+    "version": "1.19.0",
+    "storage": "Docker named volume arkb-phase-c-native-v1",
+    "preflight": "existing real Qdrant publication/HNSW/recovery test passed in 3.54 seconds",
+    "retrieval_configuration": "unchanged; endpoint and storage substrate are operational isolation only"
+  },
+  "no_existing_service_restart": true,
+  "no_existing_ready_index_changes": true,
+  "storage_failure_evidence": "Qdrant startup reports FUSE storage compatibility error; both existing and new host bind mounts timed out on collection creation.",
+  "official_storage_guidance": "https://qdrant.tech/documentation/guides/common-errors/",
+  "empty_document_exception": "fiqa: approved continuation; 38 raw empty records retained, omitted only from indexing; all qrels and queries preserved"
+}

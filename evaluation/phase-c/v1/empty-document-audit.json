@@ -1,0 +1,61 @@
+{
+  "nfcorpus": {
+    "corpus_count": 3633,
+    "empty_title_and_body_count": 0,
+    "empty_document_ids": [],
+    "positive_empty_document_ids": []
+  },
+  "fiqa": {
+    "corpus_count": 57638,
+    "empty_title_and_body_count": 38,
+    "empty_document_ids": [
+      "7915",
+      "12229",
+      "14135",
+      "33445",
+      "40982",
+      "54960",
+      "66248",
+      "115636",
+      "117276",
+      "126502",
+      "138418",
+      "153104",
+      "167128",
+      "169220",
+      "189754",
+      "206368",
+      "207473",
+      "215635",
+      "237392",
+      "248226",
+      "254541",
+      "290110",
+      "319894",
+      "325407",
+      "356535",
+      "358213",
+      "360125",
+      "399083",
+      "414219",
+      "441462",
+      "447488",
+      "470232",
+      "486245",
+      "528558",
+      "552533",
+      "572451",
+      "587667",
+      "597929"
+    ],
+    "positive_empty_document_ids": [
+      "117276"
+    ]
+  },
+  "browsecomp-plus": {
+    "corpus_count": 100195,
+    "empty_title_and_body_count": 0,
+    "empty_document_ids": [],
+    "positive_empty_document_ids": []
+  }
+}

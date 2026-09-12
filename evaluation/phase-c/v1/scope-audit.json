@@ -1,0 +1,24 @@
+{
+  "baseline": "75ba733",
+  "unchanged_source_files": 62,
+  "changes": [
+    {
+      "path": "src/arkb/evaluation/browsecomp.py",
+      "baseline_sha256": null,
+      "current_sha256": "347964196218bbdd0de20c97bf877d2f363783dc664562c80f488eb5bd528b6e"
+    },
+    {
+      "path": "src/arkb/evaluation/external.py",
+      "baseline_sha256": "9b0a42b61bd088be8c7b0e0223b075344e63782869c9dd6ac767d7cd353e7054",
+      "current_sha256": "d72cf60b60287870f35a021e5ba327f99713c1e178e9d5eb02f7cf7ab1750e38"
+    },
+    {
+      "path": "src/arkb/evaluation/source_fusion.py",
+      "baseline_sha256": null,
+      "current_sha256": "24d5330cb4ba537188b3c6a1babef96d05ede596b6835e1d6c6fa68605d47c78"
+    }
+  ],
+  "non_evaluation_production_changes": 0,
+  "status": "passed",
+  "policy": "Current production Hybrid retained. C1/C2 only in evaluation namespace."
+}

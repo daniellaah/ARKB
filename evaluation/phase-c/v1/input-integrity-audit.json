@@ -1,0 +1,14 @@
+{
+  "nfcorpus": {
+    "verified_files": 5,
+    "checksums_sha256": "1e93fc4b51495f1a83ca5057963f7f9b2e7bb064d4711ad9342c1637b08ac8a4"
+  },
+  "fiqa": {
+    "verified_files": 5,
+    "checksums_sha256": "ea5f92b028f3d3fc8b13c500735bc757be45aac5d885e9ab58f3f71423f6b817"
+  },
+  "browsecomp-plus": {
+    "verified_files": 7,
+    "checksums_sha256": "3a8cce6a7599257c75822b1b65017854f4e60c808e489d5bdb27aec0f6dc68c7"
+  }
+}

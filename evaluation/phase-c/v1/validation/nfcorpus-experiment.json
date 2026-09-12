@@ -1,0 +1,173 @@
+{
+  "status": "completed",
+  "started_at": "2026-09-11T23:29:47.973729+00:00",
+  "dataset": "nfcorpus",
+  "selected_policy": "C0",
+  "selected_alias": "C0",
+  "agent": false,
+  "reranker": false,
+  "dataset_manifest_sha256": "364c4530f3bbcb82ee7aa5299f5df7b7344543e8a578d72512e42b140c5bd466",
+  "environment_before": {
+    "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 16,
+    "packages": {
+      "numpy": "2.5.2",
+      "ollama": "0.6.2",
+      "qdrant-client": "1.19.0",
+      "tokenizers": "0.23.2",
+      "pyarrow": "21.0.0",
+      "pytrec-eval-terrier": "0.5.10",
+      "torch": "2.14.0",
+      "transformers": "5.16.1"
+    },
+    "ollama_server_version": "0.33.2",
+    "qdrant_server": {
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    },
+    "thread_settings": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "TOKENIZERS_PARALLELISM": "false"
+    }
+  },
+  "models_before": {
+    "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+  },
+  "index_setup_ms": 8851.997917052358,
+  "index_report": {
+    "manifest": {
+      "index_version": "d24b61b9069744b692309f80aaa478a1",
+      "vault_id": "nfcorpus",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 3633,
+      "chunk_count": 3930,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "embedded_inputs": 0,
+    "cached_inputs": 3887,
+    "reused_index": false,
+    "added_documents": 3633,
+    "modified_documents": 0,
+    "deleted_documents": 0,
+    "build_seconds": 8.390583249973133
+  },
+  "snapshot_before": {
+    "manifest": {
+      "index_version": "d24b61b9069744b692309f80aaa478a1",
+      "vault_id": "nfcorpus",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 3633,
+      "chunk_count": 3930,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "vectors_sha256": "ec8988de069e915fd410d0f74f252a72e3d1731c9ff92403d8a341484403d2a0",
+    "record_count": 3930,
+    "collection": "arkb_d2736891cfcb5f1b9ccde96f9b53a83e"
+  },
+  "leg_sha256": {
+    "bm25": "f539ae42f08b7f9bd4b4a4f64589c8047a8dd4d81196be3a79f50f00ac405d49",
+    "semantic": "790b62d3faa7b69628bb30c5c4ce7c51ca0513b8af6670336c5974d61f7c4e61"
+  },
+  "snapshot_after": {
+    "manifest": {
+      "index_version": "d24b61b9069744b692309f80aaa478a1",
+      "vault_id": "nfcorpus",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 3633,
+      "chunk_count": 3930,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "vectors_sha256": "ec8988de069e915fd410d0f74f252a72e3d1731c9ff92403d8a341484403d2a0",
+    "record_count": 3930,
+    "collection": "arkb_d2736891cfcb5f1b9ccde96f9b53a83e"
+  },
+  "backend": {
+    "collection": "arkb_d2736891cfcb5f1b9ccde96f9b53a83e",
+    "ef_construct": 100,
+    "full_scan_threshold": 10000,
+    "hnsw_m": 16,
+    "index_stats": {
+      "indexed_vectors": 0,
+      "points": 3930,
+      "status": "green"
+    },
+    "index_timeout": 30,
+    "indexing_threshold": 10000,
+    "input": {
+      "max_tokens": 8192,
+      "tokenizer": "9649b4c601a95320aea1c07d47068b30e822f903b494e6074f50af8dcfa17149"
+    },
+    "kind": "qdrant",
+    "require_hnsw": false,
+    "source_scope": "/Volumes/ARKBPhaseC/data/nfcorpus/corpus",
+    "url": "http://127.0.0.1:6340"
+  },
+  "models_after": {
+    "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+  },
+  "environment_after": {
+    "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 16,
+    "packages": {
+      "numpy": "2.5.2",
+      "ollama": "0.6.2",
+      "qdrant-client": "1.19.0",
+      "tokenizers": "0.23.2",
+      "pyarrow": "21.0.0",
+      "pytrec-eval-terrier": "0.5.10",
+      "torch": "2.14.0",
+      "transformers": "5.16.1"
+    },
+    "ollama_server_version": "0.33.2",
+    "qdrant_server": {
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    },
+    "thread_settings": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "TOKENIZERS_PARALLELISM": "false"
+    }
+  },
+  "legs_sha256": "1f5947489f2535eee3306f19d56bdbda50edbba3580f72ed78bb5b09d4a5ec1e",
+  "index_sqlite_sha256": "7c8ae9342d87c136257c9bd8eb6a3cedaaf93eb74e6769464bdf7d73b1b72593",
+  "finished_at": "2026-09-11T23:31:08.596510+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "dataset": "nfcorpus",
+  "queries": 323,
+  "verified_run_files": 83,
+  "exact_source_rank_positions": 451232,
+  "exact_representative_checks": 451232,
+  "reference_metric_max_error": 4.440892098500626e-16,
+  "leg_sha256": {
+    "bm25": "f539ae42f08b7f9bd4b4a4f64589c8047a8dd4d81196be3a79f50f00ac405d49",
+    "semantic": "790b62d3faa7b69628bb30c5c4ce7c51ca0513b8af6670336c5974d61f7c4e61"
+  },
+  "model_calls": 0,
+  "upstream_retrieval_calls": 0,
+  "run_checksums_sha256": "1d6fd614a87ea105d5674489b6435e5b98f32d1093afacc2746f4c71b3d7e79c",
+  "script_sha256": "69d3b1ccc1d4ba16229090209b7270bd4fd63c3e8c98c898222a665f6c363882",
+  "selected_alias": "C0: identity comparison, not an independent treatment run"
+}

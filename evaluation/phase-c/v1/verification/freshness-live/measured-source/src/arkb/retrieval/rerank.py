@@ -1,0 +1,111 @@
+"""Rerank frozen candidates with a replaceable, higher-is-better scorer."""
+
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, replace
+import math
+from typing import Protocol
+
+from arkb.retrieval.models import (
+    Retriever, SearchResponse, SearchResult, validate_options, validate_request,
+)
+
+
+class EmptyRerankerInput(RuntimeError):
+    """No candidate retains usable document-body tokens for this query."""
+
+
+class CandidateScorer(Protocol):
+    """Return one finite relevance score per candidate, in input order.
+
+    identity must name the model/strategy revision and score-affecting settings.
+    Scores must be higher-is-better; distances need an explicit scorer adapter.
+    """
+    @property
+    def identity(self) -> str: ...
+    @property
+    def score_type(self) -> str: ...
+    def score(self, query: str, candidates: Sequence[SearchResult]) -> Sequence[float]: ...
+
+
+@dataclass(frozen=True)
+class Reranker:
+    scorer: CandidateScorer
+
+    def __post_init__(self):
+        if any(not isinstance(value, str) or not value.strip()
+               for value in (self.scorer.identity, self.scorer.score_type)):
+            raise ValueError('Reranker requires scorer identity and score semantics.')
+
+    def rerank(self, query: str, candidates: Sequence[SearchResult], *,
+               top_k: int | None = None) -> tuple[SearchResult, ...]:
+        validate_request(query, 1 if top_k is None else top_k, None)
+        candidates = tuple(candidates)
+        if any(not isinstance(hit, SearchResult) for hit in candidates):
+            raise ValueError('Reranker requires SearchResult candidates.')
+        if len({hit.identity for hit in candidates}) != len(candidates):
+            raise ValueError('Reranker candidates contain duplicate identities.')
+        if not candidates:
+            return ()
+        try:
+            output = self.scorer.score(query, candidates)
+        except EmptyRerankerInput as error:
+            return self._fallback(candidates, top_k, 'empty_body', str(error))
+        except (RuntimeError, OSError) as error:
+            return self._fallback(candidates, top_k, 'scoring_error',
+                                  f'{type(error).__name__}: {error}')
+        try:
+            scores = tuple(output)
+        except TypeError:
+            return self._fallback(candidates, top_k, 'invalid_scores',
+                                  'Scorer returned a non-sequence score container.')
+        if len(scores) != len(candidates) or any(
+            type(score) not in (int, float) or not math.isfinite(score) for score in scores
+        ):
+            return self._fallback(candidates, top_k, 'invalid_scores',
+                                  'Scorer must return one finite score per candidate.')
+        if len(scores) > 1 and len(set(scores)) == 1:
+            return self._fallback(candidates, top_k, 'all_equal_scores',
+                                  'All model scores are exactly equal.', scores=scores)
+        # Equal model scores express no preference: preserve the upstream order.
+        order = sorted(range(len(candidates)), key=lambda i: -scores[i])
+        return tuple(replace(candidates[i], method='reranked', score=scores[i], score_type=self.scorer.score_type,
+                             metadata={**candidates[i].metadata, 'rerank': {
+                                 'scorer': self.scorer.identity, 'input_rank': i + 1,
+                                 'input_method': candidates[i].method, 'input_score': candidates[i].score,
+                                 'input_score_type': candidates[i].score_type,
+                                 'candidate_count': len(candidates),
+                                 'previous': candidates[i].metadata.get('rerank')}})
+                     for i in order[:top_k])
+
+    def _fallback(self, candidates, top_k, reason, message, *, scores=None):
+        # Keep original methods and scores: a failed scorer has no relevance
+        # value to substitute. The diagnostic makes this an explicit fallback.
+        return tuple(replace(hit, metadata={**hit.metadata, 'rerank': {
+            'scorer': self.scorer.identity, 'input_rank': i + 1,
+            'input_method': hit.method, 'input_score': hit.score,
+            'input_score_type': hit.score_type, 'candidate_count': len(candidates),
+            'fallback': reason, 'message': message,
+            **({'model_score': scores[i], 'model_score_type': self.scorer.score_type} if scores is not None else {}),
+            'previous': hit.metadata.get('rerank')}})
+            for i, hit in enumerate(candidates[:top_k]))
+
+
+@dataclass(frozen=True)
+class RerankedRetriever:
+    """Optional composition for any retriever; rerank before final truncation."""
+    retriever: Retriever
+    reranker: Reranker
+    candidate_k: int = 20
+
+    def __post_init__(self):
+        validate_options(self.candidate_k, None)
+
+    def search(self, query: str, *, top_k: int = 2,
+               filters: Mapping[str, str] | None = None) -> SearchResponse:
+        filters = validate_request(query, top_k, filters)
+        if top_k > self.candidate_k:
+            raise ValueError('top_k cannot exceed reranking candidate_k.')
+        response = self.retriever.search(query, top_k=self.candidate_k, filters=dict(filters))
+        results = self.reranker.rerank(query, response.results, top_k=top_k)
+        return SearchResponse(query=query, method=response.method + '+rerank',
+                              results=results, index_id=response.index_id)

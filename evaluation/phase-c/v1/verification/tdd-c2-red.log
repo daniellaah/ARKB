@@ -1,0 +1,30 @@
+.F                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_c2_uses_two_raw_chunk_ranks_then_compact_source_rrf ___________
+
+    def test_c2_uses_two_raw_chunk_ranks_then_compact_source_rrf():
+        a,b1,b2,b3=hit('a','a'),hit('b','b1'),hit('b','b2'),hit('b','b3')
+>       response=fuse_sources(legs([a,b1,b2,b3]),policy='C2',top_k=100)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/evaluation/test_source_fusion.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+legs = {'bm25': SearchResponse(query='question', method='bm25', results=(SearchResult(source_id='a', source='a.md', content='...index_id='snapshot'), 'semantic': SearchResponse(query='question', method='semantic', results=(), index_id='snapshot')}
+policy = 'C2', top_k = 100, filters = None
+
+    def fuse_sources(legs: Mapping[str, SearchResponse], *, policy: str,
+                     top_k: int = 100, filters=None) -> SearchResponse:
+        """Fuse pinned ranked chunks to unique sources with explicit score attribution.
+    
+        k=60 is fixed. Ties follow first occurrence in sorted leg-name/input order.
+        Filters are applied before aggregation; normal callers filter upstream too.
+        """
+        if policy != 'C1':
+>           raise ValueError('Unknown source fusion policy.')
+E           ValueError: Unknown source fusion policy.
+
+src/arkb/evaluation/source_fusion.py:22: ValueError
+=========================== short test summary info ============================
+FAILED tests/evaluation/test_source_fusion.py::test_c2_uses_two_raw_chunk_ranks_then_compact_source_rrf
+1 failed, 1 passed in 0.04s

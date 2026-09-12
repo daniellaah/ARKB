@@ -1,0 +1,19 @@
+....F                                                                    [100%]
+=================================== FAILURES ===================================
+_ test_explicit_empty_document_exception_keeps_full_corpus_and_recall_denominator _
+
+tmp_path = PosixPath('/private/var/folders/bh/bjzg1vfj71bdnp0lnvd7fq680000gn/T/pytest-of-daboluo/pytest-463/test_explicit_empty_document_e0')
+
+    def test_explicit_empty_document_exception_keeps_full_corpus_and_recall_denominator(tmp_path):
+        from arkb.evaluation.external import ExternalDataset,rank_metrics
+        data=ExternalDataset('fixture',[{'id':'empty','title':'','text':' \n '},
+            {'id':'readable','title':'','text':'useful evidence'}],{'q':'question'},
+            {'q':{'empty':1,'readable':1}},{},{})
+        data.save(tmp_path/'full',materialize=True)
+>       data.materialize(tmp_path/'indexable',omit_empty=True)
+E       TypeError: ExternalDataset.materialize() got an unexpected keyword argument 'omit_empty'
+
+tests/evaluation/test_public_benchmarks.py:77: TypeError
+=========================== short test summary info ============================
+FAILED tests/evaluation/test_public_benchmarks.py::test_explicit_empty_document_exception_keeps_full_corpus_and_recall_denominator
+1 failed, 4 passed in 0.34s

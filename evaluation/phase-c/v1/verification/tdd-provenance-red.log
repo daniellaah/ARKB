@@ -1,0 +1,112 @@
+..FF                                                                     [100%]
+=================================== FAILURES ===================================
+_ test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence[C1] _
+
+policy = 'C1'
+
+    @pytest.mark.parametrize('policy',['C1','C2'])
+    def test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence(policy):
+        h=hit('source','chunk',content='An exact\n  excerpt.')
+        lexical=replace(h,method='bm25',metadata={**h.metadata,'bm25':{'k1':1.2}})
+        semantic=replace(h,method='semantic',score=.3,score_type='cosine_similarity')
+>       result=fuse_sources(legs([lexical],[semantic]),policy=policy).results[0]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/evaluation/test_source_fusion.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+legs = {'bm25': SearchResponse(query='question', method='bm25', results=(SearchResult(source_id='source', source='source.md',...ion'}, chunk_id='chunk', start_char=7, end_char=26, score=0.3, score_type='cosine_similarity'),), index_id='snapshot')}
+policy = 'C1', top_k = 100, filters = {}
+
+    def fuse_sources(legs: Mapping[str, SearchResponse], *, policy: str,
+                     top_k: int = 100, filters=None) -> SearchResponse:
+        """Fuse pinned ranked chunks to unique sources with explicit score attribution.
+    
+        k=60 is fixed. Ties follow first occurrence in sorted leg-name/input order.
+        Filters are applied before aggregation; normal callers filter upstream too.
+        """
+        if policy not in ('C1','C2'):
+            raise ValueError('Unknown source fusion policy.')
+        if not legs or any(not isinstance(n,str) or not n.strip() for n in legs):
+            raise ValueError('Source fusion requires named retrieval legs.')
+        first=legs[sorted(legs)[0]]
+        filters=validate_request(first.query,top_k,filters)
+        if first.index_id is None:
+            raise ValueError('Source fusion requires a pinned snapshot.')
+        originals={}; sources={}; addresses={}; evidence={}; leg_votes=defaultdict(list)
+        for name in sorted(legs):
+            response=legs[name]
+            if (response.query,response.index_id)!=(first.query,first.index_id):
+                raise ValueError('Source fusion requires the same query and snapshot.')
+            grouped={}; seen=set()
+            for rank,h in enumerate(response.results,1):
+                if h.metadata.get('index_version')!=first.index_id:
+                    raise ValueError('Contributing chunk does not belong to the pinned snapshot.')
+                description=(h.source,h.metadata.get('document_revision'),h.metadata.get('vault_id'))
+                if sources.setdefault(h.source_id,description)!=description:
+                    raise ValueError('Conflicting source revision or address.')
+                if addresses.setdefault(h.source,h.source_id)!=h.source_id:
+                    raise ValueError('Source address has conflicting identities.')
+                signature=(h.source_id,h.source,h.content,h.start_char,h.end_char,h.metadata)
+                if evidence.setdefault(h.identity,signature)!=signature:
+>                   raise ValueError('Conflicting chunk evidence.')
+E                   ValueError: Conflicting chunk evidence.
+
+src/arkb/evaluation/source_fusion.py:45: ValueError
+_ test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence[C2] _
+
+policy = 'C2'
+
+    @pytest.mark.parametrize('policy',['C1','C2'])
+    def test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence(policy):
+        h=hit('source','chunk',content='An exact\n  excerpt.')
+        lexical=replace(h,method='bm25',metadata={**h.metadata,'bm25':{'k1':1.2}})
+        semantic=replace(h,method='semantic',score=.3,score_type='cosine_similarity')
+>       result=fuse_sources(legs([lexical],[semantic]),policy=policy).results[0]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/evaluation/test_source_fusion.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+legs = {'bm25': SearchResponse(query='question', method='bm25', results=(SearchResult(source_id='source', source='source.md',...ion'}, chunk_id='chunk', start_char=7, end_char=26, score=0.3, score_type='cosine_similarity'),), index_id='snapshot')}
+policy = 'C2', top_k = 100, filters = {}
+
+    def fuse_sources(legs: Mapping[str, SearchResponse], *, policy: str,
+                     top_k: int = 100, filters=None) -> SearchResponse:
+        """Fuse pinned ranked chunks to unique sources with explicit score attribution.
+    
+        k=60 is fixed. Ties follow first occurrence in sorted leg-name/input order.
+        Filters are applied before aggregation; normal callers filter upstream too.
+        """
+        if policy not in ('C1','C2'):
+            raise ValueError('Unknown source fusion policy.')
+        if not legs or any(not isinstance(n,str) or not n.strip() for n in legs):
+            raise ValueError('Source fusion requires named retrieval legs.')
+        first=legs[sorted(legs)[0]]
+        filters=validate_request(first.query,top_k,filters)
+        if first.index_id is None:
+            raise ValueError('Source fusion requires a pinned snapshot.')
+        originals={}; sources={}; addresses={}; evidence={}; leg_votes=defaultdict(list)
+        for name in sorted(legs):
+            response=legs[name]
+            if (response.query,response.index_id)!=(first.query,first.index_id):
+                raise ValueError('Source fusion requires the same query and snapshot.')
+            grouped={}; seen=set()
+            for rank,h in enumerate(response.results,1):
+                if h.metadata.get('index_version')!=first.index_id:
+                    raise ValueError('Contributing chunk does not belong to the pinned snapshot.')
+                description=(h.source,h.metadata.get('document_revision'),h.metadata.get('vault_id'))
+                if sources.setdefault(h.source_id,description)!=description:
+                    raise ValueError('Conflicting source revision or address.')
+                if addresses.setdefault(h.source,h.source_id)!=h.source_id:
+                    raise ValueError('Source address has conflicting identities.')
+                signature=(h.source_id,h.source,h.content,h.start_char,h.end_char,h.metadata)
+                if evidence.setdefault(h.identity,signature)!=signature:
+>                   raise ValueError('Conflicting chunk evidence.')
+E                   ValueError: Conflicting chunk evidence.
+
+src/arkb/evaluation/source_fusion.py:45: ValueError
+=========================== short test summary info ============================
+FAILED tests/evaluation/test_source_fusion.py::test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence[C1]
+FAILED tests/evaluation/test_source_fusion.py::test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence[C2]
+2 failed, 2 passed in 0.04s

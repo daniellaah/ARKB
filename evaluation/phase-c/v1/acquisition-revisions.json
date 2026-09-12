@@ -1,0 +1,292 @@
+{
+  "BeIR/nfcorpus": {
+    "sha": "b5026a0e96e8a7ac4f95f482a596389289d46269",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes",
+        "blobId": "a770de78287b5353fb380cf8774b1e6caf2881d9",
+        "size": 1566
+      },
+      {
+        "rfilename": "README.md",
+        "blobId": "03b88d643b5a122e934df7bccae5bad8ae808f45",
+        "size": 10512
+      },
+      {
+        "rfilename": "corpus/corpus-00000-of-00001.parquet",
+        "blobId": "fb95dd1534682599fbe7350acd98369d100b44b5",
+        "size": 3157570,
+        "lfs": {
+          "sha256": "f2a1c0b570a5efdf23cfa36f5e573d062cc113c6e7251e22c69b323a33ea895e",
+          "size": 3157570,
+          "pointerSize": 132
+        }
+      },
+      {
+        "rfilename": "queries/queries-00000-of-00001.parquet",
+        "blobId": "bc7c78222440551152010e0fdcb8da95553e712f",
+        "size": 80929,
+        "lfs": {
+          "sha256": "edd2b878b8130fb3b5e3c4b9428ddc1e67fbd6eedf8ae099fca3b87838ba6b29",
+          "size": 80929,
+          "pointerSize": 130
+        }
+      }
+    ]
+  },
+  "BeIR/nfcorpus-qrels": {
+    "sha": "a451b3b26d3ae1358f259c1a3a4dd61fcea35a65",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes",
+        "blobId": "a770de78287b5353fb380cf8774b1e6caf2881d9",
+        "size": 1566
+      },
+      {
+        "rfilename": "README.md",
+        "blobId": "bc58b6940a415a26e38244f8c688ff5ef134abf0",
+        "size": 13995
+      },
+      {
+        "rfilename": "dev.tsv",
+        "blobId": "4c8b9ce3ecc4f26ea4a1d9a6c9e48a9adcc0458c",
+        "size": 258218
+      },
+      {
+        "rfilename": "test.tsv",
+        "blobId": "615081e6e8a76050060caf45d23fe68342d8d360",
+        "size": 279572
+      },
+      {
+        "rfilename": "train.tsv",
+        "blobId": "d61fa14bd70ce45480cf5a02a5d0021b78e2d610",
+        "size": 2504643
+      }
+    ]
+  },
+  "BeIR/fiqa": {
+    "sha": "979c07a7cb5ccc6ca009792241fa1250b98055dd",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes",
+        "blobId": "a770de78287b5353fb380cf8774b1e6caf2881d9",
+        "size": 1566
+      },
+      {
+        "rfilename": "README.md",
+        "blobId": "d4f10cc2e4afb412a7c0858c5908f149ba7bc10a",
+        "size": 10413
+      },
+      {
+        "rfilename": "corpus/corpus-00000-of-00001.parquet",
+        "blobId": "b27ad19fabf506264262ecb102fadbe654b9e7d8",
+        "size": 27700817,
+        "lfs": {
+          "sha256": "b36bb07dab3bfad488190818828e749a52faf5ba391c1d51dac8b06064576f99",
+          "size": 27700817,
+          "pointerSize": 133
+        }
+      },
+      {
+        "rfilename": "queries/queries-00000-of-00001.parquet",
+        "blobId": "4f7fb426d9dee647d1c9e042ae44aa4bbc2bd41e",
+        "size": 321680,
+        "lfs": {
+          "sha256": "e9b3863724ffd538d8efff19684ef8ae495bdbddd96b35e81bdc39e3e22860d6",
+          "size": 321680,
+          "pointerSize": 131
+        }
+      }
+    ]
+  },
+  "BeIR/fiqa-qrels": {
+    "sha": "252958f2d646e22cab6d0c72dd3f0d5de6d0655a",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes",
+        "blobId": "a770de78287b5353fb380cf8774b1e6caf2881d9",
+        "size": 1566
+      },
+      {
+        "rfilename": "README.md",
+        "blobId": "bc58b6940a415a26e38244f8c688ff5ef134abf0",
+        "size": 13995
+      },
+      {
+        "rfilename": "dev.tsv",
+        "blobId": "abb5799d5c1105cf2663ca9f01e1917b18f565e1",
+        "size": 18327
+      },
+      {
+        "rfilename": "test.tsv",
+        "blobId": "4e4ef51a72222ce611f6c36b8c7c02d32e370e81",
+        "size": 25256
+      },
+      {
+        "rfilename": "train.tsv",
+        "blobId": "866241ace964783bb3a8b2b143b2727345fc759b",
+        "size": 209842
+      }
+    ]
+  },
+  "Tevatron/browsecomp-plus-corpus": {
+    "sha": "b27b02bc3e45511b8b82a13e6f90ce761df726f6",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes",
+        "blobId": "1ef325f1b111266a6b26e0196871bd78baa8c2f3",
+        "size": 2461
+      },
+      {
+        "rfilename": "README.md",
+        "blobId": "580447f000d53cb6f6bc50d15a8da97ea4ce33b1",
+        "size": 3232
+      },
+      {
+        "rfilename": "data/train-00000-of-00007.parquet",
+        "blobId": "3add794e0f9cae2156c1fd5c9821b3ea888d614d",
+        "size": 218510750,
+        "lfs": {
+          "sha256": "7c07f9e23b1ca548110fd831714cadc67d44db5223bace6e45fcaa795d3153d0",
+          "size": 218510750,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/train-00001-of-00007.parquet",
+        "blobId": "2acda8517208db7829599c5606a7aadaa3481853",
+        "size": 271758203,
+        "lfs": {
+          "sha256": "e92d8202e0f656a85b262153dbcd22ecf80ea2d0c96d9884f9c8e25480b869ab",
+          "size": 271758203,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/train-00002-of-00007.parquet",
+        "blobId": "b0629598d656da7f25053d93e528a4f2f2a2c390",
+        "size": 257605847,
+        "lfs": {
+          "sha256": "0e4113a4503342527258d8f2c49877747435f3e65bfe1f7306b4f488c8d225fe",
+          "size": 257605847,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/train-00003-of-00007.parquet",
+        "blobId": "6b74604da17d51d9245410052c923ce01d9f5188",
+        "size": 239125125,
+        "lfs": {
+          "sha256": "0ceea5e703332a2e3ce700f641273400d84583fad84b659d3248ed06d3a9fef3",
+          "size": 239125125,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/train-00004-of-00007.parquet",
+        "blobId": "e66dfc62197b61be753757b398d404674118007f",
+        "size": 259072824,
+        "lfs": {
+          "sha256": "15b62914ddc3de6946893c770f07d5d84d29646e833ca1447955668f2b57940c",
+          "size": 259072824,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/train-00005-of-00007.parquet",
+        "blobId": "b89895d4007db00a3277c51ed637afdffc694df0",
+        "size": 257706279,
+        "lfs": {
+          "sha256": "a9a75708ad37c522e93a774e5a968a3129e12b0559971c8f950a5628e0201df0",
+          "size": 257706279,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/train-00006-of-00007.parquet",
+        "blobId": "7300cf6f47896bc80db7601151ee98ffe0969107",
+        "size": 257801458,
+        "lfs": {
+          "sha256": "290062b60c1a6ebba7d5469a37a431f0a2596e68788295284b1b2d35db07b62c",
+          "size": 257801458,
+          "pointerSize": 134
+        }
+      }
+    ]
+  },
+  "Tevatron/browsecomp-plus": {
+    "sha": "144cff8e35b5eaef7e526346aa60774a9deb941f",
+    "siblings": [
+      {
+        "rfilename": ".gitattributes",
+        "blobId": "1ef325f1b111266a6b26e0196871bd78baa8c2f3",
+        "size": 2461
+      },
+      {
+        "rfilename": "README.md",
+        "blobId": "fae3cb4fa14c442679edd8ccc5ca166541b3b119",
+        "size": 6165
+      },
+      {
+        "rfilename": "data/test-00000-of-00006.parquet",
+        "blobId": "fe4cd4e18b632961d9d9aea0dcdbb6a7fa9f210e",
+        "size": 508023004,
+        "lfs": {
+          "sha256": "4ff9e93054eaee61b8d079a89b7ec4d02f16c9d05fa6e2fef7185b0786427a3a",
+          "size": 508023004,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/test-00001-of-00006.parquet",
+        "blobId": "92c02db85ee59b5fe712ea466c052a12bee567e5",
+        "size": 439458597,
+        "lfs": {
+          "sha256": "70cc3a6781693bb013c6855f231d15159222dddf826eb19947f6f85fcabccd4e",
+          "size": 439458597,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/test-00002-of-00006.parquet",
+        "blobId": "c3c7f260371889f1c3ae38771219c75fdbaec5bd",
+        "size": 447012029,
+        "lfs": {
+          "sha256": "f4fab28dcd293231da1b9da48680a19c7cdcb831df889d0691304de66016d194",
+          "size": 447012029,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/test-00003-of-00006.parquet",
+        "blobId": "d0c76f7039d767c1ce724c1c4ff4f5cf45dbd5c9",
+        "size": 415470437,
+        "lfs": {
+          "sha256": "e738eb7a2e76feebe60632fc279a99773586d75ce5344e205c9c53fc3071c126",
+          "size": 415470437,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/test-00004-of-00006.parquet",
+        "blobId": "fa0059df1261abed45fcd9d1301728b6f71d9096",
+        "size": 473281326,
+        "lfs": {
+          "sha256": "25535ff3d41be25d8b213b903c478f34c18082af3cbfe0a4a3925989b84c87e4",
+          "size": 473281326,
+          "pointerSize": 134
+        }
+      },
+      {
+        "rfilename": "data/test-00005-of-00006.parquet",
+        "blobId": "b948e003eafb23d995a7c1c191e38b13909a5ea0",
+        "size": 498182760,
+        "lfs": {
+          "sha256": "3a87031c5214322344b358db1d5f44d773b4d634ae43c60ce53ad582ccc47646",
+          "size": 498182760,
+          "pointerSize": 134
+        }
+      }
+    ]
+  }
+}

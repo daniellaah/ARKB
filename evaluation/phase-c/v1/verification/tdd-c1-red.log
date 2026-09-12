@@ -1,0 +1,16 @@
+
+==================================== ERRORS ====================================
+___________ ERROR collecting tests/evaluation/test_source_fusion.py ____________
+ImportError while importing test module '/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/tests/evaluation/test_source_fusion.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/evaluation/test_source_fusion.py:5: in <module>
+    from arkb.evaluation.source_fusion import fuse_sources
+E   ModuleNotFoundError: No module named 'arkb.evaluation.source_fusion'
+=========================== short test summary info ============================
+ERROR tests/evaluation/test_source_fusion.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.07s

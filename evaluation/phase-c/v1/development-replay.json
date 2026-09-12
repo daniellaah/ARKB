@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "datasets": {
+    "scifact": {
+      "queries": 300,
+      "verified_input_files": 7,
+      "exact_rank_positions": 150000,
+      "exact_representative_and_provenance_checks": 150000,
+      "paired_statistic_replays": 18
+    },
+    "bright-stackoverflow": {
+      "queries": 115,
+      "verified_input_files": 7,
+      "exact_rank_positions": 57500,
+      "exact_representative_and_provenance_checks": 57500,
+      "paired_statistic_replays": 22
+    },
+    "bright-robotics": {
+      "queries": 101,
+      "verified_input_files": 7,
+      "exact_rank_positions": 50500,
+      "exact_representative_and_provenance_checks": 50500,
+      "paired_statistic_replays": 22
+    }
+  },
+  "model_calls": 0,
+  "upstream_retrieval_calls": 0,
+  "frozen_manifest_sha256": "ba39edb9968a34d0c83147e28238d4b64939ca118bf9c0b3d3c5a82a92f1e9e9",
+  "development_checksums_sha256": "bcd61bb0e962b2a3a5932fd6a048eef63ca7cdc8928c4d4024e7a6580a15b385"
+}

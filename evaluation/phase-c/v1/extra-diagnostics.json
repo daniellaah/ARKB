@@ -1,0 +1,143 @@
+{
+  "scifact": {
+    "C0": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.0955,
+        "p50": 1.0,
+        "p90": 1.0
+      },
+      "union_positive_lost_queries": 10,
+      "union_positive_lost_sources": 10,
+      "positive_below_top20_queries": 25,
+      "representative_disagreement_queries": 199,
+      "representative_leg_disagreements": 763,
+      "representative_span_revision_checks": 30000,
+      "top10_exact_score_tie_queries": 42
+    },
+    "C1": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.1008333333333333,
+        "p50": 1.0,
+        "p90": 1.0
+      },
+      "union_positive_lost_queries": 10,
+      "union_positive_lost_sources": 10,
+      "positive_below_top20_queries": 26,
+      "representative_disagreement_queries": 218,
+      "representative_leg_disagreements": 907,
+      "representative_span_revision_checks": 30000,
+      "top10_exact_score_tie_queries": 46
+    },
+    "C2": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.1632,
+        "p50": 1.0,
+        "p90": 2.0
+      },
+      "union_positive_lost_queries": 10,
+      "union_positive_lost_sources": 10,
+      "positive_below_top20_queries": 26,
+      "representative_disagreement_queries": 247,
+      "representative_leg_disagreements": 1238,
+      "representative_span_revision_checks": 30000,
+      "top10_exact_score_tie_queries": 39
+    }
+  },
+  "bright-stackoverflow": {
+    "C0": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.802,
+        "p50": 1.0,
+        "p90": 3.0
+      },
+      "union_positive_lost_queries": 49,
+      "union_positive_lost_sources": 72,
+      "positive_below_top20_queries": 52,
+      "representative_disagreement_queries": 114,
+      "representative_leg_disagreements": 1325,
+      "representative_span_revision_checks": 11500,
+      "top10_exact_score_tie_queries": 25
+    },
+    "C1": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.8548695652173912,
+        "p50": 1.0,
+        "p90": 4.0
+      },
+      "union_positive_lost_queries": 44,
+      "union_positive_lost_sources": 69,
+      "positive_below_top20_queries": 53,
+      "representative_disagreement_queries": 114,
+      "representative_leg_disagreements": 1673,
+      "representative_span_revision_checks": 11500,
+      "top10_exact_score_tie_queries": 12
+    },
+    "C2": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 2.0626956521739133,
+        "p50": 2.0,
+        "p90": 4.0
+      },
+      "union_positive_lost_queries": 40,
+      "union_positive_lost_sources": 57,
+      "positive_below_top20_queries": 56,
+      "representative_disagreement_queries": 114,
+      "representative_leg_disagreements": 1904,
+      "representative_span_revision_checks": 11500,
+      "top10_exact_score_tie_queries": 19
+    }
+  },
+  "bright-robotics": {
+    "C0": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.615940594059406,
+        "p50": 1.0,
+        "p90": 3.0
+      },
+      "union_positive_lost_queries": 60,
+      "union_positive_lost_sources": 142,
+      "positive_below_top20_queries": 61,
+      "representative_disagreement_queries": 96,
+      "representative_leg_disagreements": 653,
+      "representative_span_revision_checks": 10100,
+      "top10_exact_score_tie_queries": 20
+    },
+    "C1": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.6474257425742573,
+        "p50": 1.0,
+        "p90": 3.0
+      },
+      "union_positive_lost_queries": 57,
+      "union_positive_lost_sources": 132,
+      "positive_below_top20_queries": 60,
+      "representative_disagreement_queries": 100,
+      "representative_leg_disagreements": 827,
+      "representative_span_revision_checks": 10100,
+      "top10_exact_score_tie_queries": 20
+    },
+    "C2": {
+      "mean_unique_sources_top100": 100.0,
+      "chunks_per_returned_source_pooled_within_dataset": {
+        "mean": 1.8622772277227724,
+        "p50": 1.0,
+        "p90": 3.0
+      },
+      "union_positive_lost_queries": 54,
+      "union_positive_lost_sources": 116,
+      "positive_below_top20_queries": 61,
+      "representative_disagreement_queries": 101,
+      "representative_leg_disagreements": 1011,
+      "representative_span_revision_checks": 10100,
+      "top10_exact_score_tie_queries": 16
+    }
+  }
+}
