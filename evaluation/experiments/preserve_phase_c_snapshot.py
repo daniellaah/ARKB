@@ -1,6 +1,6 @@
 """Preserve a completed validation index and a verified external Qdrant snapshot."""
 import argparse
-from dataclasses import asdict
+from contextlib import closing
 from datetime import datetime,timezone
 import json
 from pathlib import Path
@@ -19,7 +19,7 @@ def main():
     meta=json.loads((a.run/'experiment.json').read_text());protocol=json.loads((a.run/'protocol.json').read_text())
     if meta['status']!='completed':raise ValueError('Cannot preserve an incomplete validation as completed.')
     collection=meta['backend']['collection'];url=protocol['qdrant_url']
-    with QdrantClient(url=url,timeout=300) as client:
+    with closing(QdrantClient(url=url,timeout=300)) as client:
         snapshot=client.create_snapshot(collection_name=collection,wait=True)
         if snapshot is None:raise ValueError('Snapshot creation returned no metadata.')
         target=a.output/snapshot.name

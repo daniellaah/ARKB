@@ -31,3 +31,5 @@ test qrels. Original corpus and labels remain intact. The user approved continua
 Only 57,600 nonempty documents are indexed; all 648 queries and all labels remain unchanged.
 See `empty-document-exception.json`. Never silently discard its
 positive label or its affected query.
+
+The development archive is fully saved and independently hash-verified on the external disk; see `development-artifacts.json`. `artifact-locations.json` maps the local evidence and restoration paths. Exact regression counts and logs are in `verification/`. The engineering report is `docs/phase-c-report.md`; pending validation is marked explicitly.

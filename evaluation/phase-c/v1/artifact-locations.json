@@ -1,0 +1,26 @@
+{
+  "status": "partial: remaining full validation artifacts will be added after completion",
+  "external_mount": "/Volumes/ARKBPhaseC",
+  "physical_image": "/Volumes/闪迪1T/arkb-phase-c-v1/arkb-phase-c.sparseimage",
+  "development": {
+    "archive": "/Volumes/ARKBPhaseC/archives/development.tar",
+    "sha256": "b02b6208bad848897f9ce95e76ead98c8d1c5892a0d9ae1721ac9a256e978282",
+    "manifest": "development-artifacts.json"
+  },
+  "full_input_datasets": "/Volumes/ARKBPhaseC/data",
+  "original_downloads": "/Volumes/闪迪1T/arkb-phase-c-v1/inputs",
+  "input_hash_manifest": "input-integrity-audit.json",
+  "nfcorpus": {
+    "run": "/Volumes/ARKBPhaseC/validation/nfcorpus-r2",
+    "snapshot_manifest": "validation/nfcorpus-preserved-index.json"
+  },
+  "failed_initial_nfcorpus_runs": [
+    "/Volumes/闪迪1T/arkb-phase-c-v1/validation/nfcorpus",
+    "/Volumes/ARKBPhaseC/validation/nfcorpus"
+  ],
+  "superseded_hydration_archive": "/Volumes/ARKBPhaseC/archives/hydration-draft.tar",
+  "verification": "verification/checksums.json",
+  "phase_d_handoff": "../../../../docs/phase-c-report.md",
+  "public_distribution": false,
+  "restoration": "Mount APFS image at the recorded path. Use new extraction destinations; preserve source_scope for live read semantics. Restore Qdrant snapshots under recorded collection names when migrating the service."
+}
