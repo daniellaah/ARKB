@@ -1,0 +1,21 @@
+{
+  "dataset": "fiqa",
+  "queries": 648,
+  "legs_sha256": "442c3c97b695070e3f03bb433b80f7f00edd93a568fdeed8dedf6a44737225e8",
+  "measurement": "Observed single sequential capture, no timing rerun. Search includes query embedding for Semantic and result hydration; excludes offline fusion and index preparation.",
+  "scope": "Full index, 500 chunks/leg, exact retrieval. Not default-depth or Agent latency, and not an isolated repeated latency benchmark.",
+  "arms": {
+    "bm25": {
+      "mean_ms": 492.74533924525946,
+      "p50_ms": 537.2723954496905,
+      "p95_ms": 573.5142227844335,
+      "mean_returned_chunks": 499.6574074074074
+    },
+    "semantic": {
+      "mean_ms": 126.64182348188335,
+      "p50_ms": 124.79922955390066,
+      "p95_ms": 133.5393162444234,
+      "mean_returned_chunks": 500.0
+    }
+  }
+}

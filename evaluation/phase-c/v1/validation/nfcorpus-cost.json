@@ -1,0 +1,21 @@
+{
+  "dataset": "nfcorpus",
+  "queries": 323,
+  "legs_sha256": "1f5947489f2535eee3306f19d56bdbda50edbba3580f72ed78bb5b09d4a5ec1e",
+  "measurement": "Observed single sequential capture, no timing rerun. Search includes query embedding for Semantic and result hydration; excludes offline fusion and index preparation.",
+  "scope": "Full index, 500 chunks/leg, exact retrieval. Not default-depth or Agent latency, and not an isolated repeated latency benchmark.",
+  "arms": {
+    "bm25": {
+      "mean_ms": 25.425435153438766,
+      "p50_ms": 19.61245806887746,
+      "p95_ms": 60.11340047698468,
+      "mean_returned_chunks": 281.5356037151703
+    },
+    "semantic": {
+      "mean_ms": 119.82250244619077,
+      "p50_ms": 119.09129191190004,
+      "p95_ms": 127.2089961450547,
+      "mean_returned_chunks": 500.0
+    }
+  }
+}

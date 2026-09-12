@@ -259,6 +259,13 @@ The READY index contains 3,633 documents and 3,930 chunks. The normal builder re
 | semantic | 473.755418 | 449 | 488 |
 | C0 | 650.718266 | 460 | 912 |
 
+| Observed retrieval leg | Mean ms | p50 ms | p95 ms | Mean returned chunks |
+| --- | --- | --- | --- | --- |
+| bm25 | 25.425435 | 19.612458 | 60.113400 | 281.535604 |
+| semantic | 119.822502 | 119.091292 | 127.208996 | 500.000000 |
+
+These are observed single-capture search timings, including query embedding for Semantic and result hydration, excluding offline fusion and index preparation. They are not repeated isolated latency measurements or default-depth/Agent latency estimates. Other corpus preparation could share host resources.
+
 Full per-query rankings, raw legs, metric/reference checks and snapshot/environment identities are preserved in the run directory; [summary](../evaluation/phase-c/v1/validation/nfcorpus-summary.json), [protocol](../evaluation/phase-c/v1/validation/nfcorpus-protocol.json), [execution metadata](../evaluation/phase-c/v1/validation/nfcorpus-experiment.json).
 
 ### FiQA
@@ -278,6 +285,13 @@ The READY index contains 57,600 documents and 60,430 chunks. The normal builder 
 | C0 | 852.572531 | 647 | 982 |
 
 For qrels labels, C0 nDCG@10 is 0.075255 lower than Semantic alone. This identifies a limitation of the retained baseline on this validation corpus. It is recorded without reopening fusion selection, introducing domain routing or disabling BM25. Rejected C1/C2 policies were not evaluated here.
+
+| Observed retrieval leg | Mean ms | p50 ms | p95 ms | Mean returned chunks |
+| --- | --- | --- | --- | --- |
+| bm25 | 492.745339 | 537.272395 | 573.514223 | 499.657407 |
+| semantic | 126.641823 | 124.799230 | 133.539316 | 500.000000 |
+
+These are observed single-capture search timings, including query embedding for Semantic and result hydration, excluding offline fusion and index preparation. They are not repeated isolated latency measurements or default-depth/Agent latency estimates. Other corpus preparation could share host resources.
 
 Full per-query rankings, raw legs, metric/reference checks and snapshot/environment identities are preserved in the run directory; [summary](../evaluation/phase-c/v1/validation/fiqa-summary.json), [protocol](../evaluation/phase-c/v1/validation/fiqa-protocol.json), [execution metadata](../evaluation/phase-c/v1/validation/fiqa-experiment.json).
 
