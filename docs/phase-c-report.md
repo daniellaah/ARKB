@@ -253,6 +253,8 @@ FiQA contains 38 records with blank title and body, including positive document 
 
 BrowseComp-Plus uses the pinned official corpus and all queries. Its evaluation-only adapter decodes the official query and support document IDs, verifies both evidence and gold ID sets against official GitHub qrels, and keeps labels separate from materialized documents. It does not read answers into ranking, filter by positives or invoke Agent. Original document text, IDs and URLs are preserved. Evidence-document and answer-bearing gold-document results remain separate. The [official benchmark](https://github.com/texttron/BrowseComp-Plus) and [pinned revision](../evaluation/phase-c/v1/browsecomp-official-revision.json) define these labels.
 
+The full BrowseComp corpus contains 3,235,921,388 body characters. Median document length is 10,241 characters, p99 is 391,476, and the maximum is 9,962,379; 263 documents have at least one million characters. This operational audit reads corpus lengths only, without qrels or query inspection. It characterizes the ingestion workload; no long document was removed or truncated. See [length audit](../evaluation/phase-c/v1/browsecomp-length-audit.json).
+
 Selected C0 is identical to the current C0 control by construction, so one capture is reused instead of repeating retrieval under a new name. Selected-minus-C0 deltas are all zero, CI [0,0], and all queries tie. This verifies the retained baseline on new datasets; it does not provide an independent treatment estimate or a generalization result for rejected C1/C2.
 
 ### NFCorpus

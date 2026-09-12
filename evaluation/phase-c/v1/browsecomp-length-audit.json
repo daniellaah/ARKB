@@ -1,0 +1,103 @@
+{
+  "dataset": "browsecomp-plus",
+  "documents": 100195,
+  "raw_corpus_bytes": 3297907809,
+  "body_characters": {
+    "total": 3235921388,
+    "mean": 32296.236219372226,
+    "p50": 10241.0,
+    "p90": 62268.600000000006,
+    "p99": 391475.5199999992,
+    "max": 9962379
+  },
+  "longest_documents": [
+    {
+      "document_id": "55273",
+      "characters": 9962379
+    },
+    {
+      "document_id": "97992",
+      "characters": 7306364
+    },
+    {
+      "document_id": "94377",
+      "characters": 7094470
+    },
+    {
+      "document_id": "82668",
+      "characters": 6727084
+    },
+    {
+      "document_id": "53687",
+      "characters": 5886739
+    },
+    {
+      "document_id": "63250",
+      "characters": 5317328
+    },
+    {
+      "document_id": "74534",
+      "characters": 4909325
+    },
+    {
+      "document_id": "23133",
+      "characters": 4693779
+    },
+    {
+      "document_id": "81290",
+      "characters": 4683826
+    },
+    {
+      "document_id": "59188",
+      "characters": 4225122
+    },
+    {
+      "document_id": "72434",
+      "characters": 4222972
+    },
+    {
+      "document_id": "92292",
+      "characters": 4074667
+    },
+    {
+      "document_id": "17486",
+      "characters": 3784991
+    },
+    {
+      "document_id": "88300",
+      "characters": 3747740
+    },
+    {
+      "document_id": "75436",
+      "characters": 3674078
+    },
+    {
+      "document_id": "15666",
+      "characters": 3596544
+    },
+    {
+      "document_id": "82888",
+      "characters": 3530652
+    },
+    {
+      "document_id": "69827",
+      "characters": 3500323
+    },
+    {
+      "document_id": "40772",
+      "characters": 3433305
+    },
+    {
+      "document_id": "40746",
+      "characters": 3412683
+    }
+  ],
+  "counts": {
+    "100000": 4977,
+    "1000000": 263,
+    "10000000": 0
+  },
+  "scope": "Operational full-corpus length audit only; no qrels, queries, truncation, ranking, model calls or selection changes.",
+  "corpus_sha256": "95a1f50964b324511e04e7357bcf92a54b63af5a7d3eecab9c8b815983604bfa",
+  "method": "Python len(document text), NumPy quantile with default linear interpolation. Threshold counts use >=. Raw title/text are unchanged."
+}
