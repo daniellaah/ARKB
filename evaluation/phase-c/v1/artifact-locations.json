@@ -29,5 +29,12 @@
     "snapshot_manifest": "validation/fiqa-preserved-index.json",
     "replay": "validation/fiqa-replay.json"
   },
-  "prior_verification": "verification/checksums.json"
+  "prior_verification": "verification/checksums.json",
+  "interrupted_worker_recovery": {
+    "run": "/Volumes/ARKBPhaseC/recovery-20260912T0420",
+    "prior_evidence_checksums": "/Volumes/ARKBPhaseC/recovery-20260912T0420/prior-checksums.json",
+    "job_label": "com.arkb.phase-c.recovery-20260912-0420",
+    "one_shot": true,
+    "note": "../../../../docs/phase-c-execution-note.md"
+  }
 }

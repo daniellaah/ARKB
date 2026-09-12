@@ -11,20 +11,34 @@ import shutil
 import subprocess
 import sys
 import time
-from arkb.evaluation.external import digest,write_json
+from arkb.evaluation.external import digest,write_json,verify_checksums
 
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--storage',type=Path,required=True)
-    p.add_argument('--qdrant-url',default='http://127.0.0.1:6340');a=p.parse_args()
+    p.add_argument('--qdrant-url',default='http://127.0.0.1:6340')
+    p.add_argument('--resume',action='store_true',help='Reuse only completed, checksum-verified jobs from the saved status.')
+    a=p.parse_args()
     root=Path(__file__).resolve().parents[2];versioned=root/'evaluation/phase-c/v1/validation'
     status_path=a.storage/'validation/completion-status.json'
+    previous=json.loads(status_path.read_text()) if a.resume else None
     meta={'status':'running','started_at':datetime.now(timezone.utc).isoformat(),'jobs':{}}
+    if previous is not None:meta['resumed_from_status_sha256']=digest(status_path)
     try:
         for ds,cache_name,run_name,empty in [('fiqa','fiqa-r2','fiqa-r2',True),
                                            ('browsecomp-plus','browsecomp-plus','browsecomp-plus',False)]:
             cache=a.storage/'cache'/cache_name;run=a.storage/'validation'/run_name
-            if run.exists():raise FileExistsError('Do not repeat a validation capture: '+str(run))
+            if run.exists():
+                saved=previous.get('jobs',{}).get(ds,{}) if previous else {}
+                if saved.get('status')!='completed' or saved.get('run')!=str(run):
+                    raise FileExistsError('Do not repeat a validation capture: '+str(run))
+                verify_checksums(run)
+                if digest(run/'checksums.json')!=saved['checksums_sha256']:raise ValueError('Completed run changed.')
+                if json.loads((run/'experiment.json').read_text())['status']!='completed':raise ValueError('Incomplete run.')
+                if json.loads((versioned/(ds+'-replay.json')).read_text())['status']!='passed':raise ValueError('Unverified replay.')
+                meta['jobs'][ds]=saved;write_json(status_path,meta)
+                print(ds,'reused completed checksum-verified capture; no retrieval repeated',flush=True)
+                continue
             meta['jobs'][ds]={'status':'waiting_for_embedding_cache'};write_json(status_path,meta)
             print(ds,'waiting for complete cache',flush=True)
             while True:

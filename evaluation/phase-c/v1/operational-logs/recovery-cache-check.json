@@ -1,0 +1,5 @@
+{
+  "sqlite_quick_check": "passed",
+  "validated_durable_vectors": 50970,
+  "spec_checksum_dimensions_finite_norm": "passed"
+}

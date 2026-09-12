@@ -1,0 +1,29 @@
+{
+  "scope": "Operational driver guards; not added to product regression counts. Temporary files only; failed cache sentinel prevents service/model access.",
+  "cases": [
+    {
+      "case": "verified_completed",
+      "status": "passed",
+      "model_calls": 0,
+      "retrieval_calls": 0
+    },
+    {
+      "case": "tampered_completed",
+      "status": "passed",
+      "model_calls": 0,
+      "retrieval_calls": 0
+    },
+    {
+      "case": "unfinished_capture",
+      "status": "passed",
+      "model_calls": 0,
+      "retrieval_calls": 0
+    },
+    {
+      "case": "no_resume",
+      "status": "passed",
+      "model_calls": 0,
+      "retrieval_calls": 0
+    }
+  ]
+}

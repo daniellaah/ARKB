@@ -1,9 +1,13 @@
 {
   "fiqa-execution.log": "6ab7da44ce2e5ede59753f699925b3b8526ba5050e71cf69ab90069f28737656",
   "fiqa-snapshot.log": "ba8d5e99eeedc1083d6f5ee8d66689d7d0ac8acea64cd8d180bf24e74f70a144",
+  "recovery-cache-check.json": "206af85df8700e0704496150144f22de9758b936507f0cc30a48ebe8bf2f4892",
+  "interrupted-cache.log": "fdcc824d63176bf4edbefff5ca7dc6b84ae1244ca8e7b48e658dd8bad8bb783f",
+  "recovery-job.plist": "545e8723b8a9085ae16d95365bfcac7be7f69f58f2d8f220601e1d684cafe589",
   "nfcorpus-snapshot-r2.log": "66378d91b418011b4fbd4cf993eeed3f59ea484a50bd56c0a0e917c0271b060f",
   "nfcorpus-snapshot.log": "a805fd9e47e570fa12824607a89d43b7d044609481388d08d82979aa943a3d16",
   "nfcorpus-replay.log": "8ffec14c35481b8bd5aa4de22f15bb1719b9b9d38e617939e28d79d5c0546f59",
   "nfcorpus-execution.log": "d6fc388b2cf5a765c6e1e113ab750ac58db78df6b6a2a7f4607626a0cdd37401",
-  "cache-fiqa-r2.log": "bd879cb4d978aa2840e28cd5088966ff2219cfc8163aa6894671f69629270854"
+  "cache-fiqa-r2.log": "bd879cb4d978aa2840e28cd5088966ff2219cfc8163aa6894671f69629270854",
+  "recovery-resume-checks.json": "30e067b83bba0f670c3576026db71e9684a875685712c8ca1026e6ee9e7edac4"
 }
