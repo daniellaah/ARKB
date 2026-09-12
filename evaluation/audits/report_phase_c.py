@@ -18,11 +18,12 @@ def main():
     decision=read('development-decision.json');parts=[]
     def add(s):parts.append(s.strip()+'\n')
     complete=all((V/f'validation/{ds}-replay.json').exists() for ds in ('nfcorpus','fiqa','browsecomp-plus'))
+    pending=', '.join(NAMES[ds] for ds in ('nfcorpus','fiqa','browsecomp-plus') if not (V/f'validation/{ds}-replay.json').exists())
     finished=(V/'completion.json').exists() and read('completion.json')['status']=='completed'
     tests=read('verification/test-summary.json') if (V/'verification/test-summary.json').exists() else None
     add('# ARKB Phase C: candidate generation and source-level fusion')
     add('Status: '+('**Completed.** All three full validations, offline replays, regression checks and index archives are verified.' if finished else 'validation complete; index preservation is still in progress.' if complete else
-        '**In progress.** Development selection is frozen; FiQA/BrowseComp-Plus full validation and final archival are still running. This is not a completed Phase C release.'))
+        f'**In progress.** Development selection is frozen; {pending} full validation and final archival are still running. This is not a completed Phase C release.'))
     add('The frozen product decision is **A: keep current chunk-level Hybrid fusion**. C1 and C2 do not satisfy the shared development gate. No runtime fusion, Agent, reranker, embedding, parser, chunking or publication behavior was changed. No later phase is implemented.')
     add('## 1. Baseline reproduction')
     add('Accepted Phase B production baseline: `75ba733`. The clean Phase C starting checkout was `84d2735` (Phase B report/evidence only). Development selection was committed at `5bd06c6`. Actual measured source hashes, rather than commit labels alone, identify every experiment. C0 reproduction preceded alternative implementation. Frozen P4 SQLite snapshots supplied exact chunk content and coordinates missing from earlier compact leg metadata.')

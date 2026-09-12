@@ -1,6 +1,6 @@
 # ARKB Phase C: candidate generation and source-level fusion
 
-Status: **In progress.** Development selection is frozen; FiQA/BrowseComp-Plus full validation and final archival are still running. This is not a completed Phase C release.
+Status: **In progress.** Development selection is frozen; BrowseComp-Plus full validation and final archival are still running. This is not a completed Phase C release.
 
 The frozen product decision is **A: keep current chunk-level Hybrid fusion**. C1 and C2 do not satisfy the shared development gate. No runtime fusion, Agent, reranker, embedding, parser, chunking or publication behavior was changed. No later phase is implemented.
 
