@@ -22,6 +22,18 @@ Production BM25 and Semantic retrieval return chunks from the same captured inde
 
 Production Hybrid applies rank-only RRF with k=60 to chunk identities, one vote per chunk per named leg. Leg names are sorted and ties use the existing chunk identity order. **Production does not collapse sources.** The accepted P4 evaluation projection fuses the complete returned chunk union, keeps the first chunk of each source and then takes 100 sources. That first fused chunk is its representative. CLI and Agent use the same RetrievalEngine; Agent exposes its compact tool contract. This benchmark projection must not be confused with a runtime source-ranking API.
 
+```mermaid
+flowchart LR
+    B[BM25 chunks] --> R[Chunk RRF: k=60]
+    S[Semantic chunks] --> R
+    R --> P[Runtime: chunk results]
+    R --> C[Evaluation: first chunk per source]
+    C --> K[First 100 sources]
+    K --> M[Source metrics]
+    Q[Qrels and aspects: scoring only] -.-> M
+```
+The diagram shows the shared ranking operation and the separate evaluation projection. Runtime default candidate depth is 20 per leg; this frozen benchmark captures 500 per leg.
+
 Primary experiments stop before reranking. Phase B B3 is unchanged. The only source additions/changes are evaluation modules (`source_fusion.py`, the generic BEIR adapter and the separate BrowseComp adapter). The [scope audit](../evaluation/phase-c/v1/scope-audit.json) compares all source files, including newly added ones, against the accepted baseline.
 
 ## 3. Candidate availability

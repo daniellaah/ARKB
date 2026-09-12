@@ -33,6 +33,17 @@ def main():
     add('## 2. Current architecture')
     add('Production BM25 and Semantic retrieval return chunks from the same captured index snapshot. BM25 retains k1=1.2, b=0.75, NFC/casefold word tokenization over title and body, and unique query terms. Semantic retrieval retains the original query, pinned Qwen3 embedding model, 1,024 dimensions and cosine scoring. Exact source filters apply upstream. The normal runtime candidate depth remains 20 per leg; this benchmark retains the accepted P4 depth of 500 per leg and exact Qdrant retrieval.')
     add('Production Hybrid applies rank-only RRF with k=60 to chunk identities, one vote per chunk per named leg. Leg names are sorted and ties use the existing chunk identity order. **Production does not collapse sources.** The accepted P4 evaluation projection fuses the complete returned chunk union, keeps the first chunk of each source and then takes 100 sources. That first fused chunk is its representative. CLI and Agent use the same RetrievalEngine; Agent exposes its compact tool contract. This benchmark projection must not be confused with a runtime source-ranking API.')
+    add('''```mermaid
+flowchart LR
+    B[BM25 chunks] --> R[Chunk RRF: k=60]
+    S[Semantic chunks] --> R
+    R --> P[Runtime: chunk results]
+    R --> C[Evaluation: first chunk per source]
+    C --> K[First 100 sources]
+    K --> M[Source metrics]
+    Q[Qrels and aspects: scoring only] -.-> M
+```
+The diagram shows the shared ranking operation and the separate evaluation projection. Runtime default candidate depth is 20 per leg; this frozen benchmark captures 500 per leg.''')
     add('Primary experiments stop before reranking. Phase B B3 is unchanged. The only source additions/changes are evaluation modules (`source_fusion.py`, the generic BEIR adapter and the separate BrowseComp adapter). The [scope audit](../evaluation/phase-c/v1/scope-audit.json) compares all source files, including newly added ones, against the accepted baseline.')
     add('## 3. Candidate availability')
     add('Recall is the mean of per-query positive-source recall. Leg and union columns use every source found within the frozen top-500 chunk legs; C0 uses its top 100 sources. The gap includes the final cutoff and ordering, so it is not evidence that fusion deleted candidates from its full union.')
