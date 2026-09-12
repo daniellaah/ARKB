@@ -1,0 +1,11 @@
+{
+  "archive_directory": "/Volumes/ARKBPhaseC/diagnostics/embedding-parallel-probe",
+  "checksums_sha256": "9a01031c9bf9bacc2742d8c1b11cf05fd8a9f90e707a1c564c51550514f849ba",
+  "source_sqlite": "/Volumes/ARKBPhaseC/validation/fiqa-r2/index.sqlite",
+  "source_sqlite_unchanged": true,
+  "source_sqlite_sha256": "d0d399c1a1fcd11453659af94825796c20aee5bceb0cf89e70a8ccc9286fa270",
+  "official_source": "https://github.com/ollama/ollama/blob/v0.33.2/server/sched.go#L469-L475",
+  "temporary_replica_stopped": true,
+  "full_job_changed": false,
+  "limitation": "256 FiQA corpus chunks selected by token length, 3 rotated repetitions, while BCP CPU preparation remained active; not a full-corpus speedup measurement."
+}

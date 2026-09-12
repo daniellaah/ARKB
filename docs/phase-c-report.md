@@ -319,6 +319,8 @@ Storage preparation required a user-authorized external APFS sparse image. Qdran
 
 The initial BrowseComp embedding workers exited before cache completion. All 50,970 durable vectors passed integrity checks and were preserved before recovery. The recovered computation runs as a single independent OS job, reconstructs the identical input plan and reuses the cache; completed validation captures are checksum-verified and skipped. Observed embedding throughput was about 17–18 inputs/second across 1,847,403 unique inputs. See [throughput evidence and recovery record](phase-c-execution-note.md).
 
+A separate embedding-only probe on 256 saved FiQA corpus chunks, with three rotated repetitions, measured 16.28 inputs/second for one client/server, 16.73 for two clients sharing a server and 19.02 for two independent servers. All timed vectors matched the saved cache exactly. The temporary replica was stopped; the full job and retrieval configuration were not changed. The 16.8% sample throughput gain is not a full-corpus speedup result; details and raw artifacts are in the execution note.
+
 ## 9. Final product decision
 
 **Decision A — keep current chunk-level Hybrid fusion.** This is the frozen development decision; Phase C completion still requires every pending validation/verification/archive item reported here. The alternatives offer a CPU cost improvement and some BRIGHT gains but fail the shared quality requirements. No dataset-specific routing, BM25 disabling, new RRF parameter or forced source-level redesign is justified. Production Hybrid remains unchanged. Only indexing request allocation changed as documented; experimental fusion policies are confined to evaluation code.

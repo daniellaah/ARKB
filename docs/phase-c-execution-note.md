@@ -66,3 +66,48 @@ retrieval calls; they are separate from the product regression counts. The
 remaining BrowseComp capture still runs once, followed by offline replay,
 snapshot preservation and final verification. No architecture tuning or Agent
 evaluation is introduced.
+
+## Small parallelism probe
+
+The installed Ollama 0.33.2 scheduler explicitly forces embedding-only models
+to `numParallel=1`, regardless of `OLLAMA_NUM_PARALLEL`:
+[version-pinned scheduler](https://github.com/ollama/ollama/blob/v0.33.2/server/sched.go#L469-L475).
+Its HTTP embedding handler already dispatches the items in one input array
+concurrently toward that runner. Increasing client concurrency alone therefore
+does not enable multiple inference slots for this model.
+
+A separate throughput probe used the first 256 saved FiQA corpus chunks whose
+complete prepared inputs contained 400–512 tokens (searching only the first
+5,000 stored ordinals). It used no queries or relevance labels. All three arms
+used identical inputs and production request limits, model digest, 8,192-token
+context, tokenizer and vector representation. Both servers were warmed before
+timing; three repetitions rotated the arm order. BCP CPU preparation continued
+during the probe. Model inference plus client request handling was timed;
+cache writes and model loading were excluded.
+
+| Configuration | Mean inputs/second | Throughput gain vs serial |
+| --- | ---: | ---: |
+| One client, one Ollama instance | 16.2796 | — |
+| Two clients, one Ollama instance | 16.7311 | 2.8% |
+| Two clients, two independent Ollama instances | 19.0172 | 16.8% |
+
+All 2,304 timed vectors across nine arm/runs matched the saved cache and serial
+reference **exactly**, with maximum absolute difference zero. Vector stream
+SHA-256 was `a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7`
+for every arm/run. The original FiQA SQLite checksum remained unchanged. The
+temporary second Ollama instance was stopped after the probe.
+
+Two independent instances can generate inputs concurrently, but they share the
+same GPU. On this sample, 16.8% higher throughput corresponds to 14.4% less
+inference time. It does not establish full-BrowseComp speedup or universal
+floating-point equivalence on untested inputs. No full job, production cache,
+retrieval policy or evaluation configuration was changed by this probe. A
+production parallel writer would need bounded outstanding batches, stable
+input-to-vector mapping and one ordered SQLite writer, while retaining durable
+checkpoints and the original model/input identity.
+
+The [recorded results](../evaluation/phase-c/v1/embedding-parallel-audit.json)
+and [artifact manifest](../evaluation/phase-c/v1/embedding-parallel-artifacts.json)
+preserve the exact sample, nine timing observations, script, replica log and
+hashes. This embedding-only operational probe is not another retrieval run or
+architecture-selection experiment.

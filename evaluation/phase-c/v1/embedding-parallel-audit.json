@@ -1,0 +1,145 @@
+{
+  "status": "completed",
+  "scope": "embedding throughput only; no retrieval, qrels, cache writes or policy selection",
+  "sample": {
+    "dataset": "FiQA saved corpus chunks",
+    "index_version": "d1fa9710012d47ed8630a58867c07f85",
+    "selection": "First 256 chunks of 400–512 prepared-input tokens in stored ordinal order; inspect at most first 5000 chunks.",
+    "inputs": 256,
+    "tokens": 120912,
+    "request_batches": 16,
+    "inputs_sha256": "79ff7b047787892bb48e01a82afb591a654bbc8daccb5cf25fd6910136511e86"
+  },
+  "embedding_spec": {
+    "model": "qwen3-embedding:0.6b",
+    "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+    "dimensions": 1024,
+    "document_template": "title-body-v1",
+    "provider": "ollama",
+    "normalization": "l2",
+    "dtype": "float64"
+  },
+  "context": 8192,
+  "max_batch_inputs": 32,
+  "max_batch_tokens": 8192,
+  "source_sha256": "d44bd61031465f2abc578ebe384e1707bf4fd2c421b1cf804b5efdb1e2c36be0",
+  "repetitions": 3,
+  "rounds": [
+    {
+      "arm": "serial_one_instance",
+      "repetition": 0,
+      "seconds": 15.693721791962162,
+      "inputs_per_second": 16.3122555244426,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "two_clients_one_instance",
+      "repetition": 0,
+      "seconds": 15.287305749952793,
+      "inputs_per_second": 16.7459200585944,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "two_independent_instances",
+      "repetition": 0,
+      "seconds": 13.425974207930267,
+      "inputs_per_second": 19.06751763673056,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "two_clients_one_instance",
+      "repetition": 1,
+      "seconds": 15.26969795790501,
+      "inputs_per_second": 16.765230111671638,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "two_independent_instances",
+      "repetition": 1,
+      "seconds": 13.444816624978557,
+      "inputs_per_second": 19.040795210578654,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "serial_one_instance",
+      "repetition": 1,
+      "seconds": 15.754563959082589,
+      "inputs_per_second": 16.249259621838956,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "two_independent_instances",
+      "repetition": 2,
+      "seconds": 13.514007749967277,
+      "inputs_per_second": 18.943307177000833,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "serial_one_instance",
+      "repetition": 2,
+      "seconds": 15.727372583001852,
+      "inputs_per_second": 16.277353299093637,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    },
+    {
+      "arm": "two_clients_one_instance",
+      "repetition": 2,
+      "seconds": 15.34561949991621,
+      "inputs_per_second": 16.68228513038511,
+      "exactly_equal_to_serial": true,
+      "max_abs_difference_from_serial": 0.0,
+      "exactly_equal_to_existing_cache": true,
+      "max_abs_difference_from_existing_cache": 0.0,
+      "vector_sha256": "a58b61f3d3f60bfea538af3e053da499d0047bd920e7b4a9a04db5dea5e197c7"
+    }
+  ],
+  "summary": {
+    "serial_one_instance": {
+      "mean_inputs_per_second": 16.279622815125066,
+      "all_exact_to_serial": true,
+      "all_exact_to_existing_cache": true
+    },
+    "two_clients_one_instance": {
+      "mean_inputs_per_second": 16.73114510021705,
+      "all_exact_to_serial": true,
+      "all_exact_to_existing_cache": true
+    },
+    "two_independent_instances": {
+      "mean_inputs_per_second": 19.017206674770016,
+      "all_exact_to_serial": true,
+      "all_exact_to_existing_cache": true
+    }
+  }
+}
