@@ -1,0 +1,26 @@
+{
+  "normal": ".venv/bin/python -m pytest -m 'not integration' -q --junitxml=evaluation/results/phase-c-v1/normal-post-scale.xml",
+  "normal_environment": {
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4",
+    "TOKENIZERS_PARALLELISM": "false"
+  },
+  "integration": ".venv/bin/python -m pytest -m integration -q --junitxml=evaluation/results/phase-c-v1/service-post-scale.xml",
+  "integration_environment": {
+    "ARKB_RUN_MODEL_TESTS": "1",
+    "ARKB_RUN_RERANKER_TESTS": "1",
+    "ARKB_QDRANT_URL": "http://127.0.0.1:6340",
+    "ARKB_RERANKER_OFFLINE": "1",
+    "ARKB_RERANKER_CACHE": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.arkb/models",
+    "ARKB_RERANKER_TEST_DB": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p0-current-20260910-r2/index.sqlite",
+    "ARKB_RERANKER_TEST_VAULT": "p0-current-20260910-r2",
+    "ARKB_RERANKER_TEST_QDRANT_URL": "http://127.0.0.1:32776",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4",
+    "TOKENIZERS_PARALLELISM": "false"
+  },
+  "retry": ".venv/bin/python -m pytest 'tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[semantic]' -q --junitxml=evaluation/results/phase-c-v1/service-native-retry.xml",
+  "retry_environment": "Same as integration_environment, except ARKB_RERANKER_TEST_DB=/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/phase-c-v1/reranker-native-fixture/index.sqlite and ARKB_RERANKER_TEST_QDRANT_URL=http://127.0.0.1:6340",
+  "freshness": ".venv/bin/python evaluation/experiments/run_p4_freshness_live.py --output evaluation/results/phase-c-v1/freshness-post-scale --qdrant-url http://127.0.0.1:6340",
+  "note": "Use fresh output paths for future runs. Counts are from JUnit cases; subsets overlap."
+}

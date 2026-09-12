@@ -19,7 +19,7 @@
     "/Volumes/ARKBPhaseC/validation/nfcorpus"
   ],
   "superseded_hydration_archive": "/Volumes/ARKBPhaseC/archives/hydration-draft.tar",
-  "verification": "verification/checksums.json",
+  "verification": "verification-post-scale/checksums.json",
   "phase_d_handoff": "../../../../docs/phase-c-report.md",
   "public_distribution": false,
   "restoration": "Mount APFS image at the recorded path. Use new extraction destinations; preserve source_scope for live read semantics. Restore Qdrant snapshots under recorded collection names when migrating the service.",
@@ -28,5 +28,6 @@
     "checksums_sha256": "f78c2fcc51f3ae9fc7f4d78f892faca1b85d08383b417ec534610c2efc5d02ec",
     "snapshot_manifest": "validation/fiqa-preserved-index.json",
     "replay": "validation/fiqa-replay.json"
-  }
+  },
+  "prior_verification": "verification/checksums.json"
 }

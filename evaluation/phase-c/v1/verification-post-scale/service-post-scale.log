@@ -1,0 +1,219 @@
+.........................................................F..             [100%]
+=================================== FAILURES ===================================
+_ test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[semantic] _
+
+    @contextlib.contextmanager
+    def map_httpcore_exceptions() -> typing.Iterator[None]:
+        global HTTPCORE_EXC_MAP
+        if len(HTTPCORE_EXC_MAP) == 0:
+            HTTPCORE_EXC_MAP = _load_httpcore_exceptions()
+        try:
+>           yield
+
+.venv/lib/python3.13/site-packages/httpx/_transports/default.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.13/site-packages/httpx/_transports/default.py:250: in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpcore/_sync/connection_pool.py:256: in handle_request
+    raise exc from None
+.venv/lib/python3.13/site-packages/httpcore/_sync/connection_pool.py:236: in handle_request
+    response = connection.handle_request(
+.venv/lib/python3.13/site-packages/httpcore/_sync/connection.py:103: in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py:136: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py:106: in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py:177: in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpcore/_sync/http11.py:217: in _receive_event
+    data = self._network_stream.read(
+.venv/lib/python3.13/site-packages/httpcore/_backends/sync.py:126: in read
+    with map_exceptions(exc_map):
+         ^^^^^^^^^^^^^^^^^^^^^^^
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/contextlib.py:162: in __exit__
+    self.gen.throw(value)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+map = {<class 'TimeoutError'>: <class 'httpcore.ReadTimeout'>, <class 'OSError'>: <class 'httpcore.ReadError'>}
+
+    @contextlib.contextmanager
+    def map_exceptions(map: ExceptionMapping) -> typing.Iterator[None]:
+        try:
+            yield
+        except Exception as exc:  # noqa: PIE786
+            for from_exc, to_exc in map.items():
+                if isinstance(exc, from_exc):
+>                   raise to_exc(exc) from exc
+E                   httpcore.ReadTimeout: timed out
+
+.venv/lib/python3.13/site-packages/httpcore/_exceptions.py:14: ReadTimeout
+
+The above exception was the direct cause of the following exception:
+
+self = <qdrant_client.http.api_client.ApiClient object at 0x1159aead0>
+request = <Request('GET', 'http://127.0.0.1:32776/collections/arkb_4e079ddc8612b2d10d2340d1cb907a4c')>
+
+    def send_inner(self, request: Request) -> Response:
+        try:
+>           response = self._client.send(request)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.venv/lib/python3.13/site-packages/qdrant_client/http/api_client.py:137: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_transports/default.py:249: in handle_request
+    with map_httpcore_exceptions():
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+../../../.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/contextlib.py:162: in __exit__
+    self.gen.throw(value)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @contextlib.contextmanager
+    def map_httpcore_exceptions() -> typing.Iterator[None]:
+        global HTTPCORE_EXC_MAP
+        if len(HTTPCORE_EXC_MAP) == 0:
+            HTTPCORE_EXC_MAP = _load_httpcore_exceptions()
+        try:
+            yield
+        except Exception as exc:
+            mapped_exc = None
+    
+            for from_exc, to_exc in HTTPCORE_EXC_MAP.items():
+                if not isinstance(exc, from_exc):
+                    continue
+                # We want to map to the most specific exception we can find.
+                # Eg if `exc` is an `httpcore.ReadTimeout`, we want to map to
+                # `httpx.ReadTimeout`, not just `httpx.TimeoutException`.
+                if mapped_exc is None or issubclass(to_exc, mapped_exc):
+                    mapped_exc = to_exc
+    
+            if mapped_exc is None:  # pragma: no cover
+                raise
+    
+            message = str(exc)
+>           raise mapped_exc(message) from exc
+E           httpx.ReadTimeout: timed out
+
+.venv/lib/python3.13/site-packages/httpx/_transports/default.py:118: ReadTimeout
+
+During handling of the above exception, another exception occurred:
+
+snapshot = (<arkb.runtime.Runtime object at 0x121032710>, {'db': PosixPath('/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p0-current-20260910-r2/index.sqlite'), 'vault_id': 'p0-current-20260910-r2'})
+mode = 'semantic'
+tmp_path = PosixPath('/private/var/folders/bh/bjzg1vfj71bdnp0lnvd7fq680000gn/T/pytest-of-daboluo/pytest-468/test_runtime_reranks_real_snap1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11af9b890>
+
+    @pytest.mark.parametrize('mode', ['bm25', 'semantic', 'hybrid'])
+    def test_runtime_reranks_real_snapshot_preserving_evidence_and_filters(snapshot, mode, tmp_path, monkeypatch):
+        runtime, scope = snapshot
+        query = 'How does Reciprocal Rank Fusion combine lexical and semantic rankings?'
+        source = '13_hybrid_rank_fusion.md'
+        settings = RetrievalConfig(reranker_cache=os.environ.get('ARKB_RERANKER_CACHE'))
+        # Observe the real scoring boundary. A separate embedding request may have
+        # slightly different float scores, so it cannot verify exact provenance.
+        calls = []
+        original_rerank = Reranker.rerank
+        def record_candidates(self, query, candidates, *, top_k=None):
+            calls.append((query, tuple(candidates), top_k))
+            return original_rerank(self, query, candidates, top_k=top_k)
+        monkeypatch.setattr(Reranker, 'rerank', record_candidates)
+        started = perf_counter()
+        response = runtime.search(query, **scope, mode=mode, top_k=5, settings=settings, rerank=True, exact=True)
+        elapsed_ms = (perf_counter() - started) * 1000
+        assert len(calls) == 1 and calls[0][0] == query and calls[0][2] == 5
+        candidates = calls[0][1]
+        assert len(candidates) == settings.rerank_candidates == 20
+        assert response.index_id == runtime.status(**scope)['active_version']
+        assert response.method == mode + '+rerank' and len(response.results) == 5
+        assert source in {hit.source for hit in response.results}
+        assert [hit.score for hit in response.results] == sorted((hit.score for hit in response.results), reverse=True)
+        for hit in response.results:
+            metadata = hit.metadata['rerank']
+            original = candidates[metadata['input_rank'] - 1]
+            assert (hit.identity, hit.content, hit.source, hit.start_char, hit.end_char) == (
+                original.identity, original.content, original.source, original.start_char, original.end_char)
+            assert {key: value for key, value in hit.metadata.items() if key != 'rerank'} == original.metadata
+            assert metadata['scorer'].startswith(f'{QWEN_MODEL}@{QWEN_REVISION}/cpu/float32/')
+            assert metadata['candidate_count'] == len(candidates)
+            assert metadata['input_score'] == original.score
+            assert metadata['input_score_type'] == original.score_type
+            assert metadata['input_method'] == original.method
+            assert hit.score_type == 'yes_no_logit_difference' and math.isfinite(hit.score)
+>       filtered = runtime.search(query, **scope, mode=mode, top_k=2, source=source,
+                                  settings=settings, rerank=True, exact=True)
+
+tests/retrieval/integration/test_qwen_reranker_model.py:110: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/arkb/runtime.py:96: in search
+    engine = self.retrieval_engine(storage, manifest, modes=(mode,), settings=settings,
+src/arkb/runtime.py:219: in retrieval_engine
+    semantic = self.semantic(storage, manifest, exact=exact)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/arkb/runtime.py:197: in semantic
+    return SnapshotSemanticRetriever(storage, vault_id=manifest.vault_id, spec=spec,
+src/arkb/runtime.py:301: in __init__
+    self.index = QdrantSnapshotIndex(storage, qdrant_client, vault_id=vault_id,
+src/arkb/retrieval/semantic.py:116: in __init__
+    check_qdrant_collection(client, self.collection, spec=self.spec, vault_id=vault_id)
+src/arkb/knowledge/qdrant.py:33: in check_qdrant_collection
+    info = client.get_collection(collection)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/qdrant_client/qdrant_client.py:1590: in get_collection
+    return self._client.get_collection(collection_name=collection_name, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/qdrant_client/qdrant_remote.py:1884: in get_collection
+    result: types.CollectionInfo | None = self.http.collections_api.get_collection(
+.venv/lib/python3.13/site-packages/qdrant_client/http/api/collections_api.py:517: in get_collection
+    return self._build_for_get_collection(
+.venv/lib/python3.13/site-packages/qdrant_client/http/api/collections_api.py:217: in _build_for_get_collection
+    return self.api_client.request(
+.venv/lib/python3.13/site-packages/qdrant_client/http/api_client.py:98: in request
+    return self.send(request, type_)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/qdrant_client/http/api_client.py:115: in send
+    response = self.middleware(request, self.send_inner)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/qdrant_client/http/api_client.py:152: in new_middleware
+    return middleware(request, inner_send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/qdrant_client/context_headers.py:39: in rest_headers_middleware
+    return call_next(request)
+           ^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/qdrant_client/http/api_client.py:150: in inner_send
+    return current_middleware(request, call_next)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/qdrant_client/http/api_client.py:253: in __call__
+    return call_next(request)
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <qdrant_client.http.api_client.ApiClient object at 0x1159aead0>
+request = <Request('GET', 'http://127.0.0.1:32776/collections/arkb_4e079ddc8612b2d10d2340d1cb907a4c')>
+
+    def send_inner(self, request: Request) -> Response:
+        try:
+            response = self._client.send(request)
+        except Exception as e:
+>           raise ResponseHandlingException(e)
+E           qdrant_client.http.exceptions.ResponseHandlingException: timed out
+
+.venv/lib/python3.13/site-packages/qdrant_client/http/api_client.py:139: ResponseHandlingException
+----------------------------- Captured stderr call -----------------------------
+Loading weights:   0%|          | 0/310 [00:00<?, ?it/s]Loading weights: 100%|██████████| 310/310 [00:00<00:00, 6683.91it/s]
+=========================== short test summary info ============================
+FAILED tests/retrieval/integration/test_qwen_reranker_model.py::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[semantic]
+1 failed, 59 passed, 1193 deselected in 676.02s (0:11:16)

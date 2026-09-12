@@ -38,14 +38,21 @@ def main():
             if digest(run/'index.sqlite')!=index['sqlite_sha256']:raise ValueError('SQLite snapshot changed: '+ds)
             locations[ds]={'run':str(run),'checksums_sha256':digest(run/'checksums.json'),
                 'snapshot_manifest':'validation/'+preserved.name,'replay':'validation/'+ds+'-replay.json'}
-        verification=json.loads((v/'verification/test-summary.json').read_text());verify_checksums(v/'verification')
+        verification_root=v/'verification-post-scale'
+        verification=json.loads((verification_root/'test-summary.json').read_text());verify_checksums(verification_root)
         for group in verification.values():
             if isinstance(group,dict) and 'cases' in group:
                 if group['passed']!=group['cases']:raise ValueError('Regression suite did not completely pass.')
         if verification['freshness']['passed']!=16 or verification['freshness']['failed']:raise ValueError('Freshness not verified.')
         audit=json.loads((v/'scope-audit.json').read_text())
+        allocation=json.loads((v/'upsert-after.json').read_text())
+        bounded_writer='src/arkb/knowledge/qdrant.py'
+        if allocation['status']!='passed' or allocation['baseline']['wire_sha256']!=allocation['current']['wire_sha256']:
+            raise ValueError('Allocation refactor request equivalence not verified.')
+        if digest(root/bounded_writer)!=allocation['current_source_sha256']:
+            raise ValueError('Allocation refactor source changed after verification.')
         for name in subprocess.check_output(['git','ls-tree','-r','--name-only','75ba733','src'],text=True,cwd=root).splitlines():
-            if name.startswith('src/arkb/evaluation/'):continue
+            if name.startswith('src/arkb/evaluation/') or name==bounded_writer:continue
             if (root/name).read_bytes()!=subprocess.check_output(['git','show','75ba733:'+name],cwd=root):
                 raise ValueError('Non-evaluation production source drift: '+name)
         tracked=set(subprocess.check_output(['git','ls-tree','-r','--name-only','75ba733','src'],text=True,cwd=root).splitlines())
@@ -54,11 +61,17 @@ def main():
             if name not in tracked and not name.startswith('src/arkb/evaluation/'):raise ValueError('Unexpected production addition: '+name)
         for entry in audit['changes']:
             if digest(root/entry['path'])!=entry['current_sha256']:raise ValueError('Audited evaluation source drift.')
+        for ds,run_name in runs.items():
+            subprocess.run([sys.executable,str(root/'evaluation/audits/summarize_phase_c_cost.py'),
+                '--run',str(a.storage/'validation'/run_name),'--output',str(v/'validation'/(ds+'-cost.json'))],check=True,cwd=root)
+        locations['verification']='verification-post-scale/checksums.json'
+        locations['prior_verification']='verification/checksums.json'
         locations['status']='completed';locations['completed_at']=datetime.now(timezone.utc).isoformat()
         write_json(v/'artifact-locations.json',locations)
         meta.update(status='completed',completed_at=locations['completed_at'],
             validation_queries={'nfcorpus':323,'fiqa':648,'browsecomp-plus':830},
-            decision='A: keep current chunk-level Hybrid fusion',production_behavior_changes=0)
+            decision='A: keep current chunk-level Hybrid fusion',retrieval_behavior_changes=0,
+            indexing_allocation_refactor='same validated 128-point requests, constructed one batch at a time')
         write_json(v/'completion.json',meta)
         readme=v/'README.md';text=readme.read_text()
         text=text.replace('Broader validation is in progress; do not interpret this directory as a completed\nPhase C release.',

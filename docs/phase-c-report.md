@@ -2,7 +2,7 @@
 
 Status: **In progress.** Development selection is frozen; BrowseComp-Plus full validation and final archival are still running. This is not a completed Phase C release.
 
-The frozen product decision is **A: keep current chunk-level Hybrid fusion**. C1 and C2 do not satisfy the shared development gate. No runtime fusion, Agent, reranker, embedding, parser, chunking or publication behavior was changed. No later phase is implemented.
+The frozen product decision is **A: keep current chunk-level Hybrid fusion**. C1 and C2 do not satisfy the shared development gate. No runtime fusion, Agent, reranker, embedding, parser, chunking or publication semantics changed. One necessary Qdrant request-allocation refactor reduces a large temporary allocation in full-corpus indexing while preserving the serialized request stream; see the scale note and verification below. No later phase is implemented.
 
 ## 1. Baseline reproduction
 
@@ -34,7 +34,7 @@ flowchart LR
 ```
 The diagram shows the shared ranking operation and the separate evaluation projection. Runtime default candidate depth is 20 per leg; this frozen benchmark captures 500 per leg.
 
-Primary experiments stop before reranking. Phase B B3 is unchanged. The only source additions/changes are evaluation modules (`source_fusion.py`, the generic BEIR adapter and the separate BrowseComp adapter). The [scope audit](../evaluation/phase-c/v1/scope-audit.json) compares all source files, including newly added ones, against the accepted baseline.
+Primary experiments stop before reranking. Phase B B3 is unchanged. The source changes are three evaluation modules (`source_fusion.py`, the generic BEIR adapter and the separate BrowseComp adapter) plus one bounded-allocation refactor in `knowledge/qdrant.py`. That writer retains full prevalidation and identical ordered 128-point requests, without configuration or publication changes. The measured 1,883,193-chunk corpus would otherwise require approximately 57.6 GiB of temporary Python vector lists alone. See [scale justification and request-equivalence audit](phase-c-scale-note.md). The [scope audit](../evaluation/phase-c/v1/scope-audit.json) compares all source files, including newly added ones, against the accepted baseline.
 
 ## 3. Candidate availability
 
@@ -319,7 +319,7 @@ Storage preparation required a user-authorized external APFS sparse image. Qdran
 
 ## 9. Final product decision
 
-**Decision A — keep current chunk-level Hybrid fusion.** This is the frozen development decision; Phase C completion still requires every pending validation/verification/archive item reported here. The alternatives offer a CPU cost improvement and some BRIGHT gains but fail the shared quality requirements. No dataset-specific routing, BM25 disabling, new RRF parameter or forced source-level redesign is justified. Production remains unchanged; experimental policies are confined to evaluation code.
+**Decision A — keep current chunk-level Hybrid fusion.** This is the frozen development decision; Phase C completion still requires every pending validation/verification/archive item reported here. The alternatives offer a CPU cost improvement and some BRIGHT gains but fail the shared quality requirements. No dataset-specific routing, BM25 disabling, new RRF parameter or forced source-level redesign is justified. Production Hybrid remains unchanged. Only indexing request allocation changed as documented; experimental fusion policies are confined to evaluation code.
 
 ## 10. Tests
 
@@ -335,9 +335,11 @@ Storage preparation required a user-authorized external APFS sparse image. Qdran
 
 Freshness/update checks: 16 passed, 0 failed.
 
+Service counts use final outcomes for 60 unique cases across 61 attempts: the full run passed 59 and failed 1; only that failed case was retried and passed. The failure was a timeout reading collection metadata from the old host-bind Qdrant during the second filtered semantic search, after the earlier rerank/provenance assertions passed. The retry used an isolated native collection restored from the identical stored snapshot; every vector/payload was verified and the original SQLite hash remained unchanged. Both raw JUnit files/logs and the copied fixture manifest are preserved in [post-refactor verification](../evaluation/phase-c/v1/verification-post-scale/test-summary.json). This was not one all-green service invocation.
+
 Subsets overlap: evaluation, Phase A, Phase B and new Phase C cases are contained in the deterministic/service suites and must not be summed. Phase A covers Agent contracts, exact match/read, runtime and CLI. Phase B covers reranker input budgets, stable scoring/fallback and real long-query inference. New Phase C tests exercise source aggregation, rank semantics, identity/provenance, filtering, ties, source uniqueness, representatives, BEIR/BCP normalization and the explicit empty-document denominator rule. Freshness uses real SQLite/Qdrant/model services to verify old indexed snapshots alongside changed live reads, stale references, edits, renames, deletes and publication.
 
-The source scope audit reports zero non-evaluation production changes against `75ba733`. Source-fusion ranking/statistics and validation ranks/metrics are also replayed from archived legs with zero new model calls. Test seams follow the requested public source-fusion and external-adapter boundaries. Red/green traces are retained.
+The source scope audit reports exactly one non-evaluation source change against `75ba733`: Qdrant requests are now constructed one existing batch at a time. The allocation audit reproduces the exact request stream on 4,097 records, including unchanged rejection of an invalid tail before any write. Traced temporary peak allocation in that fixture falls from 172,957,774 to 100,787,212 bytes (41.7%); matrix validation still has whole-input memory cost. These are fixture allocations, not a measurement of full BrowseComp index peak memory. Source-fusion ranking/statistics and validation ranks/metrics are also replayed from archived legs with zero new model calls. The final regression run and real freshness checks occur after the allocation refactor; the earlier successful run is preserved separately and is not added to the final counts. Test seams follow the requested public source-fusion and external-adapter boundaries. Red/green traces are retained.
 
 ## 11. Remaining issues
 

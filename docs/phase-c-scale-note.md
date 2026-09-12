@@ -35,6 +35,19 @@ final vector must fail before any write. Tracemalloc records temporary allocatio
 under the same fixture; its timed calls include tracing and serialization and
 are not production latency benchmarks. Before/after outputs are versioned.
 
-Full deterministic, service and freshness verification must pass again after the
-refactor. Earlier successful verification is preserved as pre-refactor evidence;
+The before/after request streams have the identical SHA-256
+`8a649ca495939e7c37fe21b4903381086bf6b7785a9d2439ff05f2b32ec03f2c`.
+Traced peak temporary allocation falls from 172,957,774 to 100,787,212 bytes
+(41.7%) on this fixture. Whole-matrix validation still allocates memory; the
+full BrowseComp index peak has not yet been measured.
+
+Post-refactor verification passed 1,193 deterministic cases, 60 unique service
+cases by final outcome, and 16 live freshness checks. The initial service run had
+59 passes and one old-service metadata read timeout. Only that failed semantic
+reranker case was retried, using an isolated native collection restored from its
+unchanged stored SQLite snapshot. Every vector/payload was verified; no model
+inputs, index identity or original resource changed. The retry passed. All 61
+attempts are retained, including the failure, in
+[post-refactor evidence](../evaluation/phase-c/v1/verification-post-scale/test-summary.json).
+Earlier successful verification is preserved as pre-refactor evidence;
 overlapping suites and repeated runs are not added to inflate test counts.

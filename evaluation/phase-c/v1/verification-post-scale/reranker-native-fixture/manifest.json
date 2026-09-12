@@ -1,0 +1,18 @@
+{
+  "original_sqlite": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/p0-current-20260910-r2/index.sqlite",
+  "original_sqlite_sha256_before_and_after": "c862224df89fa7230bc70c392e2f75f39940c85f39785c76d9fd2800396e45b8",
+  "copied_sqlite": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/phase-c-v1/reranker-native-fixture/index.sqlite",
+  "copied_sqlite_sha256": "d374145dbb96483257f9f14a7e67c4127b3abf464bc28974b2e341cf28b5e804",
+  "index_version_preserved": "068b170eeea94e5888184ab14962aa4e",
+  "vault_id": "p0-current-20260910-r2",
+  "collection": "arkb_4e079ddc8612b2d10d2340d1cb907a4c",
+  "records": 160,
+  "native_ready": {
+    "points": 160,
+    "indexed_vectors": 0,
+    "status": "green"
+  },
+  "qdrant_url": "http://127.0.0.1:6340",
+  "scope": "Copied the unchanged stored snapshot into an isolated native collection. Every payload/vector verified against SQLite. No re-embedding, re-chunking, new index identity or original resource change.",
+  "reason": "Old host-bind Qdrant 32776 timed out reading collection metadata during a real reranker regression test."
+}

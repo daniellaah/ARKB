@@ -1,0 +1,144 @@
+{
+  "schema": "arkb-phase-c-verification-v1",
+  "groups_overlap": true,
+  "deterministic": {
+    "cases": 1193,
+    "passed": 1193,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "service_integration": {
+    "cases": 60,
+    "passed": 60,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "evaluation_regression": {
+    "cases": 289,
+    "passed": 289,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "phase_a_regression": {
+    "cases": 378,
+    "passed": 378,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "phase_b_reranker_focused": {
+    "cases": 48,
+    "passed": 48,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "phase_b_reranker_integration": {
+    "cases": 5,
+    "passed": 5,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "new_phase_c_deterministic": {
+    "cases": 41,
+    "passed": 41,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "new_case_ids": [
+    "tests.evaluation.test_public_benchmarks::test_generic_beir_keeps_full_corpus_original_ids_and_test_labels[scifact]",
+    "tests.evaluation.test_public_benchmarks::test_generic_beir_keeps_full_corpus_original_ids_and_test_labels[nfcorpus]",
+    "tests.evaluation.test_public_benchmarks::test_generic_beir_keeps_full_corpus_original_ids_and_test_labels[fiqa]",
+    "tests.evaluation.test_public_benchmarks::test_browsecomp_adapter_separates_queries_evidence_gold_and_answers",
+    "tests.evaluation.test_public_benchmarks::test_explicit_empty_document_exception_keeps_full_corpus_and_recall_denominator",
+    "tests.evaluation.test_source_fusion::test_c1_compacts_source_ranks_and_uses_only_best_leg_chunk",
+    "tests.evaluation.test_source_fusion::test_c2_uses_two_raw_chunk_ranks_then_compact_source_rrf",
+    "tests.evaluation.test_source_fusion::test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence[C1]",
+    "tests.evaluation.test_source_fusion::test_shared_chunk_accepts_leg_specific_metadata_and_retains_verbatim_evidence[C2]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern0-C1]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern0-C2]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern1-C1]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern1-C2]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern2-C1]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern2-C2]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern3-C1]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern3-C2]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern4-C1]",
+    "tests.evaluation.test_source_fusion::test_source_subset_uniqueness_and_repeated_replay[pattern4-C2]",
+    "tests.evaluation.test_source_fusion::test_equal_scores_preserve_incoming_source_order_instead_of_identity[C1]",
+    "tests.evaluation.test_source_fusion::test_equal_scores_preserve_incoming_source_order_instead_of_identity[C2]",
+    "tests.evaluation.test_source_fusion::test_filters_and_source_top_k_are_applied_correctly[C1]",
+    "tests.evaluation.test_source_fusion::test_filters_and_source_top_k_are_applied_correctly[C2]",
+    "tests.evaluation.test_source_fusion::test_duplicate_identity_votes_once_and_keeps_original_positions[C1]",
+    "tests.evaluation.test_source_fusion::test_duplicate_identity_votes_once_and_keeps_original_positions[C2]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[snapshot-C1]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[snapshot-C2]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[revision-C1]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[revision-C2]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[content-C1]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[content-C2]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[source-C1]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[source-C2]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[coordinates-C1]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[coordinates-C2]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[section-C1]",
+    "tests.evaluation.test_source_fusion::test_inconsistent_captured_evidence_is_rejected[section-C2]",
+    "tests.evaluation.test_source_fusion::test_leg_responses_must_share_query_and_snapshot[query]",
+    "tests.evaluation.test_source_fusion::test_leg_responses_must_share_query_and_snapshot[index]",
+    "tests.evaluation.test_source_fusion::test_leg_responses_must_share_query_and_snapshot[missing_index]",
+    "tests.evaluation.test_source_fusion::test_invalid_policy_or_unnamed_legs_are_rejected"
+  ],
+  "freshness": {
+    "passed": 16,
+    "failed": 0,
+    "checks": {
+      "live_read_before_rebuild": true,
+      "revision_changed_before_rebuild": true,
+      "live_match_before_rebuild": true,
+      "old_semantic_snapshot_stays_frozen": true,
+      "edited_reference_rejected": true,
+      "known_source_refreshes_reference": true,
+      "deleted.md_reference_rejected": true,
+      "deleted.md_old_read_rejected": true,
+      "renamed.md_reference_rejected": true,
+      "renamed.md_old_read_rejected": true,
+      "new_publication": true,
+      "new_semantic_sources": true,
+      "new_semantic_content": true,
+      "new_bm25_removes_deleted": true,
+      "old_captured_engine_survives_publication": true,
+      "both_remote_snapshots_match_sqlite": true
+    }
+  },
+  "service_execution": {
+    "counting": "60 unique (classname, name) cases, final outcome after the single documented infrastructure retry. This is not one all-green invocation.",
+    "attempts": 61,
+    "initial": {
+      "cases": 60,
+      "passed": 59,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "retry": {
+      "cases": 1,
+      "passed": 1,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "retry_case": "tests.retrieval.integration.test_qwen_reranker_model::test_runtime_reranks_real_snapshot_preserving_evidence_and_filters[semantic]",
+    "reason": "The original host-bind Qdrant 32776 timed out reading collection metadata during the second filtered semantic search. Earlier rerank and provenance assertions had passed.",
+    "resolution": "Retried only the failed case against an isolated native Qdrant 6340 collection restored from the exact saved SQLite snapshot. Every stored vector/payload verified; original SQLite hash unchanged.",
+    "fixture_manifest": "reranker-native-fixture/manifest.json",
+    "raw_attempts": [
+      "service-post-scale.xml",
+      "service-native-retry.xml"
+    ]
+  }
+}

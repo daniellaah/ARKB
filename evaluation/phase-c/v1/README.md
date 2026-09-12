@@ -32,4 +32,4 @@ Only 57,600 nonempty documents are indexed; all 648 queries and all labels remai
 See `empty-document-exception.json`. Never silently discard its
 positive label or its affected query.
 
-The development archive is fully saved and independently hash-verified on the external disk; see `development-artifacts.json`. `artifact-locations.json` maps the local evidence and restoration paths. Exact regression counts and logs are in `verification/`. The engineering report is `docs/phase-c-report.md`; pending validation is marked explicitly.
+The development archive is fully saved and independently hash-verified on the external disk; see `development-artifacts.json`. `artifact-locations.json` maps the local evidence and restoration paths. Final regression counts and logs after the bounded Qdrant allocation refactor are in `verification-post-scale/`; the earlier successful run remains in `verification/`. The service summary records 60 unique final passes across 61 attempts, with the initial infrastructure timeout and single verified-snapshot retry both preserved. The engineering report is `docs/phase-c-report.md`; pending validation is marked explicitly.
