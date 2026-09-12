@@ -245,6 +245,8 @@ Selected C0 is identical to the current C0 control by construction, so one captu
 
 ### NFCorpus
 
+The READY index contains 3,633 documents and 3,930 chunks. The normal builder reused 3,887 embedding inputs and embedded 0 additional inputs; build time was 8.391 seconds, excluding the separately recorded embedding-cache preparation. Full before/after snapshot verification passed.
+
 | Arm | Label set | ndcg@10 | recall@10 | recall@20 | recall@100 | mrr@10 |
 | --- | --- | --- | --- | --- | --- | --- |
 | bm25 | qrels | 0.306070 | 0.148537 | 0.178620 | 0.235868 | 0.513001 |

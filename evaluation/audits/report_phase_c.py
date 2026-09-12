@@ -18,9 +18,10 @@ def main():
     decision=read('development-decision.json');parts=[]
     def add(s):parts.append(s.strip()+'\n')
     complete=all((V/f'validation/{ds}-replay.json').exists() for ds in ('nfcorpus','fiqa','browsecomp-plus'))
+    finished=(V/'completion.json').exists() and read('completion.json')['status']=='completed'
     tests=read('verification/test-summary.json') if (V/'verification/test-summary.json').exists() else None
     add('# ARKB Phase C: candidate generation and source-level fusion')
-    add('Status: '+('validation complete; see verification and archive status below.' if complete else
+    add('Status: '+('**Completed.** All three full validations, offline replays, regression checks and index archives are verified.' if finished else 'validation complete; index preservation is still in progress.' if complete else
         '**In progress.** Development selection is frozen; FiQA/BrowseComp-Plus full validation and final archival are still running. This is not a completed Phase C release.'))
     add('The frozen product decision is **A: keep current chunk-level Hybrid fusion**. C1 and C2 do not satisfy the shared development gate. No runtime fusion, Agent, reranker, embedding, parser, chunking or publication behavior was changed. No later phase is implemented.')
     add('## 1. Baseline reproduction')
@@ -94,6 +95,8 @@ def main():
         if not path.exists():
             add('**Pending full-corpus index/capture completion. No validation score is reported.**');continue
         v=read(f'validation/{ds}-summary.json')
+        experiment=read(f'validation/{ds}-experiment.json');build=experiment['index_report']
+        add(f"The READY index contains {build['manifest']['document_count']:,} documents and {build['manifest']['chunk_count']:,} chunks. The normal builder reused {build['cached_inputs']:,} embedding inputs and embedded {build['embedded_inputs']:,} additional inputs; build time was {build['build_seconds']:.3f} seconds, excluding the separately recorded embedding-cache preparation. Full before/after snapshot verification passed.")
         keys2=(*(('recall@5',) if ds=='browsecomp-plus' else ()),*keys,*(('recall@1000',) if ds=='browsecomp-plus' else ()))
         add(table(['Arm','Label set',*keys2],[
             [arm,label,*[x['metrics'][k] for k in keys2]] for arm,rec in v['arms'].items() for label,x in rec['labels'].items()]))
@@ -102,7 +105,10 @@ def main():
     add('BrowseComp official Recall@5/@100/@1000 and nDCG@10 are calculated on the available source ranking from the fixed 500-chunk legs. A semantic or BM25 leg returns at most 500 sources; fused depth is at most 1,000 and often smaller. Recall@1000 therefore measures this configuration’s actual candidate coverage, not a separately retrieved 1,000-source pool. Primary source cutoff remains 100. TREC exports use strictly decreasing rank scores to preserve tied-source ordering in independent evaluation.')
     add('Storage preparation required a user-authorized external APFS sparse image. Qdrant host-bind mounts reported incompatible FUSE storage and failed before retrieval. The successful runs use a separate native Docker volume with the same Qdrant 1.19.0 image and index parameters. Existing services and historical READY snapshots were not changed. Failed attempts are retained and produced no scored rankings. Cache staging uses the exact production chunker, tokenization, embedding model and SQLite keys; the normal builder validates and publishes the final snapshot. See [storage incident](phase-c-storage-note.md).')
     add('## 9. Final product decision')
-    add('**Decision A — keep current chunk-level Hybrid fusion.** This is the frozen development decision; Phase C completion still requires every pending validation/verification/archive item reported here. The alternatives offer a CPU cost improvement and some BRIGHT gains but fail the shared quality requirements. No dataset-specific routing, BM25 disabling, new RRF parameter or forced source-level redesign is justified. Production remains unchanged; experimental policies are confined to evaluation code.')
+    add('**Decision A — keep current chunk-level Hybrid fusion.** '+
+        ('The frozen development decision has completed broader validation without further tuning. ' if finished else
+         'This is the frozen development decision; Phase C completion still requires every pending validation/verification/archive item reported here. ')+
+        'The alternatives offer a CPU cost improvement and some BRIGHT gains but fail the shared quality requirements. No dataset-specific routing, BM25 disabling, new RRF parameter or forced source-level redesign is justified. Production remains unchanged; experimental policies are confined to evaluation code.')
     add('## 10. Tests')
     if tests:
         add(table(['Suite/subset','Cases','Passed','Failed','Errors','Skipped'],[
