@@ -1,0 +1,74 @@
+{
+  "scope": "Isolated native MLX model probe on the fixed corpus-only embedding sample.\n\nUse unchanged Qwen3/base modules from mlx-embeddings and strict loading of the\nofficial cached weights, cast to float16. Explicit float32 last-token L2 output\nmatches the reference pooling semantics. This is a different precision/backend\nfrom production Q8_0, with no production cache writes or retrieval calls.\n",
+  "source_sha256": "0bb7171a42c3981b3a752c51b9d527f9286cccf60fe527a19c476955ed5bd46a",
+  "justification": "User requested GPU embedding acceleration. Test a second native batching implementation independently of the unchanged Phase C workflow.",
+  "package_versions": {
+    "mlx": {
+      "version": "0.32.2",
+      "requires_dist": [
+        "mlx-metal==0.32.2; platform_system == \"Darwin\"",
+        "ml_dtypes; extra == \"dev\"",
+        "numpy>=2; extra == \"dev\"",
+        "pre-commit; extra == \"dev\"",
+        "torch>=2.9; extra == \"dev\"",
+        "typing_extensions; extra == \"dev\"",
+        "mlx-cuda-12==0.32.2; platform_system == \"Linux\" and extra == \"cuda\"",
+        "mlx-cuda-12==0.32.2; platform_system == \"Linux\" and extra == \"cuda12\"",
+        "mlx-cuda-13==0.32.2; platform_system == \"Linux\" and extra == \"cuda13\"",
+        "mlx-cpu==0.32.2; platform_system == \"Linux\" and extra == \"cpu\""
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/ml-explore/mlx"
+      }
+    },
+    "mlx-metal": {
+      "version": "0.32.2",
+      "requires_dist": null,
+      "project_urls": {
+        "Homepage": "https://github.com/ml-explore/mlx"
+      }
+    },
+    "mlx-embeddings": {
+      "version": "0.1.0",
+      "requires_dist": [
+        "mlx>=0.31.1",
+        "mlx-vlm>=0.4.0",
+        "transformers[sentencepiece]>=5.0.0",
+        "huggingface-hub>=0.25.1",
+        "mlx-embeddings[extra]; extra == \"all\"",
+        "pandas; extra == \"extra\"",
+        "pytest; extra == \"dev\"",
+        "psutil; extra == \"dev\"",
+        "rich; extra == \"dev\""
+      ],
+      "project_urls": {
+        "Homepage": "https://github.com/Blaizzy/mlx-embeddings"
+      }
+    }
+  },
+  "model_modules": {
+    "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "qwen3.py": "ccd93f6565748b6aeb49f6ac7611538a77f71471ab0e9b5d5f219adc19436860",
+    "base.py": "0e385812aac6d3960e3edde8300c4d4cdd3e75c7b87c1c6bb313d35fb36c088f"
+  },
+  "hf_model_revision": "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418",
+  "hf_weights_sha256": "0437e45c94563b09e13cb7a64478fc406947a93cb34a7e05870fc8dcd48e23fd",
+  "hf_config_sha256": "b5bf1f51fc45be473a54718cef92448d90a1be001bf9b9a44b8c7f10a19feaa9",
+  "dtype": "float16",
+  "normalization": "float32 last-token L2",
+  "input_sha256": "79ff7b047787892bb48e01a82afb591a654bbc8daccb5cf25fd6910136511e86",
+  "token_ids_equal": true,
+  "max_batch_inputs": 32,
+  "max_batch_tokens": 8192,
+  "max_input_tokens": 8192,
+  "padding": "right; pad ID 151643 masked; no truncation; no added prompt",
+  "tei_reference_sha256": "dd167583e8261522b783508b9cc585cc208d7e15ca06778aeca58235f20602f8",
+  "arms": [
+    "ollama_q8",
+    "mlx_f16_single",
+    "mlx_f16_batch"
+  ],
+  "repetitions": 3,
+  "timing": "Tokenization, direct MLX computation with explicit synchronization, float32 pooling/L2, host transfer and validation; Ollama includes persistent-client HTTP. Model load/full-sample warmup excluded.",
+  "limitations": "Different precision/backend; includes no MLX HTTP server. CPU preparation shares host. No proof of retrieval quality or whole-corpus equivalence."
+}

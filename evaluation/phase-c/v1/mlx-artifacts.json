@@ -1,0 +1,9 @@
+{
+  "archive_directory": "/Volumes/ARKBPhaseC/diagnostics/mlx-probe",
+  "checksums_sha256": "4e5d84909d6c43d844a4e380ffb6ed92d67d5ff71a403df9994c3c5e9beed948",
+  "weights_retained_in_original_hf_cache": "/Users/daboluo/.cache/huggingface/hub/models--Qwen--Qwen3-Embedding-0.6B/snapshots/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/model.safetensors",
+  "mlx_reference": "https://github.com/ml-explore/mlx",
+  "model_implementation": "https://github.com/Blaizzy/mlx-embeddings",
+  "adopted": false,
+  "reason": "Sample throughput gain measured, but precision/backend and vectors differ. Retrieval quality not evaluated; frozen Phase C remains Q8_0."
+}

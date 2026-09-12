@@ -1,0 +1,62 @@
+{
+  "scope": "Isolated TEI Metal feasibility probe; different precision, never a cache writer.\n\nCompare original Q8_0 Ollama with official HF weights cast to float16 by TEI.\nThis is an operational backend investigation, not a Phase C retrieval arm or\npermission to combine vectors from the two configurations in one index.\n",
+  "justification": "User requested GPU embedding acceleration; isolate backend throughput and precision differences without touching frozen Phase C inputs, caches or retrieval.",
+  "source_sha256": "6a828a2fc4ed87339c114b32f284ce8c11d558704d070f7cc11149d23e44927c",
+  "binary_sha256": "2e74ec74758934932161b01401ed2dfd3116e3f619e284a87403fd1ed4640db9",
+  "hf_model_revision": "c54f2e6e80b2d7b7de06f51cec4959f6b3e03418",
+  "hf_weights_sha256": "0437e45c94563b09e13cb7a64478fc406947a93cb34a7e05870fc8dcd48e23fd",
+  "hf_config_sha256": "b5bf1f51fc45be473a54718cef92448d90a1be001bf9b9a44b8c7f10a19feaa9",
+  "runtime_length_override": {
+    "sentence_bert_config.json": {
+      "max_seq_length": 8192
+    }
+  },
+  "ollama_embedding_spec": {
+    "model": "qwen3-embedding:0.6b",
+    "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+    "dimensions": 1024,
+    "document_template": "title-body-v1",
+    "provider": "ollama",
+    "normalization": "l2",
+    "dtype": "float64"
+  },
+  "tei_dtype": "float16",
+  "command": [
+    "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/phase-c-v1/tei-metal-probe/tool/unpacked/text-embeddings-inference/1.9.3/bin/text-embeddings-router",
+    "--model-id",
+    "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/results/phase-c-v1/tei-metal-probe/model",
+    "--hostname",
+    "127.0.0.1",
+    "--port",
+    "11439",
+    "--prometheus-port",
+    "19039",
+    "--dtype",
+    "float16",
+    "--pooling",
+    "last-token",
+    "--max-batch-tokens",
+    "8192",
+    "--max-client-batch-size",
+    "32",
+    "--max-batch-requests",
+    "32",
+    "--tokenization-workers",
+    "2",
+    "--auto-truncate",
+    "false"
+  ],
+  "input_sha256": "79ff7b047787892bb48e01a82afb591a654bbc8daccb5cf25fd6910136511e86",
+  "input_count": 256,
+  "sample_token_ids_equal": true,
+  "request_groups": 16,
+  "repetitions": 3,
+  "arms": [
+    "ollama_q8",
+    "tei_f16_single",
+    "tei_f16_batch"
+  ],
+  "no_production_cache_writes": true,
+  "no_retrieval": true,
+  "resource_note": "Eight-process BCP CPU preparation and prior serial preparation continue on this host; no claim of isolated maximum GPU throughput."
+}

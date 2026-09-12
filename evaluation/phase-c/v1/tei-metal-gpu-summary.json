@@ -1,0 +1,23 @@
+{
+  "source": "System-wide AGXAccelerator Device Utilization % sampled approximately every 0.5 seconds; not per-process attribution or a measure of achieved FLOPS.",
+  "arms": {
+    "ollama_q8": {
+      "samples": 87,
+      "mean_percent": 95.8735632183908,
+      "median_percent": 96,
+      "max_percent": 100
+    },
+    "tei_f16_single": {
+      "samples": 325,
+      "mean_percent": 96.34153846153846,
+      "median_percent": 99,
+      "max_percent": 100
+    },
+    "tei_f16_batch": {
+      "samples": 475,
+      "mean_percent": 99.3578947368421,
+      "median_percent": 100,
+      "max_percent": 100
+    }
+  }
+}

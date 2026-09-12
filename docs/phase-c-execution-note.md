@@ -206,3 +206,15 @@ See [CPU probe](../evaluation/phase-c/v1/embedding-preparation-audit.json),
 [input-plan checks](../evaluation/phase-c/v1/input-plan-audit.json),
 [workflow checks](../evaluation/phase-c/v1/prepared-workflow-audit.json) and the
 [artifact manifest](../evaluation/phase-c/v1/embedding-preparation-artifacts.json).
+
+## Subsequent GPU backend investigation
+
+The user's follow-up GPU acceleration request led to isolated TEI Metal and
+native MLX float16 probes on the same fixed 256 FiQA inputs. MLX batching
+measured 25.0245 inputs/second versus 16.4693 for Ollama in its paired probe
+(51.9% higher throughput, 34.2% less inference time). TEI Metal was slower.
+Both alternatives differ from the original Q8_0 vectors and were not adopted.
+The original full Phase C job and cache remain unchanged. See the
+[throughput investigation](embedding-throughput-investigation.md) for methods,
+precision differences, GPU activity readings and the required separation from
+the frozen retrieval evaluation.

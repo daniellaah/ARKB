@@ -1,0 +1,235 @@
+{
+  "status": "completed",
+  "rounds": [
+    {
+      "arm": "ollama_q8",
+      "repetition": 0,
+      "seconds": 15.501855542184785,
+      "inputs_per_second": 16.514152083494395,
+      "vs_original_cache": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_own_warmup": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_single": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      }
+    },
+    {
+      "arm": "tei_f16_single",
+      "repetition": 0,
+      "seconds": 57.4903064169921,
+      "inputs_per_second": 4.452924605118046,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      },
+      "vs_own_warmup": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_single": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      }
+    },
+    {
+      "arm": "tei_f16_batch",
+      "repetition": 0,
+      "seconds": 83.96194495819509,
+      "inputs_per_second": 3.0490003551902376,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.004971609999999998,
+        "min_cosine": 0.9993524536112718,
+        "mean_cosine": 0.9995903889048197
+      },
+      "vs_own_warmup": {
+        "exact": false,
+        "max_abs_difference": 0.0004135100000000058,
+        "min_cosine": 0.9999957219975818,
+        "mean_cosine": 0.9999998863771289
+      },
+      "vs_tei_single": {
+        "exact": false,
+        "max_abs_difference": 0.0005432809999999996,
+        "min_cosine": 0.9999939381849475,
+        "mean_cosine": 0.9999973045942514
+      }
+    },
+    {
+      "arm": "tei_f16_single",
+      "repetition": 1,
+      "seconds": 57.488547291141,
+      "inputs_per_second": 4.453060862775526,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      },
+      "vs_own_warmup": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_single": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      }
+    },
+    {
+      "arm": "tei_f16_batch",
+      "repetition": 1,
+      "seconds": 84.22122762491927,
+      "inputs_per_second": 3.039613731826619,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.004971609999999998,
+        "min_cosine": 0.9993524536112718,
+        "mean_cosine": 0.9995903122272943
+      },
+      "vs_own_warmup": {
+        "exact": false,
+        "max_abs_difference": 0.0004135100000000058,
+        "min_cosine": 0.9999940779060548,
+        "mean_cosine": 0.9999996957950692
+      },
+      "vs_tei_single": {
+        "exact": false,
+        "max_abs_difference": 0.0005682670000000008,
+        "min_cosine": 0.9999939381849475,
+        "mean_cosine": 0.9999973021096328
+      }
+    },
+    {
+      "arm": "ollama_q8",
+      "repetition": 1,
+      "seconds": 15.499269166961312,
+      "inputs_per_second": 16.51690781302753,
+      "vs_original_cache": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_own_warmup": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_single": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      }
+    },
+    {
+      "arm": "tei_f16_batch",
+      "repetition": 2,
+      "seconds": 84.13042066595517,
+      "inputs_per_second": 3.042894567429577,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.004971609999999998,
+        "min_cosine": 0.9993524536112718,
+        "mean_cosine": 0.9995903929136014
+      },
+      "vs_own_warmup": {
+        "exact": false,
+        "max_abs_difference": 0.00044738229999999996,
+        "min_cosine": 0.9999952856938377,
+        "mean_cosine": 0.999999709859783
+      },
+      "vs_tei_single": {
+        "exact": false,
+        "max_abs_difference": 0.0005432809999999996,
+        "min_cosine": 0.9999939381849475,
+        "mean_cosine": 0.9999972983829533
+      }
+    },
+    {
+      "arm": "ollama_q8",
+      "repetition": 2,
+      "seconds": 15.561876291176304,
+      "inputs_per_second": 16.450458492923108,
+      "vs_original_cache": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_own_warmup": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_single": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      }
+    },
+    {
+      "arm": "tei_f16_single",
+      "repetition": 2,
+      "seconds": 57.74416841706261,
+      "inputs_per_second": 4.4333481114667075,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      },
+      "vs_own_warmup": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_single": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      }
+    }
+  ],
+  "protocol_sha256": "f44932a7530d15b38f0b14df3c96cf38fd1486699e78c6b2f032ca4a09748ef9",
+  "summary": {
+    "ollama_q8": {
+      "mean_inputs_per_second": 16.493839463148344
+    },
+    "tei_f16_single": {
+      "mean_inputs_per_second": 4.446444526453426
+    },
+    "tei_f16_batch": {
+      "mean_inputs_per_second": 3.0438362181488112
+    }
+  },
+  "temporary_server_stopped": true,
+  "source_sqlite_unchanged": true
+}

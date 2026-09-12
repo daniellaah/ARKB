@@ -1,0 +1,9 @@
+{
+  "archive_directory": "/Volumes/ARKBPhaseC/diagnostics/tei-metal-probe",
+  "checksums_sha256": "94057187682d26b69fdd332d10b1d2908a93f566df9ee58dfdeb719043578a9f",
+  "weights_retained_in_original_hf_cache": "/Users/daboluo/.cache/huggingface/hub/models--Qwen--Qwen3-Embedding-0.6B/snapshots/c54f2e6e80b2d7b7de06f51cec4959f6b3e03418/model.safetensors",
+  "official_tei": "https://github.com/huggingface/text-embeddings-inference",
+  "official_bottle": "https://formulae.brew.sh/formula/text-embeddings-inference",
+  "adopted": false,
+  "reason": "Slower than original Ollama on fixed sample; different precision and numerically different vectors; no production changes."
+}

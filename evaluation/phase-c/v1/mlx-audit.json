@@ -1,0 +1,234 @@
+{
+  "status": "completed",
+  "protocol_sha256": "2b49f002d516b3b325bd2352b314632317f0b33a847eea5f56d1eb423e82d7fd",
+  "rounds": [
+    {
+      "arm": "ollama_q8",
+      "repetition": 0,
+      "seconds": 15.50659754103981,
+      "inputs_per_second": 16.509101969175997,
+      "vs_original_cache": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      },
+      "vs_mlx_single": {
+        "exact": false,
+        "max_abs_difference": 0.005056533983386992,
+        "min_cosine": 0.9993508537614065,
+        "mean_cosine": 0.9995928360977544
+      }
+    },
+    {
+      "arm": "mlx_f16_single",
+      "repetition": 0,
+      "seconds": 12.364187791012228,
+      "inputs_per_second": 20.704958896377445,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005056533983386992,
+        "min_cosine": 0.9993508537614065,
+        "mean_cosine": 0.9995928360977544
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.0006290120284528737,
+        "min_cosine": 0.9999819897347899,
+        "mean_cosine": 0.9999955423862603
+      },
+      "vs_mlx_single": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      }
+    },
+    {
+      "arm": "mlx_f16_batch",
+      "repetition": 0,
+      "seconds": 10.22799237491563,
+      "inputs_per_second": 25.02934990720618,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005195837488807677,
+        "min_cosine": 0.9993597382729554,
+        "mean_cosine": 0.9995920113814403
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.0007070295239257895,
+        "min_cosine": 0.9999901917388281,
+        "mean_cosine": 0.9999955511904673
+      },
+      "vs_mlx_single": {
+        "exact": false,
+        "max_abs_difference": 0.0005611572414636612,
+        "min_cosine": 0.9999948673628347,
+        "mean_cosine": 0.9999974943029813
+      }
+    },
+    {
+      "arm": "mlx_f16_single",
+      "repetition": 1,
+      "seconds": 12.349298167042434,
+      "inputs_per_second": 20.72992299134924,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005056533983386992,
+        "min_cosine": 0.9993508537614065,
+        "mean_cosine": 0.9995928360977544
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.0006290120284528737,
+        "min_cosine": 0.9999819897347899,
+        "mean_cosine": 0.9999955423862603
+      },
+      "vs_mlx_single": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      }
+    },
+    {
+      "arm": "mlx_f16_batch",
+      "repetition": 1,
+      "seconds": 10.224810749990866,
+      "inputs_per_second": 25.037138217959555,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005195837488807677,
+        "min_cosine": 0.9993597382729554,
+        "mean_cosine": 0.9995920113814403
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.0007070295239257895,
+        "min_cosine": 0.9999901917388281,
+        "mean_cosine": 0.9999955511904673
+      },
+      "vs_mlx_single": {
+        "exact": false,
+        "max_abs_difference": 0.0005611572414636612,
+        "min_cosine": 0.9999948673628347,
+        "mean_cosine": 0.9999974943029813
+      }
+    },
+    {
+      "arm": "ollama_q8",
+      "repetition": 1,
+      "seconds": 15.565241458825767,
+      "inputs_per_second": 16.44690194348662,
+      "vs_original_cache": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      },
+      "vs_mlx_single": {
+        "exact": false,
+        "max_abs_difference": 0.005056533983386992,
+        "min_cosine": 0.9993508537614065,
+        "mean_cosine": 0.9995928360977544
+      }
+    },
+    {
+      "arm": "mlx_f16_batch",
+      "repetition": 2,
+      "seconds": 10.23713987506926,
+      "inputs_per_second": 25.006984677765576,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005195837488807677,
+        "min_cosine": 0.9993597382729554,
+        "mean_cosine": 0.9995920113814403
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.0007070295239257895,
+        "min_cosine": 0.9999901917388281,
+        "mean_cosine": 0.9999955511904673
+      },
+      "vs_mlx_single": {
+        "exact": false,
+        "max_abs_difference": 0.0005611572414636612,
+        "min_cosine": 0.9999948673628347,
+        "mean_cosine": 0.9999974943029813
+      }
+    },
+    {
+      "arm": "ollama_q8",
+      "repetition": 2,
+      "seconds": 15.560449042124674,
+      "inputs_per_second": 16.451967376196293,
+      "vs_original_cache": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.005027517999999998,
+        "min_cosine": 0.9993540243713547,
+        "mean_cosine": 0.9995907135312257
+      },
+      "vs_mlx_single": {
+        "exact": false,
+        "max_abs_difference": 0.005056533983386992,
+        "min_cosine": 0.9993508537614065,
+        "mean_cosine": 0.9995928360977544
+      }
+    },
+    {
+      "arm": "mlx_f16_single",
+      "repetition": 2,
+      "seconds": 12.357045583892614,
+      "inputs_per_second": 20.716926085770496,
+      "vs_original_cache": {
+        "exact": false,
+        "max_abs_difference": 0.005056533983386992,
+        "min_cosine": 0.9993508537614065,
+        "mean_cosine": 0.9995928360977544
+      },
+      "vs_tei_reference": {
+        "exact": false,
+        "max_abs_difference": 0.0006290120284528737,
+        "min_cosine": 0.9999819897347899,
+        "mean_cosine": 0.9999955423862603
+      },
+      "vs_mlx_single": {
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "min_cosine": 0.9999999999999998,
+        "mean_cosine": 1.0
+      }
+    }
+  ],
+  "summary": {
+    "ollama_q8": {
+      "mean_inputs_per_second": 16.46932376295297
+    },
+    "mlx_f16_single": {
+      "mean_inputs_per_second": 20.71726932449906
+    },
+    "mlx_f16_batch": {
+      "mean_inputs_per_second": 25.024490934310435
+    }
+  },
+  "source_sqlite_unchanged": true
+}
