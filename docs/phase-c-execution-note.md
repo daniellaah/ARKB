@@ -111,3 +111,98 @@ and [artifact manifest](../evaluation/phase-c/v1/embedding-parallel-artifacts.js
 preserve the exact sample, nine timing observations, script, replica log and
 hashes. This embedding-only operational probe is not another retrieval run or
 architecture-selection experiment.
+
+## CPU preparation and direct slot probes
+
+A one-second stack sample of the recovered serial worker showed tokenizer
+encoding and pre-tokenization while it was using approximately one CPU core.
+The job was still preparing inputs, with no ongoing embedding requests. That
+explains GPU inactivity at this stage; GPU residency and utilization remain
+different measurements.
+
+A separate corpus-only probe selected 26 BrowseComp documents by file size and
+filename order, including two documents over one million characters. Their
+3,801,340 body characters produced 2,096 chunks. The unchanged public chunker,
+tokenizer and document preparation ran in three configurations:
+
+| Preparation | Seconds | Equality to original |
+| --- | ---: | --- |
+| Original serial | 12.2880 | Reference |
+| Serial with per-document token-count memoization | 11.2437 | Exact |
+| Eight processes with per-document memoization | 4.4190 | Exact |
+
+Every chunk dataclass field, prepared input and token count matched. The
+eight-process sample was 2.78 times as fast. This is one timing per arm,
+including pool startup and result serialization but excluding corpus scanning;
+it does not establish full-corpus or end-to-end acceleration.
+
+Direct inference feasibility was also tested using the installed Ollama
+`llama-server` binary and the same Q8_0 GGUF, on 128 of the fixed FiQA inputs.
+An initial attempt completed its one-slot arm but failed on port reuse before
+the eight-slot arm; its partial results are preserved. The second attempt used
+separate ports and disabled prompt caching. Two one-slot runs achieved 17.0526
+and 17.0630 inputs/second; eight-slot runs achieved 16.7715 and 17.0144. Logs
+confirmed simultaneous slot processing, but there was no throughput gain.
+
+Both direct configurations differed numerically from stored vectors. Maximum
+absolute difference in the second attempt was 0.000186311. The direct client
+used a Python emulation of Ollama's final float32 normalization and JSON
+conversion; its exact equivalence is unproven. First-pass/later-pass differences
+persisted with prompt caching disabled, so caching is **not an established
+cause**. Warmup, numerical execution and normalization/serialization were not
+isolated. No direct-backend output was adopted. All temporary servers stopped,
+and the original FiQA SQLite checksum remained unchanged. No GPU utilization
+percentage was measured by these probes.
+
+## Resumable full input preparation
+
+At 2026-09-12 05:11 UTC, a separate one-shot job started eight-process full-corpus
+preparation on the approved external disk. It uses the unchanged public parser,
+chunker, tokenizer and input preparation. Source hashes match the original
+frozen helper's production modules. Each document has an atomic compressed
+input shard and checksum receipt covering both text and token counts. Resume
+reuses only verified shards with matching document revisions; uncommitted
+partial writes are recomputed. A deterministic merge restores the original
+source/chunk order and deduplicates inputs by first occurrence.
+
+A completed plan is published only if all 100,195 documents, 1,883,193 chunks,
+1,847,403 unique inputs and the original full ordered input SHA-256 match:
+`76ff6e3dcc329c6a7ddd3490f0c36587ed813e0e667f007dc62b7a58ed5d70ab`.
+The consumer verifies the manifest, original checkpoint, model/tokenizer/source
+identity and input-file checksum before opening a cache writer. Inference
+retains the original model, request limits, vector representation, retries and
+single ordered SQLite writer. The saved 50,970 vectors remain reusable. The
+normal final index builder still uses its production preparation path; this
+optimization is confined to operational cache staging and recovery.
+
+Eight operational checks passed on a temporary 27-document corpus, including
+a duplicate document: 2,109 chunks and 2,096 unique inputs matched the serial
+reference in order, metadata and token counts. Corrupt counts, changed revisions,
+changed inputs and tokenizer drift were rejected. Four additional workflow
+checks used fake processes/services and temporary databases to verify the
+cutover gate, PID guard, preservation and refusal to interrupt a job that has
+already begun embedding. These 12 checks make no model/retrieval calls or
+production-cache writes and are separate from the product regression counts.
+
+The original serial recovery remains running until full-plan verification.
+Only the recorded original job/PIDs may then be stopped, and only while still
+in preparation. The new workflow waits for those processes to disappear,
+preserves a SQLite backup and prior status/logs, then consumes the verified
+plan and resumes the registered validation/finalization sequence. If the
+original job has already advanced to embedding or beyond, it is left running
+and the prepared plan is retained for future recovery. Any verification failure
+stops the new job; it does not silently change inputs or retry retrieval.
+
+Job: `com.arkb.phase-c.prepared-20260912-0512`; status and stage logs:
+`/Volumes/ARKBPhaseC/preparation-20260912T0512`. Full-plan progress:
+`/Volumes/ARKBPhaseC/plans/browsecomp-plus-v1/status.json`.
+At the time this note was recorded, full preparation and cutover were still
+pending. Both one-shot jobs have no calendar, repeat interval or automatic
+restart. The CPU optimization does not establish an improvement to the
+approximately 29–30 hours of embedding work at the previously observed rate.
+
+See [CPU probe](../evaluation/phase-c/v1/embedding-preparation-audit.json),
+[direct-slot probe](../evaluation/phase-c/v1/embedding-direct-slots-audit.json),
+[input-plan checks](../evaluation/phase-c/v1/input-plan-audit.json),
+[workflow checks](../evaluation/phase-c/v1/prepared-workflow-audit.json) and the
+[artifact manifest](../evaluation/phase-c/v1/embedding-preparation-artifacts.json).

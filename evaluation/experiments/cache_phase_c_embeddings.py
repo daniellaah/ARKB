@@ -23,11 +23,55 @@ from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.evaluation.external import digest,write_json
 
 
+def load_prepared_inputs(plan, *, dataset, tokenizer, spec):
+    """Verify a completed parallel preparation plan before opening a cache writer."""
+    root = Path(__file__).resolve().parents[2]
+    manifest = json.loads((plan / 'manifest.json').read_text())
+    identity = json.loads((plan / 'identity.json').read_text())
+    original = json.loads((plan / 'original-serial-checkpoint.json').read_text())
+    source_files = ('src/arkb/knowledge/chunking.py', 'src/arkb/knowledge/documents.py',
+                    'src/arkb/knowledge/embeddings.py', 'src/arkb/knowledge/models.py')
+    if (manifest.get('schema') != 'arkb-embedding-input-plan-v1'
+            or manifest.get('status') != 'completed'
+            or manifest['embedding_spec'] != asdict(spec)
+            or manifest['tokenizer'] != tokenizer_fingerprint(tokenizer)
+            or manifest['dataset_manifest_sha256'] != digest(dataset / 'manifest.json')
+            or manifest['chunk_size'] != 512 or manifest['chunk_overlap'] != 64
+            or any(manifest.get(key) != value for key, value in identity.items())
+            or manifest['expected_checkpoint_sha256'] != digest(plan / 'original-serial-checkpoint.json')
+            or manifest['script_sha256'] != digest(plan / 'prepare_phase_c_inputs.py')
+            or manifest['script_sha256'] != digest(root / 'evaluation/experiments/prepare_phase_c_inputs.py')
+            or manifest['source_files'] != {name: digest(root / name) for name in source_files}
+            or manifest['document_plans_sha256'] != digest(plan / 'document-plans.jsonl')):
+        raise ValueError('Prepared input plan identity/checksum mismatch.')
+    for key in ('documents', 'chunks', 'unique_inputs', 'input_sha256', 'tokenizer',
+                'dataset_manifest_sha256', 'embedding_spec', 'chunk_size', 'chunk_overlap'):
+        if manifest[key] != original[key]:
+            raise ValueError('Prepared inputs differ from original serial checkpoint: ' + key)
+    if original['batch_size'] != 32 or original['max_batch_tokens'] != 8192:
+        raise ValueError('Original request limits differ from this cache helper.')
+    unique, checksum = {}, hashlib.sha256()
+    with (plan / 'inputs.jsonl').open('rb') as stream:
+        for line in stream:
+            checksum.update(line)
+            text, tokens = json.loads(line)
+            if (not isinstance(text, str) or not text.strip() or text in unique
+                    or type(tokens) is not int or not 0 < tokens <= 8192):
+                raise ValueError('Invalid or duplicate prepared embedding input.')
+            unique[text] = tokens
+    if len(unique) != manifest['unique_inputs'] or checksum.hexdigest() != manifest['inputs_file_sha256']:
+        raise ValueError('Prepared input file checksum/count mismatch.')
+    return manifest, unique
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--dataset',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--omit-empty-documents',action='store_true')
+    p.add_argument('--prepared-plan',type=Path,help='Reuse a verified original-equivalent input plan; no model/configuration change.')
     a=p.parse_args();a.output.mkdir(parents=True,exist_ok=True)
+    if a.prepared_plan and a.omit_empty_documents:
+        raise ValueError('Prepared plans require the complete original corpus.')
     meta={'status':'preparing','started_at':datetime.now(timezone.utc).isoformat(),
         'dataset_manifest_sha256':digest(a.dataset/'manifest.json'),'index_published':False,
         'script_sha256':digest(__file__),'batch_size':32,'max_batch_tokens':8192,'chunk_size':512,'chunk_overlap':64}
@@ -37,21 +81,31 @@ def main():
             tokenizer=runtime.tokenizer();client=runtime.model_client()
             spec=resolve_embedding_spec(client,'qwen3-embedding:0.6b',context_length=8192)
             meta['embedding_spec']=asdict(spec);meta['tokenizer']=tokenizer_fingerprint(tokenizer)
-            print(a.dataset.name,'reading complete materialized corpus',flush=True)
-            notes=scan_notes(a.dataset/'corpus')
-            empty=[n.source for n in notes if not (n.title+n.content).strip()]
-            meta['empty_document_exception']={'enabled':a.omit_empty_documents,
-                'excluded_sources':empty if a.omit_empty_documents else [],'raw_documents':len(notes)}
-            if a.omit_empty_documents:notes=[n for n in notes if (n.title+n.content).strip()]
-            chunks=chunk_notes(notes,count_tokens=partial(count_tokens,tokenizer=tokenizer),chunk_size=512,chunk_overlap=64)
-            unique={}
-            input_hash=hashlib.sha256()
-            for chunk in chunks:
-                text=prepare_document(chunk,document_template=spec.document_template)
-                input_hash.update((json.dumps(text,ensure_ascii=False)+'\n').encode())
-                if text not in unique:unique[text]=validate_input_tokens(text,tokenizer=tokenizer,max_tokens=8192)
-            meta.update(documents=len(notes),chunks=len(chunks),unique_inputs=len(unique),input_sha256=input_hash.hexdigest())
-            del chunks,notes
+            if a.prepared_plan:
+                print(a.dataset.name,'verifying saved input plan',flush=True)
+                plan,unique=load_prepared_inputs(a.prepared_plan,dataset=a.dataset,tokenizer=tokenizer,spec=spec)
+                meta.update({key:plan[key] for key in ('documents','chunks','unique_inputs','input_sha256')})
+                meta['prepared_plan']={'directory':str(a.prepared_plan.resolve()),
+                    'manifest_sha256':digest(a.prepared_plan/'manifest.json'),
+                    'original_checkpoint_sha256':plan['expected_checkpoint_sha256'],
+                    'inputs_file_sha256':plan['inputs_file_sha256']}
+                meta['empty_document_exception']={'enabled':False,'excluded_sources':[],'raw_documents':plan['documents']}
+            else:
+                print(a.dataset.name,'reading complete materialized corpus',flush=True)
+                notes=scan_notes(a.dataset/'corpus')
+                empty=[n.source for n in notes if not (n.title+n.content).strip()]
+                meta['empty_document_exception']={'enabled':a.omit_empty_documents,
+                    'excluded_sources':empty if a.omit_empty_documents else [],'raw_documents':len(notes)}
+                if a.omit_empty_documents:notes=[n for n in notes if (n.title+n.content).strip()]
+                chunks=chunk_notes(notes,count_tokens=partial(count_tokens,tokenizer=tokenizer),chunk_size=512,chunk_overlap=64)
+                unique={}
+                input_hash=hashlib.sha256()
+                for chunk in chunks:
+                    text=prepare_document(chunk,document_template=spec.document_template)
+                    input_hash.update((json.dumps(text,ensure_ascii=False)+'\n').encode())
+                    if text not in unique:unique[text]=validate_input_tokens(text,tokenizer=tokenizer,max_tokens=8192)
+                meta.update(documents=len(notes),chunks=len(chunks),unique_inputs=len(unique),input_sha256=input_hash.hexdigest())
+                del chunks,notes
             print(a.dataset.name,'prepared',meta['documents'],meta['chunks'],meta['unique_inputs'],flush=True)
             with SQLiteStorage(a.output/'index.sqlite') as storage,storage.writer_lock():
                 missing=[text for text in unique if storage.get_embedding(spec,text) is None]

@@ -1,0 +1,62 @@
+{
+  "results": [
+    {
+      "slots": 1,
+      "batch_tokens": 2048,
+      "repetition": 0,
+      "inputs": 128,
+      "seconds": 7.506202042102814,
+      "inputs_per_second": 17.052565236325776,
+      "exact_to_cache": false,
+      "max_abs_diff": 7.609399999999877e-05,
+      "min_cosine": 0.999999794124168
+    },
+    {
+      "slots": 1,
+      "batch_tokens": 2048,
+      "repetition": 1,
+      "inputs": 128,
+      "seconds": 7.50161570799537,
+      "inputs_per_second": 17.062990825239833,
+      "exact_to_cache": false,
+      "max_abs_diff": 3.00000000119649e-08,
+      "min_cosine": 0.9999999999999989
+    },
+    {
+      "slots": 8,
+      "batch_tokens": 8192,
+      "repetition": 0,
+      "inputs": 128,
+      "seconds": 7.631995541974902,
+      "inputs_per_second": 16.77149826621596,
+      "exact_to_cache": false,
+      "max_abs_diff": 0.00018631099999999803,
+      "min_cosine": 0.9999996337478448
+    },
+    {
+      "slots": 8,
+      "batch_tokens": 8192,
+      "repetition": 1,
+      "inputs": 128,
+      "seconds": 7.523059041006491,
+      "inputs_per_second": 17.0143553709071,
+      "exact_to_cache": false,
+      "max_abs_diff": 0.00012650300000000003,
+      "min_cosine": 0.9999996728576395
+    }
+  ],
+  "spec": {
+    "model": "qwen3-embedding:0.6b",
+    "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+    "dimensions": 1024,
+    "document_template": "title-body-v1",
+    "provider": "ollama",
+    "normalization": "l2",
+    "dtype": "float64"
+  },
+  "input_sha256": "79ff7b047787892bb48e01a82afb591a654bbc8daccb5cf25fd6910136511e86",
+  "inputs_used": 128,
+  "prompt_cache": false,
+  "commands_note": "--no-cache-prompt --cache-ram 0 --ctx-checkpoints 0",
+  "scope": "No cache/index writes or retrieval. Direct same-binary/same-GGUF feasibility probe, full slots and batch config recorded."
+}

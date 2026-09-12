@@ -1,0 +1,38 @@
+{
+  "results": [
+    {
+      "slots": 1,
+      "batch_tokens": 2048,
+      "repetition": 0,
+      "inputs": 128,
+      "seconds": 7.616939416853711,
+      "inputs_per_second": 16.80464987246443,
+      "exact_to_cache": false,
+      "max_abs_diff": 7.609404399871664e-05,
+      "min_cosine": 0.9999997941240922
+    },
+    {
+      "slots": 1,
+      "batch_tokens": 2048,
+      "repetition": 1,
+      "inputs": 128,
+      "seconds": 7.491580915870145,
+      "inputs_per_second": 17.085846290313057,
+      "exact_to_cache": false,
+      "max_abs_diff": 3.006397247817816e-08,
+      "min_cosine": 0.9999999999999989
+    }
+  ],
+  "spec": {
+    "model": "qwen3-embedding:0.6b",
+    "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+    "dimensions": 1024,
+    "document_template": "title-body-v1",
+    "provider": "ollama",
+    "normalization": "l2",
+    "dtype": "float64"
+  },
+  "input_sha256": "79ff7b047787892bb48e01a82afb591a654bbc8daccb5cf25fd6910136511e86",
+  "inputs_used": 128,
+  "scope": "No cache/index writes or retrieval. Direct same-binary/same-GGUF feasibility probe, full slots and batch config recorded."
+}

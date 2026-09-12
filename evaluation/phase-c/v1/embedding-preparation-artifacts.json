@@ -1,0 +1,12 @@
+{
+  "archive_directory": "/Volumes/ARKBPhaseC/diagnostics/preparation-and-direct-slot-probes",
+  "checksums_sha256": "93e317a8f05f9db3f7a27503454585821bc0d603c4e821dbb4358c0a67f25f3f",
+  "source_sqlite_unchanged": true,
+  "source_sqlite_sha256": "d0d399c1a1fcd11453659af94825796c20aee5bceb0cf89e70a8ccc9286fa270",
+  "full_input_plan": "/Volumes/ARKBPhaseC/plans/browsecomp-plus-v1",
+  "full_plan_status_at_recording": "running; full equivalence and cutover pending",
+  "workflow": "/Volumes/ARKBPhaseC/preparation-20260912T0512",
+  "job": "com.arkb.phase-c.prepared-20260912-0512",
+  "expected_full_input_sha256": "76ff6e3dcc329c6a7ddd3490f0c36587ed813e0e667f007dc62b7a58ed5d70ab",
+  "original_model_inference_unchanged": true
+}

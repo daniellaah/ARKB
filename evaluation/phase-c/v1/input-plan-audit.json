@@ -1,0 +1,50 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "check": "parallel chunk metadata, ordered inputs, token counts and deduplication equal serial",
+      "status": "passed",
+      "documents": 27,
+      "chunks": 2109,
+      "unique_inputs": 2096
+    },
+    {
+      "check": "completed plan cannot be overwritten",
+      "status": "passed"
+    },
+    {
+      "check": "completed document shard reused without recomputation",
+      "status": "passed"
+    },
+    {
+      "check": "source revision changed",
+      "status": "passed"
+    },
+    {
+      "check": "token count corruption rejected on resume",
+      "status": "passed"
+    },
+    {
+      "check": "changed prepared input rejected before cache write",
+      "status": "passed"
+    },
+    {
+      "check": "tokenizer identity drift rejected",
+      "status": "passed"
+    },
+    {
+      "check": "uncommitted document recomputed after interruption",
+      "status": "passed"
+    }
+  ],
+  "model_calls": 0,
+  "retrieval_calls": 0,
+  "production_cache_writes": 0,
+  "sample_sha256": "f13987d1ef9b631549dc7e42326394c4c2348bc2a412bd463c6d7ca23c967d70",
+  "original_checkpoint_sha256": "9970671a2d4c5e09209d8145ae7a7bd4b2aa5c5c5a23cfb6dea5333d9166e54d",
+  "scripts_sha256": {
+    "audit_phase_c_input_plan.py": "24f9aa6525715b88b895b037f397100934615b72e84119254e00c76fe09e7516",
+    "prepare_phase_c_inputs.py": "5449f15bf3444353f717fe64c944a2ad45b8f71f5551d6fd48ab75a536b5312d",
+    "cache_phase_c_embeddings.py": "8aa9ab4aa8fcbf7b176c53fe413f4b5575b4da40ae808b77906597f5913927fe"
+  }
+}

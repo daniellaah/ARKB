@@ -1,0 +1,47 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "case": "plan_mismatch",
+      "status": "passed",
+      "events": [
+        "prepare_phase_c_inputs.py",
+        "verified_gate"
+      ]
+    },
+    {
+      "case": "already_embedding",
+      "status": "passed",
+      "events": [
+        "prepare_phase_c_inputs.py",
+        "verified_gate"
+      ]
+    },
+    {
+      "case": "pid_changed",
+      "status": "passed",
+      "events": [
+        "prepare_phase_c_inputs.py",
+        "verified_gate"
+      ]
+    },
+    {
+      "case": "normal_cutover",
+      "status": "passed",
+      "events": [
+        "prepare_phase_c_inputs.py",
+        "verified_gate",
+        "bootout",
+        "cache_phase_c_embeddings.py",
+        "complete_phase_c_validation.py",
+        "finalize_phase_c.py"
+      ]
+    }
+  ],
+  "real_process_mutations": 0,
+  "model_calls": 0,
+  "retrieval_calls": 0,
+  "production_cache_writes": 0,
+  "workflow_sha256": "fc2c7e0e54b695a4c5ff3c7415bd6b9e5a0a740bd484f81ec5ae6ee5901ac350",
+  "audit_sha256": "834f19b302ffa51e201f73c2ad5ac325b24e7f0c6b641edab7a23a50ba95e426"
+}

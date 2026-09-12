@@ -1,0 +1,51 @@
+{
+  "scope": "Same public parser/chunker/tokenizer/input preparation, corpus-only fixed size-stratified sample. No models, retrieval or cache writes.",
+  "documents": 26,
+  "body_characters": 3801340,
+  "baseline_chunks": 2096,
+  "sample_sources": [
+    "00002c6a750a79adda282135dde54d94ceb686dad90ff9867892971867648d98.md",
+    "0000c2b9cb9e31ea7891ec70b19cd227bb6a93e44cdde9f1adceeb1a9ae5523a.md",
+    "0000ec8297dc810a14ccb3678c7299897687df4b77a59c5e8c7056f960dfee62.md",
+    "0002dad5ad4f84ad7affc96019dcc5b2027b145330c1e8ffc19c9241b177791b.md",
+    "0004b21be96158692a533504f1ffa23af0236f872383a2a505ad6078cc42425d.md",
+    "000567115330923f72b670a416af5ba723bc84211ef3f13909519499443f30f5.md",
+    "00069e1b898c6394c6b79468207346f0941c4aeda2bd0249f6c096781f8aea8d.md",
+    "0006b486c46c14f3b31459cd5c3d7a706ef950d65616931383c5a40a12311810.md",
+    "000709f580b2f647fcbc1312d206aa803fc05d188d7bef984e624fd0f1a8aacf.md",
+    "00098092ffe9d15abede7c889b3aead6f68489a86d37f8509eb2487dc815c8a1.md",
+    "000a47662ad057b2266efd98f44996778897cdd2e15554078863fb0ae97c7b43.md",
+    "000b9722934b9f4f6837ccda116f6f1e1bd4fcbc4ba9b7affeb6f433ef36b333.md",
+    "000ccb3dd1ce88d5ad92842de2f615b5158388135f391b2b67be289688918002.md",
+    "000d8b83c388989a3da40599452cdd571da83be8383fdb50d689178bf1e38e92.md",
+    "000ec8169b432c22c971697c8f353d354fe1d6c9442439a341921c3792cfb15b.md",
+    "0010f23aa7ac94a56ac0f3ed31cbbb93047dbb08a1c25356e1196b358e099496.md",
+    "00113ab3aac5fde6c61ef7cf9fc4b29c12ebaabc08ab45f096b09c70bae11233.md",
+    "002d6d0046615179a089f150b90d3f172b3a06cd0295610f8ff97f29afb95d21.md",
+    "004d1e8bfd0bd4b7751369875638a1c01e7d1cf62e73e9fa068bab4c5e9b22ed.md",
+    "00561ff2389776141cc961737b5ff15cd760d9d093561cad8b519cd5fa42d222.md",
+    "005998a4ca6539f840745d0d03a6d497d9c9016f923c489f1a9784e9c9765c00.md",
+    "006704a695e85a187ae8f05381d9c7168dae2be9dc27f787e955f03712ee6d8e.md",
+    "007eaddb581534993bcbe8ae0f07cf8e31defeea177aeef981a3073c6ea18309.md",
+    "008cc3ac3bfdd9bd84505c0f53ab4ef05a449fb767f12b662bf0a55ab5f8fd54.md",
+    "02fae5936cf9a2c48cf32f65b4334111b0753a6606fe772d682aec55c9998697.md",
+    "0441384763bf504e5259d44f99c66a199350bb28dfe60b5abcf1b27f020a5227.md"
+  ],
+  "arms": [
+    {
+      "mode": "original_serial",
+      "seconds": 12.287979332963005,
+      "equal": true
+    },
+    {
+      "mode": "memoized_serial",
+      "seconds": 11.243741249898449,
+      "equal": true
+    },
+    {
+      "mode": "memoized_8_processes",
+      "seconds": 4.41896937508136,
+      "equal": true
+    }
+  ]
+}
