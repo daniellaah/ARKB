@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "dataset": "fiqa",
+  "queries": 648,
+  "verified_run_files": 57684,
+  "exact_source_rank_positions": 1185685,
+  "exact_representative_checks": 1185685,
+  "reference_metric_max_error": 2.220446049250313e-16,
+  "leg_sha256": {
+    "bm25": "9ce3d37a19b960bd1f28722e56ad6d40cef0c1d0e454326a47fc2d81624d01bc",
+    "semantic": "d4db0d56099a5bf46b52094e4698b992d8f2906dd0a0ec0e7213f460ae274d06"
+  },
+  "model_calls": 0,
+  "upstream_retrieval_calls": 0,
+  "run_checksums_sha256": "f78c2fcc51f3ae9fc7f4d78f892faca1b85d08383b417ec534610c2efc5d02ec",
+  "script_sha256": "0bda9465e55c3152685a1adab5722b4ddc8e3f76f7fa34fc7e47baa5cce765bf",
+  "selected_alias": "C0: identity comparison, not an independent treatment run"
+}

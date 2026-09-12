@@ -22,5 +22,11 @@
   "verification": "verification/checksums.json",
   "phase_d_handoff": "../../../../docs/phase-c-report.md",
   "public_distribution": false,
-  "restoration": "Mount APFS image at the recorded path. Use new extraction destinations; preserve source_scope for live read semantics. Restore Qdrant snapshots under recorded collection names when migrating the service."
+  "restoration": "Mount APFS image at the recorded path. Use new extraction destinations; preserve source_scope for live read semantics. Restore Qdrant snapshots under recorded collection names when migrating the service.",
+  "fiqa": {
+    "run": "/Volumes/ARKBPhaseC/validation/fiqa-r2",
+    "checksums_sha256": "f78c2fcc51f3ae9fc7f4d78f892faca1b85d08383b417ec534610c2efc5d02ec",
+    "snapshot_manifest": "validation/fiqa-preserved-index.json",
+    "replay": "validation/fiqa-replay.json"
+  }
 }

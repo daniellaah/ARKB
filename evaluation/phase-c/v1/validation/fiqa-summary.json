@@ -1,0 +1,180 @@
+{
+  "dataset": "fiqa",
+  "corpus_count": 57638,
+  "query_count": 648,
+  "leg_depth": 500,
+  "primary_source_cutoff": 100,
+  "selected_policy": "C0",
+  "selected_identical_to_C0": true,
+  "official_depth_note": "Recall@1000 uses the available full source ranking from fixed 500-chunk legs; actual depth is reported.",
+  "arms": {
+    "bm25": {
+      "labels": {
+        "qrels": {
+          "metrics": {
+            "ndcg@10": 0.2336737388931114,
+            "recall@10": 0.2959404792738127,
+            "mrr@10": 0.2917670977856163,
+            "ndcg@20": 0.2520269907997,
+            "recall@20": 0.3531697169428651,
+            "mrr@20": 0.2966604806739252,
+            "ndcg@100": 0.2894010046583206,
+            "recall@100": 0.5106861074453667,
+            "mrr@100": 0.3005960426373432
+          },
+          "reference_max_error": 2.220446049250313e-16
+        }
+      },
+      "returned_sources": {
+        "mean": 489.5308641975309,
+        "min": 266,
+        "max": 500
+      }
+    },
+    "semantic": {
+      "labels": {
+        "qrels": {
+          "metrics": {
+            "ndcg@10": 0.4449073872159186,
+            "recall@10": 0.5307308989021952,
+            "mrr@10": 0.520852929649226,
+            "ndcg@20": 0.47006349261050445,
+            "recall@20": 0.6072703188443929,
+            "mrr@20": 0.5254532274634615,
+            "ndcg@100": 0.5120078253590536,
+            "recall@100": 0.7840276364581921,
+            "mrr@100": 0.5284201498724584
+          },
+          "reference_max_error": 2.220446049250313e-16
+        }
+      },
+      "returned_sources": {
+        "mean": 487.6574074074074,
+        "min": 456,
+        "max": 500
+      }
+    },
+    "C0": {
+      "labels": {
+        "qrels": {
+          "metrics": {
+            "ndcg@10": 0.3696519147382994,
+            "recall@10": 0.4478664639544269,
+            "mrr@10": 0.4488964824612972,
+            "ndcg@20": 0.39800727165287775,
+            "recall@20": 0.5368601819990708,
+            "mrr@20": 0.4542836984816115,
+            "ndcg@100": 0.4497066471003397,
+            "recall@100": 0.7492075268695639,
+            "mrr@100": 0.4589619641920541
+          },
+          "reference_max_error": 2.220446049250313e-16
+        }
+      },
+      "returned_sources": {
+        "mean": 852.5725308641976,
+        "min": 647,
+        "max": 982
+      },
+      "fusion_ms": {
+        "mean": 27.818408385810248,
+        "p50": 26.289312401786447,
+        "p95": 28.36059994297102
+      }
+    }
+  },
+  "paired_selected_minus_C0": {
+    "qrels": {
+      "ndcg@10": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "recall@10": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "mrr@10": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "ndcg@20": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "recall@20": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "mrr@20": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "ndcg@100": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "recall@100": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      },
+      "mrr@100": {
+        "mean_delta": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "wins": 0,
+        "ties": 648,
+        "losses": 0
+      }
+    }
+  }
+}

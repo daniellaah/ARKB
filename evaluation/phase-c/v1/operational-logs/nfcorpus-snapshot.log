@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/preserve_phase_c_snapshot.py", line 49, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/preserve_phase_c_snapshot.py", line 22, in main
+    with QdrantClient(url=url,timeout=300) as client:
+         ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'QdrantClient' object does not support the context manager protocol

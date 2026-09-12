@@ -263,7 +263,23 @@ Full per-query rankings, raw legs, metric/reference checks and snapshot/environm
 
 ### FiQA
 
-**Pending full-corpus index/capture completion. No validation score is reported.**
+The READY index contains 57,600 documents and 60,430 chunks. The normal builder reused 60,413 embedding inputs and embedded 0 additional inputs; build time was 136.563 seconds, excluding the separately recorded embedding-cache preparation. Full before/after snapshot verification passed.
+
+| Arm | Label set | ndcg@10 | recall@10 | recall@20 | recall@100 | mrr@10 |
+| --- | --- | --- | --- | --- | --- | --- |
+| bm25 | qrels | 0.233674 | 0.295940 | 0.353170 | 0.510686 | 0.291767 |
+| semantic | qrels | 0.444907 | 0.530731 | 0.607270 | 0.784028 | 0.520853 |
+| C0 | qrels | 0.369652 | 0.447866 | 0.536860 | 0.749208 | 0.448896 |
+
+| Arm | Returned sources mean | min | max |
+| --- | --- | --- | --- |
+| bm25 | 489.530864 | 266 | 500 |
+| semantic | 487.657407 | 456 | 500 |
+| C0 | 852.572531 | 647 | 982 |
+
+For qrels labels, C0 nDCG@10 is 0.075255 lower than Semantic alone. This identifies a limitation of the retained baseline on this validation corpus. It is recorded without reopening fusion selection, introducing domain routing or disabling BM25. Rejected C1/C2 policies were not evaluated here.
+
+Full per-query rankings, raw legs, metric/reference checks and snapshot/environment identities are preserved in the run directory; [summary](../evaluation/phase-c/v1/validation/fiqa-summary.json), [protocol](../evaluation/phase-c/v1/validation/fiqa-protocol.json), [execution metadata](../evaluation/phase-c/v1/validation/fiqa-experiment.json).
 
 ### BrowseComp-Plus
 
@@ -300,7 +316,7 @@ The source scope audit reports zero non-evaluation production changes against `7
 | Area | Evidence and next question |
 | --- | --- |
 | Candidate generation | BRIGHT Robotics union recall is 0.8540 at 500 chunks/leg; missing evidence cannot be recovered by fusion. Lexical-only positives remain useful. |
-| Fusion | The union-to-top100 gap is real, but C1/C2 do not provide a robust shared replacement. Source duplication alone is an insufficient optimization target. |
+| Fusion | The union-to-top100 gap is real, but C1/C2 do not provide a robust shared replacement. Source duplication alone is an insufficient optimization target. FiQA validation also exposes a retained-baseline weakness: Semantic nDCG@10 0.444907 versus C0 0.369652. This remains a recorded limitation rather than a validation-driven tuning loop. |
 | Chunk representation | Exact provenance is verified, but source relevance cannot establish representative-chunk adequacy. Need evidence-span labels. |
 | Reranker | B3 compatibility/regression is preserved; no reranker quality claim is inferred from rerank-off Phase C experiments. |
 | Agent policy | No BrowseComp Agent evaluation, query rewriting or policy learning ran. Retrieval quality does not establish end-to-end task success. |

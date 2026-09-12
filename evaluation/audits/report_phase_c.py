@@ -101,6 +101,11 @@ def main():
         add(table(['Arm','Label set',*keys2],[
             [arm,label,*[x['metrics'][k] for k in keys2]] for arm,rec in v['arms'].items() for label,x in rec['labels'].items()]))
         add(table(['Arm','Returned sources mean','min','max'],[[arm,*[rec['returned_sources'][k] for k in ('mean','min','max')]] for arm,rec in v['arms'].items()]))
+        for label in v['arms']['C0']['labels']:
+            current=v['arms']['C0']['labels'][label]['metrics']['ndcg@10']
+            semantic=v['arms']['semantic']['labels'][label]['metrics']['ndcg@10']
+            if current<semantic:
+                add(f'For {label} labels, C0 nDCG@10 is {semantic-current:.6f} lower than Semantic alone. This identifies a limitation of the retained baseline on this validation corpus. It is recorded without reopening fusion selection, introducing domain routing or disabling BM25. Rejected C1/C2 policies were not evaluated here.')
         add(f'Full per-query rankings, raw legs, metric/reference checks and snapshot/environment identities are preserved in the run directory; [summary](../evaluation/phase-c/v1/validation/{ds}-summary.json), [protocol](../evaluation/phase-c/v1/validation/{ds}-protocol.json), [execution metadata](../evaluation/phase-c/v1/validation/{ds}-experiment.json).')
     add('BrowseComp official Recall@5/@100/@1000 and nDCG@10 are calculated on the available source ranking from the fixed 500-chunk legs. A semantic or BM25 leg returns at most 500 sources; fused depth is at most 1,000 and often smaller. Recall@1000 therefore measures this configuration’s actual candidate coverage, not a separately retrieved 1,000-source pool. Primary source cutoff remains 100. TREC exports use strictly decreasing rank scores to preserve tied-source ordering in independent evaluation.')
     add('Storage preparation required a user-authorized external APFS sparse image. Qdrant host-bind mounts reported incompatible FUSE storage and failed before retrieval. The successful runs use a separate native Docker volume with the same Qdrant 1.19.0 image and index parameters. Existing services and historical READY snapshots were not changed. Failed attempts are retained and produced no scored rankings. Cache staging uses the exact production chunker, tokenization, embedding model and SQLite keys; the normal builder validates and publishes the final snapshot. See [storage incident](phase-c-storage-note.md).')
@@ -120,7 +125,7 @@ def main():
     add('## 11. Remaining issues')
     add(table(['Area','Evidence and next question'],[
         ['Candidate generation','BRIGHT Robotics union recall is 0.8540 at 500 chunks/leg; missing evidence cannot be recovered by fusion. Lexical-only positives remain useful.'],
-        ['Fusion','The union-to-top100 gap is real, but C1/C2 do not provide a robust shared replacement. Source duplication alone is an insufficient optimization target.'],
+        ['Fusion','The union-to-top100 gap is real, but C1/C2 do not provide a robust shared replacement. Source duplication alone is an insufficient optimization target. FiQA validation also exposes a retained-baseline weakness: Semantic nDCG@10 0.444907 versus C0 0.369652. This remains a recorded limitation rather than a validation-driven tuning loop.'],
         ['Chunk representation','Exact provenance is verified, but source relevance cannot establish representative-chunk adequacy. Need evidence-span labels.'],
         ['Reranker','B3 compatibility/regression is preserved; no reranker quality claim is inferred from rerank-off Phase C experiments.'],
         ['Agent policy','No BrowseComp Agent evaluation, query rewriting or policy learning ran. Retrieval quality does not establish end-to-end task success.'],

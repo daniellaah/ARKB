@@ -1,0 +1,218 @@
+{
+  "status": "completed",
+  "started_at": "2026-09-12T02:24:38.972655+00:00",
+  "dataset": "fiqa",
+  "selected_policy": "C0",
+  "selected_alias": "C0",
+  "agent": false,
+  "reranker": false,
+  "dataset_manifest_sha256": "ff9eb4f0b0ad69cd47871fe004b97838599a19ab2f097e071276a3d5577c5fe1",
+  "empty_document_exception": {
+    "excluded_ids": [
+      "7915",
+      "12229",
+      "14135",
+      "33445",
+      "40982",
+      "54960",
+      "66248",
+      "115636",
+      "117276",
+      "126502",
+      "138418",
+      "153104",
+      "167128",
+      "169220",
+      "189754",
+      "206368",
+      "207473",
+      "215635",
+      "237392",
+      "248226",
+      "254541",
+      "290110",
+      "319894",
+      "325407",
+      "356535",
+      "358213",
+      "360125",
+      "399083",
+      "414219",
+      "441462",
+      "447488",
+      "470232",
+      "486245",
+      "528558",
+      "552533",
+      "572451",
+      "587667",
+      "597929"
+    ],
+    "indexed_documents": 57600,
+    "full_corpus_and_qrels_preserved": true,
+    "positive_labels_remain_in_denominator": true
+  },
+  "environment_before": {
+    "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 16,
+    "packages": {
+      "numpy": "2.5.2",
+      "ollama": "0.6.2",
+      "qdrant-client": "1.19.0",
+      "tokenizers": "0.23.2",
+      "pyarrow": "21.0.0",
+      "pytrec-eval-terrier": "0.5.10",
+      "torch": "2.14.0",
+      "transformers": "5.16.1"
+    },
+    "ollama_server_version": "0.33.2",
+    "qdrant_server": {
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    },
+    "thread_settings": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "TOKENIZERS_PARALLELISM": "false"
+    }
+  },
+  "models_before": {
+    "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+  },
+  "index_setup_ms": 139406.41079191118,
+  "index_report": {
+    "manifest": {
+      "index_version": "d1fa9710012d47ed8630a58867c07f85",
+      "vault_id": "fiqa",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 57600,
+      "chunk_count": 60430,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "embedded_inputs": 0,
+    "cached_inputs": 60413,
+    "reused_index": false,
+    "added_documents": 57600,
+    "modified_documents": 0,
+    "deleted_documents": 0,
+    "build_seconds": 136.56251287506893
+  },
+  "snapshot_before": {
+    "manifest": {
+      "index_version": "d1fa9710012d47ed8630a58867c07f85",
+      "vault_id": "fiqa",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 57600,
+      "chunk_count": 60430,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "vectors_sha256": "a91ccbbc8b0a124dec03436de4fde1eb5c85cd275c2c2de4a90759336da16644",
+    "record_count": 60430,
+    "collection": "arkb_d9745a110635025808a7c41af3a8dca5"
+  },
+  "leg_sha256": {
+    "bm25": "9ce3d37a19b960bd1f28722e56ad6d40cef0c1d0e454326a47fc2d81624d01bc",
+    "semantic": "d4db0d56099a5bf46b52094e4698b992d8f2906dd0a0ec0e7213f460ae274d06"
+  },
+  "snapshot_after": {
+    "manifest": {
+      "index_version": "d1fa9710012d47ed8630a58867c07f85",
+      "vault_id": "fiqa",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 57600,
+      "chunk_count": 60430,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "vectors_sha256": "a91ccbbc8b0a124dec03436de4fde1eb5c85cd275c2c2de4a90759336da16644",
+    "record_count": 60430,
+    "collection": "arkb_d9745a110635025808a7c41af3a8dca5"
+  },
+  "backend": {
+    "collection": "arkb_d9745a110635025808a7c41af3a8dca5",
+    "ef_construct": 100,
+    "full_scan_threshold": 10000,
+    "hnsw_m": 16,
+    "index_stats": {
+      "indexed_vectors": 59264,
+      "points": 60430,
+      "status": "green"
+    },
+    "index_timeout": 30,
+    "indexing_threshold": 10000,
+    "input": {
+      "max_tokens": 8192,
+      "tokenizer": "9649b4c601a95320aea1c07d47068b30e822f903b494e6074f50af8dcfa17149"
+    },
+    "kind": "qdrant",
+    "require_hnsw": false,
+    "source_scope": "/Volumes/ARKBPhaseC/validation/fiqa-r2/index-corpus",
+    "url": "http://127.0.0.1:6340"
+  },
+  "models_after": {
+    "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+  },
+  "environment_after": {
+    "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 16,
+    "packages": {
+      "numpy": "2.5.2",
+      "ollama": "0.6.2",
+      "qdrant-client": "1.19.0",
+      "tokenizers": "0.23.2",
+      "pyarrow": "21.0.0",
+      "pytrec-eval-terrier": "0.5.10",
+      "torch": "2.14.0",
+      "transformers": "5.16.1"
+    },
+    "ollama_server_version": "0.33.2",
+    "qdrant_server": {
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    },
+    "thread_settings": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "TOKENIZERS_PARALLELISM": "false"
+    }
+  },
+  "legs_sha256": "442c3c97b695070e3f03bb433b80f7f00edd93a568fdeed8dedf6a44737225e8",
+  "index_sqlite_sha256": "d0d399c1a1fcd11453659af94825796c20aee5bceb0cf89e70a8ccc9286fa270",
+  "finished_at": "2026-09-12T02:37:44.132162+00:00"
+}
