@@ -1,0 +1,173 @@
+{
+  "status": "completed",
+  "started_at": "2026-09-13T15:24:09.896193+00:00",
+  "dataset": "browsecomp-plus",
+  "selected_policy": "C0",
+  "selected_alias": "C0",
+  "agent": false,
+  "reranker": false,
+  "dataset_manifest_sha256": "25cb4f6cd4e79a17b0ee28eab59b3183ceb2c5af73e9e25442b874b7b119f4cd",
+  "environment_before": {
+    "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 16,
+    "packages": {
+      "numpy": "2.5.2",
+      "ollama": "0.6.2",
+      "qdrant-client": "1.19.0",
+      "tokenizers": "0.23.2",
+      "pyarrow": "21.0.0",
+      "pytrec-eval-terrier": "0.5.10",
+      "torch": "2.14.0",
+      "transformers": "5.16.1"
+    },
+    "ollama_server_version": "0.33.2",
+    "qdrant_server": {
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    },
+    "thread_settings": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "TOKENIZERS_PARALLELISM": "false"
+    }
+  },
+  "models_before": {
+    "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+  },
+  "index_setup_ms": 7734290.054625133,
+  "index_report": {
+    "manifest": {
+      "index_version": "d7a0497b8efe4f7db2f440af4c5aa9d4",
+      "vault_id": "browsecomp-plus",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 100195,
+      "chunk_count": 1883193,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "embedded_inputs": 0,
+    "cached_inputs": 1847403,
+    "reused_index": false,
+    "added_documents": 100195,
+    "modified_documents": 0,
+    "deleted_documents": 0,
+    "build_seconds": 7605.182784208097
+  },
+  "snapshot_before": {
+    "manifest": {
+      "index_version": "d7a0497b8efe4f7db2f440af4c5aa9d4",
+      "vault_id": "browsecomp-plus",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 100195,
+      "chunk_count": 1883193,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "vectors_sha256": "1c9730a6d393ea937e1f1aeb73aa1b9ff38bf7fb7ebe11b7af397647a9dd35bc",
+    "record_count": 1883193,
+    "collection": "arkb_df69ad8f05373021dd659c9ad24a0744"
+  },
+  "leg_sha256": {
+    "bm25": "f15b7f2b5259034d6a883c22f3459f19c7bc34ba999f9a075b39a4cde7bb6fcc",
+    "semantic": "80d734dfd504a3970179663f33324366f0d98ee9998c67a41d86944701e7ddee"
+  },
+  "snapshot_after": {
+    "manifest": {
+      "index_version": "d7a0497b8efe4f7db2f440af4c5aa9d4",
+      "vault_id": "browsecomp-plus",
+      "embedding_spec": {
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "provider": "ollama",
+        "normalization": "l2",
+        "dtype": "float64"
+      },
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 100195,
+      "chunk_count": 1883193,
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "status": "ready",
+      "schema_version": 2
+    },
+    "vectors_sha256": "1c9730a6d393ea937e1f1aeb73aa1b9ff38bf7fb7ebe11b7af397647a9dd35bc",
+    "record_count": 1883193,
+    "collection": "arkb_df69ad8f05373021dd659c9ad24a0744"
+  },
+  "backend": {
+    "collection": "arkb_df69ad8f05373021dd659c9ad24a0744",
+    "ef_construct": 100,
+    "full_scan_threshold": 10000,
+    "hnsw_m": 16,
+    "index_stats": {
+      "indexed_vectors": 1882112,
+      "points": 1883193,
+      "status": "green"
+    },
+    "index_timeout": 30,
+    "indexing_threshold": 10000,
+    "input": {
+      "max_tokens": 8192,
+      "tokenizer": "9649b4c601a95320aea1c07d47068b30e822f903b494e6074f50af8dcfa17149"
+    },
+    "kind": "qdrant",
+    "require_hnsw": false,
+    "source_scope": "/Volumes/ARKBPhaseC/data/browsecomp-plus/corpus",
+    "url": "http://127.0.0.1:6340"
+  },
+  "models_after": {
+    "qwen3-embedding:0.6b": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d"
+  },
+  "environment_after": {
+    "python": "3.13.5 (main, Jun 12 2025, 12:22:43) [Clang 20.1.4 ]",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu_count": 16,
+    "packages": {
+      "numpy": "2.5.2",
+      "ollama": "0.6.2",
+      "qdrant-client": "1.19.0",
+      "tokenizers": "0.23.2",
+      "pyarrow": "21.0.0",
+      "pytrec-eval-terrier": "0.5.10",
+      "torch": "2.14.0",
+      "transformers": "5.16.1"
+    },
+    "ollama_server_version": "0.33.2",
+    "qdrant_server": {
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    },
+    "thread_settings": {
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "TOKENIZERS_PARALLELISM": "false"
+    }
+  },
+  "legs_sha256": "aa3613df8cd7f7473217c35dc3dd11eb63a246d55a7ec4b1c4ffde99f39970b1",
+  "index_sqlite_sha256": "eceb83459d3a40372c376bf6fe1d440470ea6a7d1594504768e64873381aaaff",
+  "finished_at": "2026-09-14T00:12:57.240738+00:00"
+}

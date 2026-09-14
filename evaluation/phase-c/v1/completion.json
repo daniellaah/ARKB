@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "started_at": "2026-09-14T00:14:47.531427+00:00",
+  "completed_at": "2026-09-14T00:18:10.730979+00:00",
+  "validation_queries": {
+    "nfcorpus": 323,
+    "fiqa": 648,
+    "browsecomp-plus": 830
+  },
+  "decision": "A: keep current chunk-level Hybrid fusion",
+  "retrieval_behavior_changes": 0,
+  "indexing_allocation_refactor": "same validated 128-point requests, constructed one batch at a time"
+}

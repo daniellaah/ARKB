@@ -1,0 +1,26 @@
+[
+  {
+    "case": "literal-absent",
+    "seconds": 2.8464337079785764,
+    "hits": 0,
+    "result_sha256": "66771b41a9798cf3d4ef86003653d8fa35d0a0a6144b69ccad7fb732956f60e5"
+  },
+  {
+    "case": "literal-common",
+    "seconds": 0.07625299994833767,
+    "hits": 20,
+    "result_sha256": "9b627ce750c9e519f318629794e59e0e2d169ba14e9eb333a4d3bde3e5b417ab"
+  },
+  {
+    "case": "regex-absent",
+    "seconds": 4.358885500114411,
+    "hits": 0,
+    "result_sha256": "66771b41a9798cf3d4ef86003653d8fa35d0a0a6144b69ccad7fb732956f60e5"
+  },
+  {
+    "case": "regex-common",
+    "seconds": 6.8643251250032336,
+    "hits": 20,
+    "result_sha256": "9b627ce750c9e519f318629794e59e0e2d169ba14e9eb333a4d3bde3e5b417ab"
+  }
+]

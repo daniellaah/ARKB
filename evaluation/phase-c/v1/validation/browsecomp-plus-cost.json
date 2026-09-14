@@ -1,0 +1,21 @@
+{
+  "dataset": "browsecomp-plus",
+  "queries": 830,
+  "legs_sha256": "aa3613df8cd7f7473217c35dc3dd11eb63a246d55a7ec4b1c4ffde99f39970b1",
+  "measurement": "Observed single sequential capture, no timing rerun. Search includes query embedding for Semantic and result hydration; excludes offline fusion and index preparation.",
+  "scope": "Full index, 500 chunks/leg, exact retrieval. Not default-depth or Agent latency, and not an isolated repeated latency benchmark.",
+  "arms": {
+    "bm25": {
+      "mean_ms": 25125.92483370632,
+      "p50_ms": 25062.090479535982,
+      "p95_ms": 26416.154016950168,
+      "mean_returned_chunks": 500.0
+    },
+    "semantic": {
+      "mean_ms": 549.5990553433188,
+      "p50_ms": 575.1243539853022,
+      "p95_ms": 858.5468063014557,
+      "mean_returned_chunks": 500.0
+    }
+  }
+}

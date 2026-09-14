@@ -1,0 +1,217 @@
+{
+  "schema": "agentic-tools-v1-executable-core",
+  "created_at": "2026-09-14T04:07:00.267314+00:00",
+  "phase": "core",
+  "project_root": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases",
+  "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1",
+  "public_dir": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/core-v1",
+  "measured_source": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source",
+  "models": {
+    "chat": {
+      "name": "qwen3.5:4b",
+      "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen35",
+        "families": [
+          "qwen35"
+        ],
+        "parameter_size": "4.7B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 262144,
+        "embedding_length": 2560
+      },
+      "definition_sha256": "5ba7f5030d06410307478b35009001fc1890217d94f1df510b0d53578e19a137",
+      "template_sha256": "b507b9c2f6ca642bffcd06665ea7c91f235fd32daeefdf875a0f938db05fb315",
+      "parameters": "presence_penalty               1.5\ntemperature                    1\ntop_k                          20\ntop_p                          0.95"
+    },
+    "embedding": {
+      "name": "qwen3-embedding:0.6b",
+      "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+      "details": {
+        "parent_model": "/Users/ollama/.ollama/models/blobs/sha256-06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "595.78M",
+        "quantization_level": "Q8_0",
+        "context_length": 32768,
+        "embedding_length": 1024
+      },
+      "definition_sha256": "8bfa6065d608042de96d74d7a857dd1651bd849ea149fe2b2429ebedff769ee2",
+      "template_sha256": "87a2728cb8dc9fe424d624542f6060ec05a1d285ebbec578bb078900e33396b5",
+      "parameters": null
+    },
+    "judge": {
+      "name": "qwen3:32b-q8_0",
+      "digest": "a46beca077e59287b7c80d6ce7354f0906b1c78ae90e67e6a4c02487e38f529e",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "32.8B",
+        "quantization_level": "Q8_0",
+        "context_length": 40960,
+        "embedding_length": 5120
+      },
+      "definition_sha256": "4d15c71a38e7188fd0927b870920e17737ffc22697d35ca9cbe584803fb81105",
+      "template_sha256": "ae370d884f108d16e7cc8fd5259ebc5773a0afa6e078b11f4ed7e39a27e0dfc4",
+      "parameters": "repeat_penalty                 1\nstop                           \"<|im_start|>\"\nstop                           \"<|im_end|>\"\ntemperature                    0.6\ntop_k                          20\ntop_p                          0.95"
+    }
+  },
+  "ollama_version": {
+    "version": "0.33.2"
+  },
+  "qdrant_url": "http://127.0.0.1:6340",
+  "tokenizer_cache": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.uv-cache/tokenizers",
+  "git_head": "c140b2ee4bcb9dfaef581db4805fbe80e38b9c01",
+  "plan_sha256": "9f2aa88fce4ef5e7d43ee9287943434c1f152ec554ed90d85d3c038a0fc835d5",
+  "files": {
+    "selection.json": "1d52928b861dec794db7bd9a48c188e605afe09780376952ddd6fce7d57e54eb",
+    "design.json": "aea2cf520d27eddd616163ef3fcc2b84d250ce8c8cfa7293114c411a4efc942a",
+    "inputs.json": "6a5311982ce6dd8fe96fb6e5d2fcb052382f6b35bc53a7db48b8e1929a4aabbb",
+    "context-indexes.json": "8e3a0103b666d9a609c58b61dd12e91852541904f3f77cf147b20f310d19086d",
+    "inference/scenarios.json": "531e5d53c7ecfd7d3815926e1a1402ea0eb5053323a31cfa8a0c030e401ee1f7",
+    "core-schedule.json": "d4b0deb39598c1a44d206742e578089a94911799ffdc6ef25f1630e395b40929",
+    "provider-preflight.json": "667ceef79879a1100e22a9bc6263f4f7156c64ee9b76f273807c7ea2aefc29ad",
+    "judge-design.json": "5c27b3fcb588c8d1bd40e67b2c37146572a21084f6202259256548a41e918461",
+    "dependencies.json": "c7e7c41d3e000a2c22510d7b479e5437b63490c0b430e4392c470e8ff5d98532",
+    "scoring/browsecomp-answers.json": "59ac1c6cad4ade9dba2812d2ca99ffba52cbe56f0c45865ab684499d970a0f8a",
+    "scoring/browsecomp-plus.json": "e0b245bd58df2bfad1a0f65268bf5bd36000c43a5b0be7bbc30beef2a707ab02",
+    "scoring/musique.json": "068d635ee34039c98ef9f8d1710795ab2f5881ccbb05b88c1d43514590e4ecab",
+    "scoring/fiqa.json": "b4ecbb3b5e9c052220e1b096baaf4caf31c22e674b2e1a6f9446e404f096a1ca",
+    "scoring/nfcorpus.json": "97884a67607d31779d766a6615ee4579b6915fa7bda90859afee2b8a236ddda3",
+    "pilot-technical-review.json": "36d4e041e8785dac66fc500e9364334212fb95fe0c5a573fe0af08c8e208360b",
+    "pilot-accounting.json": "9e250832b700726ee34a841642bfc5c1f3feb2954989faa87f8e1dae2264fca5",
+    "calibration-summary.json": "9d9de87dbf114a50c4f2c985bebfbef21fd6f391418e77e14e6585e872c9bc77",
+    "calibration-protocol.json": "c70f999ca2778245b7256a07e1b35cf338e1bddb54b6340b8fa7d8e2a1f8bd0c",
+    "calibration-controls.json": "333eee26a80da837e1d59d6b8bf9fea745f546c41084e542ee6d1abbc55e0bfb",
+    "boundary-tests.xml": "1c17fe30a686a2e6f93cc4e3185e97455f69a9570e3cf4e52feeaa5a6f6ae90c",
+    "core-protocol.md": "29903f081ea7877fc1426f5a739974936a3c796ed6bcf38935fbc1c818410cce",
+    "pilot-amendment.md": "ca001478109727a1d01356aee314f34ca11a27db02f67e2dd522ceacf43b2fd0",
+    "measured-source-manifest.json": "7c7c25e1b237c1e033c940a669284839072e2335a4dc1f2cc2621ba1f75012dc"
+  },
+  "transport": {
+    "kind": "direct local HTTP, strict Ollama ChatResponse parsing",
+    "truncate": false,
+    "shift": false,
+    "timeout_seconds": 330
+  },
+  "primary_denominator": "all attempted trajectories; errors and nonanswers zero; judge failures pending",
+  "pilot_attempts": 98,
+  "core_attempts": 5460,
+  "core_dispatch_authorized": true,
+  "core_gate": "Complete v2 and 1184 trace checks; unchanged inference behavior; 42 automatic calibration records with independent review explicitly pending; frozen scoring and statistics.",
+  "human_review": "pending independent review; scores provisional until resolved",
+  "snapshot_policy": "reuse Phase C read-only SQLite and Qdrant indexes; MuSiQue prepared once separately",
+  "parent_protocol_sha256": "185bdf30dc47f42b54d5d65ac4bc0c4158686938894c7d8463dfd915a700cc5b",
+  "parent_output": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v2",
+  "inference_lock": "/Volumes/ARKBPhaseC/agentic-tools-v1/inference.lock",
+  "guarded_inference_files": {
+    "src/arkb/config.py": "7cd39b42294dd085ff608c2908a7ce179e7839c0ef89ad2e96734b106684c81c",
+    "src/arkb/__init__.py": "7c59091739862daa280f33a33d9f707eb28234472949efc32fe76beaf5d54a9b",
+    "src/arkb/runtime.py": "ece975e1e02e78dc76c7efac238a44c8b492bc6b51a226eba6c2eceb33dce327",
+    "src/arkb/agent/observation.py": "b0cc7604e7b7b9aeff355318c1e7d577b85144355c2092f151e5482088c057b7",
+    "src/arkb/agent/tools.py": "eb3fd67c41d8bacc7a665b904b7b85d60e3afc356dadd4417009852ba5d7f436",
+    "src/arkb/agent/session.py": "fc2a6682a856cf33fa870e02ee9f5ca290dc4adb9ce32b09d850cc0c87cd55c0",
+    "src/arkb/agent/__init__.py": "86f6dab0d9b85672cecb0567bbece9392c202995ce155a696b46ae4d91d69909",
+    "src/arkb/agent/loop.py": "251850a039c9dc414e0c552778c514773832af20780ff419efd001de81ab26c4",
+    "src/arkb/agent/state.py": "960c2e8d7796343a39118f3cf0da28a607e77efd7dca801b901d15ff992bc422",
+    "src/arkb/retrieval/bm25.py": "ec5ce923af2df4c013a4499c703357124c35bc681c9ef4066084eba23e7fdca6",
+    "src/arkb/retrieval/rerank.py": "490d6123973d7e64e5b78ac065cf421f1025f95d45715076ea1924a3bf952460",
+    "src/arkb/retrieval/semantic.py": "47e60a65ab2ec2b45cc744b7195557570ca7b93a8ef06466a5c4a02a3d65307b",
+    "src/arkb/retrieval/models.py": "822682c84a2918edaf072994e7767b2da0a43b89cfd4a6a8e04810a7dc07a3dd",
+    "src/arkb/retrieval/qwen_rerank.py": "a5a5bffed7c74e3a26f9e0b27ba961c599b3e915d81183efb8fd00b95ad7f333",
+    "src/arkb/retrieval/hybrid.py": "4c68635956179a0eb508dd41e0c0d6e29d1b3a34be796a36d9c1fe02cb5ac7fa",
+    "src/arkb/retrieval/__init__.py": "08fca8a6854643174bae4f3058e6777f01a8b28f49696a2aa3758905f42d0a2a",
+    "src/arkb/retrieval/engine.py": "bb2df8afe2bdb4dd3045d68c1adad8dcd1b87883158781398fad94481cb4b47c",
+    "src/arkb/retrieval/exact.py": "2c6e677c4eb08681de3c4c21e27ec8b0445749f157ddf59f2019a9bd91d8449f",
+    "src/arkb/retrieval/qwen_inputs.py": "d6d8815a1c1a71921175259a38b790d2701b84db9bb32af9824f04a37e4ccbc9",
+    "src/arkb/knowledge/chunking.py": "914759b34a4be9eda7de5033869cfdc2331f75592f27b1a42c759a7052219e5a",
+    "src/arkb/knowledge/models.py": "3fdec6de8e3902fe9509d49caf9aae51c0b933aaa84e68446b80216ac2b9e6a8",
+    "src/arkb/knowledge/qdrant.py": "e49e49d8fc59c6d9de7ba6413dda83e9061eb82f34487f485bd1c25e371d5dc8",
+    "src/arkb/knowledge/documents.py": "15c756fb1c296e6c3824a2e724706ba8e3c6fae84f6521fd0f4b9283ed84be33",
+    "src/arkb/knowledge/__init__.py": "4c59985ed6fd4eead38b369da817a47d103c86bf9d83b28481122349f4731913",
+    "src/arkb/knowledge/sqlite.py": "8be35c8bc299bb2ac260fc3053514fcaa30ed97a0ef972cb87f2815b4efa1804",
+    "src/arkb/knowledge/embeddings.py": "703b427358631dfc5285ca4e8494a20a885e84f8538080097a4abfd1bfd3863a",
+    "src/arkb/knowledge/indexing.py": "77e62dfc3fc9562be0b344c111013facf3e6e7b90eeb4835a6f08e768e65acd7",
+    "src/arkb/evaluation/pilot.py": "48fa17a054fe2ed0d0a5c1535a8eee88a3885389130d1971b87ac1d69b37dacb",
+    "src/arkb/evaluation/metrics.py": "2e3f77ef6852516fbd5c6940b44cceb7b37ff410b5475a80a7cc8a3a78bbab93",
+    "src/arkb/evaluation/baselines.py": "a2c6f86bbcb123b81cbcdde97909aa454c35e5585738b34bfb20039e66f57975",
+    "src/arkb/evaluation/reviews.py": "5cea6582b4e64515be9864b82886fc7668e83b3357a960f80a8445cd88f86e03",
+    "src/arkb/evaluation/regression.py": "104b95fe8f8a3310feb8e3d9f6e5e98d4f9df295008b90f2fe2a5f491efc6d8b",
+    "src/arkb/evaluation/reliability.py": "1258bf60ec60a76821496ba95f3f3c5cc9f922d3231253d8deb489d1fb116a11",
+    "src/arkb/evaluation/generation.py": "6e2618c2a5d99cc30c8f8cecb7d1ff8740ebf4871ad953cd7f1d6060a2ab54a5",
+    "src/arkb/evaluation/models.py": "df3d0d5affcc934fe0ab03c736e06dd07dffc7e06ba492e0db5cf285983d09c2",
+    "src/arkb/evaluation/agent_metrics.py": "bf62b575df63fe3deeb653d3d0db2c4edf8fdd537989acb6c2c2bdb5132652ae",
+    "src/arkb/evaluation/source_fusion.py": "24d5330cb4ba537188b3c6a1babef96d05ede596b6835e1d6c6fa68605d47c78",
+    "src/arkb/evaluation/datasets.py": "8d0008470fe3e6e15ce3dac051cd979117daf9cc7f6473ec327e83b2a6ccb5ee",
+    "src/arkb/evaluation/__init__.py": "ed672304ea66b7d921ff7c1ae71a3a167a24ee098f3e832105699c7c0aa3d1df",
+    "src/arkb/evaluation/core.py": "d2d65c9973b59fedf035ca94dd8f8c4cabd8574d37daf799c1ec0e6c0619731b",
+    "src/arkb/evaluation/gates.py": "e1fb776c59a245a8ab467c42c895d491087f197df1e6c21b7099cc4bebfce256",
+    "src/arkb/evaluation/controlled.py": "891ef26849877aef5638deaa79ef83b5da214bf6b73c4b4bf7bb1f66fd7d9d83",
+    "src/arkb/evaluation/comparison.py": "be1c2b417c8ebf6ec14954405c02cd535f6726aa0cdbaed4c20b4099b55f8553",
+    "src/arkb/evaluation/judges.py": "27c4839bab33b0023a1874f1509d345100cfd65cf5ea9d1bf97725b42c8d0114",
+    "src/arkb/evaluation/retrieval.py": "65266504c092256229f409a2f717134e4834b456c22ec40486ec81b0deed6e79",
+    "src/arkb/evaluation/environment.py": "3e4ed736f77232a4128f25d6beba2cd7ea8bb1191da925d30eca14dd1de3c08a",
+    "src/arkb/evaluation/external_agent.py": "a91dbe0a218677d1349c4fd2c562d8d9bfb6928887e987b3770efcfddc730d51",
+    "src/arkb/evaluation/browsecomp.py": "347964196218bbdd0de20c97bf877d2f363783dc664562c80f488eb5bd528b6e",
+    "src/arkb/evaluation/deadline.py": "48911e1d833bab8f0885088c7587ce83cb30f622ff738d42aff6ea5d1bbb0f16",
+    "src/arkb/evaluation/ablation_analysis.py": "7b61258f843f2b075f9d3e79146105e48d361c012722160ef6df1037632457c8",
+    "src/arkb/evaluation/v2.py": "66642b9d307e0cc6384109a9a9af550371171855b7c1f47633c5ce997852ccf1",
+    "src/arkb/evaluation/external.py": "d72cf60b60287870f35a021e5ba327f99713c1e178e9d5eb02f7cf7ab1750e38",
+    "src/arkb/evaluation/runs.py": "c4f0b4fcade05240709353babf5efd9ead963aa151638e4009d86ab29b76d1b6",
+    "src/arkb/evaluation/multihop.py": "b51993eeb3443b48879f8cf2289c3132250624c316d1ec6d4ff3a59e4ef6c962",
+    "src/arkb/evaluation/power.py": "53709f073c18eee052d0c205b5a20605cb020f71d5d39311fe6d8127686fbbe4",
+    "src/arkb/evaluation/calibration.py": "ac15e38e48f33174e636b9da683aeabeff9c5a02a89eea214fa46afbf2547465",
+    "src/arkb/evaluation/model_ablation.py": "bcbe82df79220846140ea9500bdfb868697fd21fad7dfc4f1a9cde100944c4bc",
+    "src/arkb/evaluation/outputs.py": "163aa401cd12caad9612c412ce0cb7948c4de63982d4ca3828094af6e23a9f48",
+    "src/arkb/generation/citations.py": "dfa86c93faba21627ae96d8a000dfd66421b43349a20ee336574f1bd64acdede",
+    "src/arkb/generation/models.py": "fc5212575990b812b4643e58445f65c119c5ac3723bbb88a2b005468043e88d8",
+    "src/arkb/generation/generate.py": "a2d5c6855fa2b6d936b177a9c61ea74d8c5d3d50fd6924a31d1b4e2c8712712a",
+    "src/arkb/generation/__init__.py": "de0f0603fbb5ecce71c15cfc172fffd531411402c906f28173d40cfac050bd5c",
+    "src/arkb/generation/context.py": "3d7a7b8487a2d1e20b2b6a476540f8425aac19889888e16db0334f67b86fc8f8",
+    "src/arkb/interfaces/__init__.py": "947d2633806fa7d1c2446d3e1c4f5e81b777674e338f4e333f67ae479fa4ed2a",
+    "src/arkb/interfaces/cli.py": "39a6ae335db8e4a28c1261132da98937cf0afb683f21393ffaa047dc10224690",
+    "evaluation/agentic_tools/transport.py": "5967cffef262ed54c6236533b4e69d6ce11fb3a2ff6687c155c0a723b00f5d5a",
+    "evaluation/agentic_tools/contract.py": "4677c10f8f72aba9767444464b73ccf9d05c382c738bdbf883a61375af03b248"
+  },
+  "calibration_output": "/Volumes/ARKBPhaseC/agentic-tools-v1/calibration-v1",
+  "quality_status": "provisional_pending_independent_human_review",
+  "cost_estimate": {
+    "core_inference_hours": 49.66727920021513,
+    "core_attempt_artifact_gib": 1.3821400562301278,
+    "excludes": [
+      "index setup",
+      "judge inference and retries",
+      "human review",
+      "archival"
+    ]
+  },
+  "statistics": {
+    "seed": 20260912,
+    "resamples": 20000,
+    "primary_contrasts": [
+      "A-M",
+      "A-B",
+      "A-S",
+      "A-H"
+    ],
+    "nominal_percentiles": [
+      2.5,
+      97.5
+    ],
+    "primary_adjusted_percentiles": [
+      0.625,
+      99.375
+    ],
+    "minimum_gain": 0.05,
+    "unit": "query; MuSiQue original pair stratified by hop"
+  }
+}

@@ -1,6 +1,6 @@
 # ARKB Phase C: candidate generation and source-level fusion
 
-Status: **In progress.** Development selection is frozen; BrowseComp-Plus full validation and final archival are still running. This is not a completed Phase C release.
+Status: **Completed.** All three full validations, offline replays, regression checks and index archives are verified.
 
 The frozen product decision is **A: keep current chunk-level Hybrid fusion**. C1 and C2 do not satisfy the shared development gate. No runtime fusion, Agent, reranker, embedding, parser, chunking or publication semantics changed. One necessary Qdrant request-allocation refactor reduces a large temporary allocation in full-corpus indexing while preserving the serialized request stream; see the scale note and verification below. No later phase is implemented.
 
@@ -311,7 +311,31 @@ Full per-query rankings, raw legs, metric/reference checks and snapshot/environm
 
 ### BrowseComp-Plus
 
-**Pending full-corpus index/capture completion. No validation score is reported.**
+The READY index contains 100,195 documents and 1,883,193 chunks. The normal builder reused 1,847,403 embedding inputs and embedded 0 additional inputs; build time was 7605.183 seconds, excluding the separately recorded embedding-cache preparation. Full before/after snapshot verification passed.
+
+| Arm | Label set | recall@5 | ndcg@10 | recall@10 | recall@20 | recall@100 | mrr@10 | recall@1000 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| bm25 | evidence | 0.086764 | 0.120984 | 0.111006 | 0.139239 | 0.226944 | 0.252287 | 0.330426 |
+| bm25 | gold | 0.095507 | 0.102766 | 0.123516 | 0.149150 | 0.243419 | 0.152762 | 0.354085 |
+| semantic | evidence | 0.057086 | 0.079604 | 0.081414 | 0.124764 | 0.260495 | 0.152122 | 0.349919 |
+| semantic | gold | 0.079743 | 0.075976 | 0.107202 | 0.156228 | 0.310742 | 0.086732 | 0.407917 |
+| C0 | evidence | 0.094763 | 0.127432 | 0.127850 | 0.170693 | 0.294688 | 0.240249 | 0.486080 |
+| C0 | gold | 0.112672 | 0.115465 | 0.148296 | 0.193267 | 0.331037 | 0.147543 | 0.539095 |
+
+| Arm | Returned sources mean | min | max |
+| --- | --- | --- | --- |
+| bm25 | 359.978313 | 85 | 462 |
+| semantic | 243.500000 | 59 | 403 |
+| C0 | 552.479518 | 103 | 818 |
+
+| Observed retrieval leg | Mean ms | p50 ms | p95 ms | Mean returned chunks |
+| --- | --- | --- | --- | --- |
+| bm25 | 25125.924834 | 25062.090480 | 26416.154017 | 500.000000 |
+| semantic | 549.599055 | 575.124354 | 858.546806 | 500.000000 |
+
+These are observed single-capture search timings, including query embedding for Semantic and result hydration, excluding offline fusion and index preparation. They are not repeated isolated latency measurements or default-depth/Agent latency estimates. Other corpus preparation could share host resources.
+
+Full per-query rankings, raw legs, metric/reference checks and snapshot/environment identities are preserved in the run directory; [summary](../evaluation/phase-c/v1/validation/browsecomp-plus-summary.json), [protocol](../evaluation/phase-c/v1/validation/browsecomp-plus-protocol.json), [execution metadata](../evaluation/phase-c/v1/validation/browsecomp-plus-experiment.json).
 
 BrowseComp official Recall@5/@100/@1000 and nDCG@10 are calculated on the available source ranking from the fixed 500-chunk legs. A semantic or BM25 leg returns at most 500 sources; fused depth is at most 1,000 and often smaller. Recall@1000 therefore measures this configuration’s actual candidate coverage, not a separately retrieved 1,000-source pool. Primary source cutoff remains 100. TREC exports use strictly decreasing rank scores to preserve tied-source ordering in independent evaluation.
 
@@ -327,7 +351,7 @@ A subsequent user-requested GPU throughput investigation measured native MLX flo
 
 ## 9. Final product decision
 
-**Decision A — keep current chunk-level Hybrid fusion.** This is the frozen development decision; Phase C completion still requires every pending validation/verification/archive item reported here. The alternatives offer a CPU cost improvement and some BRIGHT gains but fail the shared quality requirements. No dataset-specific routing, BM25 disabling, new RRF parameter or forced source-level redesign is justified. Production Hybrid remains unchanged. Only indexing request allocation changed as documented; experimental fusion policies are confined to evaluation code.
+**Decision A — keep current chunk-level Hybrid fusion.** The frozen development decision has completed broader validation without further tuning. The alternatives offer a CPU cost improvement and some BRIGHT gains but fail the shared quality requirements. No dataset-specific routing, BM25 disabling, new RRF parameter or forced source-level redesign is justified. Production Hybrid remains unchanged. Only indexing request allocation changed as documented; experimental fusion policies are confined to evaluation code.
 
 ## 10. Tests
 

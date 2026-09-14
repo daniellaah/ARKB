@@ -1,0 +1,29 @@
+{
+  "schema": "arkb-agentic-administrative-stop-accounting-v1",
+  "recorded_at": "2026-09-14T04:33:57.858495+00:00",
+  "classification": "administrative_interruption_not_model_failure",
+  "protocol_sha256": "453906858f404cb5f4b2f0fa1ba919ead2a925ec182e4b7a5ac69131fba956d5",
+  "worker_exited": true,
+  "shared_inference_lock_available": true,
+  "launchd_job_removed": true,
+  "automatic_task_status": "PAUSED",
+  "completed": 11,
+  "interrupted": 1,
+  "unstarted": 5448,
+  "scheduled": 5460,
+  "incomplete_attempts": [
+    {
+      "key": "ee722422aff140e90fe3959861198e37b6b1e98a91e66fb4cd8475752cca0b56",
+      "files_sha256": {
+        "provider.jsonl": "d53562960a9feedebd692a33e929609aee9a50603a6a07c05c3bf98bedb72807",
+        "attempt.json": "a610e7c1f215f7129eb2710c0cab0f1255cf867c31f846e7c79c28696fa19f43"
+      }
+    }
+  ],
+  "audit_path": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/design-review-v1/execution-cost-audit.json",
+  "audit_sha256": "cad82d94ec1dab65db5b256a3d1569180111d1ee358583d075f4765eb664d953",
+  "design_review_path": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/docs/agentic-tool-selection-design-review.md",
+  "interpretation": "Completed records remain historical diagnostics. The interrupted attempt and unstarted schedule are not scored as model errors; no core-quality aggregate or superiority claim is warranted.",
+  "automatic_resume_allowed": false,
+  "source_files_verified_unchanged": 90
+}

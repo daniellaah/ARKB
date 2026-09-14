@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "started_at": "2026-09-12T06:01:58.869668+00:00",
+  "dataset_manifest_sha256": "25cb4f6cd4e79a17b0ee28eab59b3183ceb2c5af73e9e25442b874b7b119f4cd",
+  "index_published": false,
+  "script_sha256": "8aa9ab4aa8fcbf7b176c53fe413f4b5575b4da40ae808b77906597f5913927fe",
+  "batch_size": 32,
+  "max_batch_tokens": 8192,
+  "chunk_size": 512,
+  "chunk_overlap": 64,
+  "embedding_spec": {
+    "model": "qwen3-embedding:0.6b",
+    "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+    "dimensions": 1024,
+    "document_template": "title-body-v1",
+    "provider": "ollama",
+    "normalization": "l2",
+    "dtype": "float64"
+  },
+  "tokenizer": "9649b4c601a95320aea1c07d47068b30e822f903b494e6074f50af8dcfa17149",
+  "documents": 100195,
+  "chunks": 1883193,
+  "unique_inputs": 1847403,
+  "input_sha256": "76ff6e3dcc329c6a7ddd3490f0c36587ed813e0e667f007dc62b7a58ed5d70ab",
+  "prepared_plan": {
+    "directory": "/Volumes/ARKBPhaseC/plans/browsecomp-plus-v1",
+    "manifest_sha256": "851e49dcac0f2fc28bf368dc69b3ca831c6838892a6a10c8486b90ce1263ef7c",
+    "original_checkpoint_sha256": "9970671a2d4c5e09209d8145ae7a7bd4b2aa5c5c5a23cfb6dea5333d9166e54d",
+    "inputs_file_sha256": "bd9bd16deaaa9930fedb4ba7b5b66efbddbeb3a10e9b5e65e38b76b46707694f"
+  },
+  "empty_document_exception": {
+    "enabled": false,
+    "excluded_sources": [],
+    "raw_documents": 100195
+  },
+  "cached_inputs": 50970,
+  "completed_new": 1796433,
+  "elapsed_seconds": 105947.7649361249,
+  "cache_sha256": "a5477f4fdcca83a527c03d87b65f3f04c82928fd1fb37cf147112f3bd3520cb8",
+  "finished_at": "2026-09-13T11:27:52.261841+00:00"
+}

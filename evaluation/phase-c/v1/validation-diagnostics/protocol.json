@@ -1,0 +1,48 @@
+{
+  "analysis": "post-hoc descriptive validation diagnostics; aggregate results already observed",
+  "created_at": "2026-09-13T00:10:20.626928+00:00",
+  "datasets": {
+    "nfcorpus": "nfcorpus-r2",
+    "fiqa": "fiqa-r2"
+  },
+  "arms": [
+    "bm25",
+    "semantic",
+    "C0"
+  ],
+  "cutoffs": [
+    10,
+    20,
+    100
+  ],
+  "paired_metrics": [
+    "ndcg@10",
+    "recall@10",
+    "recall@20",
+    "recall@100"
+  ],
+  "bootstrap": {
+    "seed": 20260912,
+    "repetitions": 10000,
+    "unit": "query within dataset",
+    "interval": "exploratory paired percentile 95%; no multiplicity correction",
+    "ties": "exact equality",
+    "numpy": "2.5.2"
+  },
+  "model_calls": 0,
+  "retrieval_calls": 0,
+  "policy_changes": 0,
+  "case_selection": "three largest nDCG losses and gains, then query ID; illustrative, not representative",
+  "scope": "All frozen queries and original qrels; existing TREC ranks only. No corpus/query reduction or retuning.",
+  "limitations": [
+    "Public validation labels already exposed; not a new held-out experiment.",
+    "Unjudged documents are unknown, not established negatives.",
+    "Source labels do not establish representative chunk adequacy or causal mechanism.",
+    "Union means captured 500-chunk legs, not exhaustive corpus recall.",
+    "Oracle sorting uses labels only as a diagnostic bound, not a deployable policy.",
+    "FiQA blank-document exception and all original relevance denominators remain unchanged."
+  ],
+  "script_sha256": "46e7c177887fb53749e85ca2701b2235d446f3454b734987616c7e197fd60beb",
+  "metric_module_sha256": "d72cf60b60287870f35a021e5ba327f99713c1e178e9d5eb02f7cf7ab1750e38",
+  "pytrec_eval_terrier": "0.5.10"
+}

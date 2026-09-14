@@ -1,0 +1,41 @@
+{
+  "recorded_at": "2026-09-14T05:32:20.257275+00:00",
+  "calls": 87,
+  "errors": 0,
+  "previous_successes_verified": 62,
+  "live_reference_checks": 85,
+  "old_timeout_calls": 25,
+  "timeout_calls_now_completed": 25,
+  "source_unchanged": true,
+  "datasets": {
+    "browsecomp-plus": {
+      "calls": 32,
+      "mean_seconds": 3.881223996024346,
+      "p95_seconds": 5.840049875201657,
+      "max_seconds": 5.959986749803647,
+      "errors": 0
+    },
+    "fiqa": {
+      "calls": 10,
+      "mean_seconds": 0.8407462998759001,
+      "p95_seconds": 1.1897139998618513,
+      "max_seconds": 1.1897139998618513,
+      "errors": 0
+    },
+    "musique": {
+      "calls": 41,
+      "mean_seconds": 0.00047445623204112053,
+      "p95_seconds": 0.0003225419204682112,
+      "max_seconds": 0.00754774990491569,
+      "errors": 0
+    },
+    "nfcorpus": {
+      "calls": 4,
+      "mean_seconds": 0.019912760297302157,
+      "p95_seconds": 0.026164041133597493,
+      "max_seconds": 0.026164041133597493,
+      "errors": 0
+    }
+  },
+  "qualification": "Development replay of exposed tool calls, not independent Agent quality evaluation. Timings include live signature checks and exclude explicit preparation. GPU training may share this machine; these are diagnostic timings, not isolated latency results."
+}

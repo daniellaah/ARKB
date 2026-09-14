@@ -59,6 +59,19 @@ def test_runtime_injects_tools_without_opening_or_owning_extra_resources(tmp_pat
         runtime.agent_tools(engine=engine, directory=tmp_path, vault_id='v')
 
 
+def test_runtime_prepares_and_cleans_exact_text_without_model_calls(tmp_path):
+    from arkb.runtime import Runtime
+    from arkb.retrieval import RetrievalEngine
+    (tmp_path / 'a.md').write_text('# Title\nneedle')
+    with Runtime() as runtime:
+        tools = runtime.agent_tools(engine=RetrievalEngine(), directory=tmp_path,
+                                    vault_id='v', prepare_exact=True)
+        cache = tools._exact._cache.directory
+        assert len(tools._exact._cache._entries) == 1
+        assert tools.match('needle')['results']
+    assert not cache.exists()
+
+
 @pytest.mark.parametrize('options', [{'vault_id': ''}, {'mode': 'unknown'}, {'rerank': 1}])
 def test_runtime_rejects_invalid_tool_composition(tmp_path, options):
     from arkb.retrieval import RetrievalEngine

@@ -1,5 +1,5 @@
 {
-  "status": "partial: remaining full validation artifacts will be added after completion",
+  "status": "completed",
   "external_mount": "/Volumes/ARKBPhaseC",
   "physical_image": "/Volumes/闪迪1T/arkb-phase-c-v1/arkb-phase-c.sparseimage",
   "development": {
@@ -12,7 +12,9 @@
   "input_hash_manifest": "input-integrity-audit.json",
   "nfcorpus": {
     "run": "/Volumes/ARKBPhaseC/validation/nfcorpus-r2",
-    "snapshot_manifest": "validation/nfcorpus-preserved-index.json"
+    "checksums_sha256": "1d6fd614a87ea105d5674489b6435e5b98f32d1093afacc2746f4c71b3d7e79c",
+    "snapshot_manifest": "validation/nfcorpus-preserved-index.json",
+    "replay": "validation/nfcorpus-replay.json"
   },
   "failed_initial_nfcorpus_runs": [
     "/Volumes/闪迪1T/arkb-phase-c-v1/validation/nfcorpus",
@@ -36,5 +38,12 @@
     "job_label": "com.arkb.phase-c.recovery-20260912-0420",
     "one_shot": true,
     "note": "../../../../docs/phase-c-execution-note.md"
-  }
+  },
+  "browsecomp-plus": {
+    "run": "/Volumes/ARKBPhaseC/validation/browsecomp-plus",
+    "checksums_sha256": "f629658c81096090e61f966c42623002dc5c0860663c14c9d239f7f45dcfe4a2",
+    "snapshot_manifest": "validation/browsecomp-plus-preserved-index.json",
+    "replay": "validation/browsecomp-plus-replay.json"
+  },
+  "completed_at": "2026-09-14T00:18:10.730979+00:00"
 }

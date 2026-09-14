@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "dataset": "browsecomp-plus",
+  "queries": 830,
+  "verified_run_files": 90,
+  "exact_source_rank_positions": 959445,
+  "exact_representative_checks": 959445,
+  "reference_metric_max_error": 2.220446049250313e-16,
+  "leg_sha256": {
+    "bm25": "f15b7f2b5259034d6a883c22f3459f19c7bc34ba999f9a075b39a4cde7bb6fcc",
+    "semantic": "80d734dfd504a3970179663f33324366f0d98ee9998c67a41d86944701e7ddee"
+  },
+  "model_calls": 0,
+  "upstream_retrieval_calls": 0,
+  "run_checksums_sha256": "f629658c81096090e61f966c42623002dc5c0860663c14c9d239f7f45dcfe4a2",
+  "script_sha256": "0bda9465e55c3152685a1adab5722b4ddc8e3f76f7fa34fc7e47baa5cce765bf",
+  "selected_alias": "C0: identity comparison, not an independent treatment run"
+}

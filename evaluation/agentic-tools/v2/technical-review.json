@@ -1,0 +1,50 @@
+{
+  "schema": "agentic-pilot-technical-review-v1",
+  "reviewed_at": "2026-09-14T03:52:36.966394+00:00",
+  "reviewer": "automated execution/trace review; not independent human answer review",
+  "protocol_sha256": "185bdf30dc47f42b54d5d65ac4bc0c4158686938894c7d8463dfd915a700cc5b",
+  "accounting_sha256": "9e250832b700726ee34a841642bfc5c1f3feb2954989faa87f8e1dae2264fca5",
+  "status": "passed_for_core_preparation",
+  "attempts": 98,
+  "trace_checks": 1184,
+  "failures": [
+    {
+      "key": "d343b1ae83f90f36e36de5284fb898e50d82bfdcf170707434d1df4c80c89be7",
+      "dataset": "browsecomp-plus",
+      "arm": "F-S",
+      "category": "output_token_limit",
+      "disposition": "Retain as model outcome under unchanged frozen budgets and canonical reference validation."
+    },
+    {
+      "key": "61e7169f1b004358f6a5c19b9356efd58429b4c64a6788f36902367d983da66a",
+      "dataset": "nfcorpus",
+      "arm": "F-H",
+      "category": "invalid_final_reference",
+      "disposition": "Retain as model outcome under unchanged frozen budgets and canonical reference validation."
+    },
+    {
+      "key": "a7219c91f2e098146b4601c26c35a268f5bdec12e8745193ef69f5ee9f38788d",
+      "dataset": "musique",
+      "arm": "A-All",
+      "category": "invalid_final_reference",
+      "disposition": "Retain as model outcome under unchanged frozen budgets and canonical reference validation."
+    }
+  ],
+  "environment_or_empty_final_failures": 0,
+  "model_settings_changed_during_pilot": false,
+  "quality_scores_used_for_configuration": false,
+  "projected_core_inference_hours": 49.66727920021513,
+  "projected_core_artifact_gib": 1.3821400562301278,
+  "estimate_excludes": [
+    "index setup",
+    "judge inference and retries",
+    "human review",
+    "archival"
+  ],
+  "core_dispatch": false,
+  "remaining": [
+    "calibration execution and pending-human qualification",
+    "core scoring/statistics tests",
+    "separate immutable core protocol and runner"
+  ]
+}

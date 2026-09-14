@@ -9,6 +9,7 @@ tf + k1*(1-b+b*length/average_length). All chunks count toward corpus statistics
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import replace
+from heapq import nsmallest
 import math
 import re
 import unicodedata
@@ -34,6 +35,9 @@ class BM25Retriever:
         for record in self.records:
             if revisions.setdefault(record.document_id, record.document_revision) != record.document_revision:
                 raise ValueError('BM25 cannot mix document revisions.')
+        # Records are immutable. Hash tie identities once during preparation,
+        # not for every matching chunk on every query (millions at full scale).
+        self._rank_keys = tuple((record.document_id, record.chunk_id) for record in self.records)
         self.index_id, self.k1, self.b = index_id, k1, b
         if index_id is not None and (not isinstance(index_id, str) or not index_id.strip()):
             raise ValueError('index_id must be nonblank text.')
@@ -72,9 +76,9 @@ class BM25Retriever:
                     continue
                 norm = self.k1 * (1 - self.b + self.b * self._lengths[ordinal] / self._average)
                 scores[ordinal] += idf * frequency * (self.k1 + 1) / (frequency + norm)
-        ranked = sorted(scores, key=lambda i: (-scores[i], self.records[i].document_id, self.records[i].chunk_id))
+        ranked = nsmallest(top_k, scores, key=lambda i: (-scores[i], *self._rank_keys[i]))
         hits = []
-        for i in ranked[:top_k]:
+        for i in ranked:
             hit = chunk_result(self.records[i], method='bm25', index_id=self.index_id,
                                score=scores[i], score_type='bm25')
             hits.append(replace(hit, metadata={**hit.metadata, 'bm25': {

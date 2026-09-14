@@ -1,0 +1,8 @@
+{
+  "checks": 252,
+  "status": "passed",
+  "fixtures": "Synthetic empty/nonempty scopes; zero-width/multiline/Unicode/invalid patterns, filename filters and three result limits.",
+  "baseline_source": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb",
+  "baseline_exact_sha256": "2c6e677c4eb08681de3c4c21e27ec8b0445749f157ddf59f2019a9bd91d8449f",
+  "current_exact_sha256": "df493e9ecb0371d6c581f911a36f698cf9076e259e91d7b44d548ac6d4c16309"
+}

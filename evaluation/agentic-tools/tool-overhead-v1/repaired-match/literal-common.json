@@ -1,0 +1,410 @@
+{
+  "elapsed_seconds": 0.11367137497290969,
+  "error": null,
+  "result_sha256": "9b627ce750c9e519f318629794e59e0e2d169ba14e9eb333a4d3bde3e5b417ab",
+  "hits": 20,
+  "profile_by_self": [
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/documents.py",
+      "line": 96,
+      "function": "<genexpr>",
+      "calls": 100196,
+      "self_seconds": 0.061726881000000004,
+      "cumulative_seconds": 0.066387132
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sorted>",
+      "calls": 1,
+      "self_seconds": 0.026835371,
+      "cumulative_seconds": 0.096418666
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/exact.py",
+      "line": 134,
+      "function": "search",
+      "calls": 1,
+      "self_seconds": 0.015374543000000001,
+      "cumulative_seconds": 0.11363012500000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'endswith' of 'str' objects>",
+      "calls": 100195,
+      "self_seconds": 0.004660251000000001,
+      "cumulative_seconds": 0.004660251000000001
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/documents.py",
+      "line": 97,
+      "function": "<lambda>",
+      "calls": 100195,
+      "self_seconds": 0.003196163,
+      "cumulative_seconds": 0.003196163
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.scandir>",
+      "calls": 1,
+      "self_seconds": 0.000554,
+      "cumulative_seconds": 0.000555041
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'read' of '_io.TextIOWrapper' objects>",
+      "calls": 2,
+      "self_seconds": 0.000248792,
+      "cumulative_seconds": 0.000267667
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _io.open>",
+      "calls": 2,
+      "self_seconds": 0.000194376,
+      "cumulative_seconds": 0.000196958
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 205,
+      "function": "iterencode",
+      "calls": 41,
+      "self_seconds": 0.00012112200000000001,
+      "cumulative_seconds": 0.00012112200000000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.stat>",
+      "calls": 1,
+      "self_seconds": 7.3416e-05,
+      "cumulative_seconds": 8e-05
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/copy.py",
+      "line": 119,
+      "function": "deepcopy",
+      "calls": 100,
+      "self_seconds": 5.0417e-05,
+      "cumulative_seconds": 0.00010400000000000001
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/exact.py",
+      "line": 153,
+      "function": "_search",
+      "calls": 1,
+      "self_seconds": 4.6665e-05,
+      "cumulative_seconds": 0.098249291
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/models.py",
+      "line": 304,
+      "function": "_digest",
+      "calls": 41,
+      "self_seconds": 3.825e-05,
+      "cumulative_seconds": 0.000269123
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/models.py",
+      "line": 51,
+      "function": "__post_init__",
+      "calls": 20,
+      "self_seconds": 3.7699e-05,
+      "cumulative_seconds": 0.000274541
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/__init__.py",
+      "line": 183,
+      "function": "dumps",
+      "calls": 41,
+      "self_seconds": 3.0250000000000003e-05,
+      "cumulative_seconds": 0.00018674900000000002
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/documents.py",
+      "line": 81,
+      "function": "_paths",
+      "calls": 1,
+      "self_seconds": 2.7669000000000002e-05,
+      "cumulative_seconds": 0.09702300000000001
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/models.py",
+      "line": 313,
+      "function": "_validate_config",
+      "calls": 60,
+      "self_seconds": 2.5836e-05,
+      "cumulative_seconds": 3.3962000000000005e-05
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 183,
+      "function": "encode",
+      "calls": 41,
+      "self_seconds": 2.1033e-05,
+      "cumulative_seconds": 0.00015058200000000002
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _hashlib.openssl_sha256>",
+      "calls": 41,
+      "self_seconds": 2.0832e-05,
+      "cumulative_seconds": 2.0832e-05
+    },
+    {
+      "file": "<string>",
+      "line": 2,
+      "function": "__init__",
+      "calls": 20,
+      "self_seconds": 2.0334000000000002e-05,
+      "cumulative_seconds": 0.000294875
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+      "calls": 1,
+      "self_seconds": 1.9125e-05,
+      "cumulative_seconds": 1.9125e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.isinstance>",
+      "calls": 348,
+      "self_seconds": 1.7923e-05,
+      "cumulative_seconds": 1.7923e-05
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/copy.py",
+      "line": 218,
+      "function": "_deepcopy_dict",
+      "calls": 20,
+      "self_seconds": 1.6717e-05,
+      "cumulative_seconds": 7.1586e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'get' of 'dict' objects>",
+      "calls": 182,
+      "self_seconds": 1.5608e-05,
+      "cumulative_seconds": 1.5608e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _codecs.utf_8_decode>",
+      "calls": 2,
+      "self_seconds": 1.3625e-05,
+      "cumulative_seconds": 1.3625e-05
+    }
+  ],
+  "profile_by_cumulative": [
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/profile_tool_overhead.py",
+      "line": 69,
+      "function": "<lambda>",
+      "calls": 1,
+      "self_seconds": 5.042e-06,
+      "cumulative_seconds": 0.11363516700000001
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/exact.py",
+      "line": 134,
+      "function": "search",
+      "calls": 1,
+      "self_seconds": 0.015374543000000001,
+      "cumulative_seconds": 0.11363012500000001
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/exact.py",
+      "line": 153,
+      "function": "_search",
+      "calls": 1,
+      "self_seconds": 4.6665e-05,
+      "cumulative_seconds": 0.098249291
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/exact.py",
+      "line": 156,
+      "function": "literals",
+      "calls": 20,
+      "self_seconds": 8.919e-06,
+      "cumulative_seconds": 0.097601878
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/text_cache.py",
+      "line": 50,
+      "function": "scan",
+      "calls": 1,
+      "self_seconds": 7.000000000000001e-06,
+      "cumulative_seconds": 0.097145042
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/documents.py",
+      "line": 81,
+      "function": "_paths",
+      "calls": 1,
+      "self_seconds": 2.7669000000000002e-05,
+      "cumulative_seconds": 0.09702300000000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sorted>",
+      "calls": 1,
+      "self_seconds": 0.026835371,
+      "cumulative_seconds": 0.096418666
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/documents.py",
+      "line": 96,
+      "function": "<genexpr>",
+      "calls": 100196,
+      "self_seconds": 0.061726881000000004,
+      "cumulative_seconds": 0.066387132
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'endswith' of 'str' objects>",
+      "calls": 100195,
+      "self_seconds": 0.004660251000000001,
+      "cumulative_seconds": 0.004660251000000001
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/documents.py",
+      "line": 97,
+      "function": "<lambda>",
+      "calls": 100195,
+      "self_seconds": 0.003196163,
+      "cumulative_seconds": 0.003196163
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.scandir>",
+      "calls": 1,
+      "self_seconds": 0.000554,
+      "cumulative_seconds": 0.000555041
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 539,
+      "function": "read_text",
+      "calls": 2,
+      "self_seconds": 5.458e-06,
+      "cumulative_seconds": 0.00048783400000000003
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_abc.py",
+      "line": 628,
+      "function": "read_text",
+      "calls": 2,
+      "self_seconds": 6.374e-06,
+      "cumulative_seconds": 0.00048191700000000005
+    },
+    {
+      "file": "<string>",
+      "line": 2,
+      "function": "__init__",
+      "calls": 20,
+      "self_seconds": 2.0334000000000002e-05,
+      "cumulative_seconds": 0.000294875
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/retrieval/models.py",
+      "line": 51,
+      "function": "__post_init__",
+      "calls": 20,
+      "self_seconds": 3.7699e-05,
+      "cumulative_seconds": 0.000274541
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/models.py",
+      "line": 304,
+      "function": "_digest",
+      "calls": 41,
+      "self_seconds": 3.825e-05,
+      "cumulative_seconds": 0.000269123
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'read' of '_io.TextIOWrapper' objects>",
+      "calls": 2,
+      "self_seconds": 0.000248792,
+      "cumulative_seconds": 0.000267667
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 529,
+      "function": "open",
+      "calls": 2,
+      "self_seconds": 1.7520000000000001e-06,
+      "cumulative_seconds": 0.000198876
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _io.open>",
+      "calls": 2,
+      "self_seconds": 0.000194376,
+      "cumulative_seconds": 0.000196958
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/__init__.py",
+      "line": 183,
+      "function": "dumps",
+      "calls": 41,
+      "self_seconds": 3.0250000000000003e-05,
+      "cumulative_seconds": 0.00018674900000000002
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 183,
+      "function": "encode",
+      "calls": 41,
+      "self_seconds": 2.1033e-05,
+      "cumulative_seconds": 0.00015058200000000002
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/models.py",
+      "line": 30,
+      "function": "document_revision",
+      "calls": 1,
+      "self_seconds": 1.5830000000000001e-06,
+      "cumulative_seconds": 0.000136666
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 205,
+      "function": "iterencode",
+      "calls": 41,
+      "self_seconds": 0.00012112200000000001,
+      "cumulative_seconds": 0.00012112200000000001
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src/arkb/knowledge/models.py",
+      "line": 95,
+      "function": "fingerprint_config",
+      "calls": 20,
+      "self_seconds": 8.41e-06,
+      "cumulative_seconds": 0.000107205
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/copy.py",
+      "line": 119,
+      "function": "deepcopy",
+      "calls": 100,
+      "self_seconds": 5.0417e-05,
+      "cumulative_seconds": 0.00010400000000000001
+    }
+  ]
+}

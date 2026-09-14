@@ -1,0 +1,76 @@
+{
+  "schema": "arkb-tool-overhead-repair-v1",
+  "completed_at": "2026-09-14T05:42:52.769540+00:00",
+  "status": "implemented_and_verified_development_repair",
+  "match_replay": {
+    "recorded_at": "2026-09-14T05:39:34.072078+00:00",
+    "calls": 87,
+    "errors": 0,
+    "previous_successes_verified": 62,
+    "live_reference_checks": 85,
+    "old_timeout_calls": 25,
+    "timeout_calls_now_completed": 25,
+    "source_unchanged": true,
+    "datasets": {
+      "browsecomp-plus": {
+        "calls": 32,
+        "mean_seconds": 4.096903619793011,
+        "p95_seconds": 6.17209054203704,
+        "max_seconds": 6.223327416926622,
+        "errors": 0
+      },
+      "fiqa": {
+        "calls": 10,
+        "mean_seconds": 0.9179872876498848,
+        "p95_seconds": 1.2662855840753764,
+        "max_seconds": 1.2662855840753764,
+        "errors": 0
+      },
+      "musique": {
+        "calls": 41,
+        "mean_seconds": 0.0004496250653684866,
+        "p95_seconds": 0.0003542499616742134,
+        "max_seconds": 0.006090417038649321,
+        "errors": 0
+      },
+      "nfcorpus": {
+        "calls": 4,
+        "mean_seconds": 0.021669656329322606,
+        "p95_seconds": 0.029259208124130964,
+        "max_seconds": 0.029259208124130964,
+        "errors": 0
+      }
+    },
+    "qualification": "Development replay of exposed tool calls, not independent Agent quality evaluation. Timings include live signature checks and exclude explicit preparation. GPU training may share this machine; these are diagnostic timings, not isolated latency results."
+  },
+  "bm25": [
+    {
+      "probe": "common-term",
+      "baseline_profile_seconds": 38.18569937488064,
+      "repaired_profile_seconds": 0.5799723749514669,
+      "response_sha256": "66b981ee906f25eb208878aeaf76aa0e712461f0474d8692462a08ef504537cc",
+      "identical": true
+    },
+    {
+      "probe": "multi-term",
+      "baseline_profile_seconds": 37.00928229186684,
+      "repaired_profile_seconds": 0.8815387079957873,
+      "response_sha256": "b7edfb010dbe251f004c21e2b9ad61955abfd433bf79744630341fc1e6823ed6",
+      "identical": true
+    },
+    {
+      "probe": "rare-term",
+      "baseline_profile_seconds": 9.516696445643902e-05,
+      "repaired_profile_seconds": 7.408391684293747e-05,
+      "response_sha256": "af4a0c48a2f20c711ab0124c072d5eee8d84b0ef22a7bfbda793b0025f2e3cbe",
+      "identical": true
+    }
+  ],
+  "regression_tests_passed": 1251,
+  "integration_tests_not_run": 60,
+  "exact_differential_checks": 252,
+  "frozen_core_source_files_unchanged": 90,
+  "automatic_core_resume": false,
+  "report": "docs/tool-overhead-repair.md",
+  "qualification": "Not a new Agent answer-quality study or isolated GPU latency benchmark."
+}

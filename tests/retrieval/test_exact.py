@@ -105,7 +105,7 @@ def test_large_scan_does_not_spawn_per_document(tmp_path, exact, monkeypatch, re
         (tmp_path / f'{i:04}.md').write_text('haystack')
     (tmp_path / 'z.md').write_text('needle needle')
     assert [h.start_char for h in exact.search('needle', regex=regex, case_sensitive=case_sensitive).results] == [0, 7]
-    assert len(calls) <= 1
+    assert len(calls) <= 2  # Filename discovery, then one bounded span batch.
 
 
 def test_scan_timeout_and_cancellation_are_explicit(exact):
@@ -154,3 +154,135 @@ def test_byte_patterns_cannot_return_partial_unicode_characters(tmp_path, exact)
     (tmp_path / 'a.md').write_text('café', encoding='utf-8')
     with pytest.raises(ValueError, match='complete Unicode'):
         exact.search('(?-u:.)', regex=True)
+
+
+def test_prepared_matching_reuses_text_and_only_reloads_changed_sources(tmp_path, exact, monkeypatch):
+    import os
+    from arkb.retrieval import text_cache
+    for name in ('a.md', 'b.md'):
+        (tmp_path / name).write_text('# Title\n\nold text')
+    load = Mock(wraps=text_cache._load_note)
+    monkeypatch.setattr(text_cache, '_load_note', load)
+    assert exact.prepare()['documents'] == 2
+    assert load.call_count == 2
+    first = exact.search('old', regex=True).results
+    cache_files = {p: p.stat().st_mtime_ns for p in exact._cache.directory.joinpath('content').iterdir()}
+    load.reset_mock()
+    for options in ({}, {'regex': True}, {'case_sensitive': False}):
+        assert exact.search('old', **options).results == first
+    load.assert_not_called()
+    assert all(p.stat().st_mtime_ns == mtime for p, mtime in cache_files.items())
+    # A same-size edit with restored mtime still changes ctime and must invalidate.
+    path = tmp_path / 'b.md'
+    stat = path.stat()
+    path.write_text('# Title\n\nnew text')
+    os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+    assert [h.source for h in exact.search('old', regex=True).results] == ['a.md']
+    load.assert_called_once_with(path)
+    new, = exact.search('new').results
+    assert new.metadata['document_revision'] != first[1].metadata['document_revision']
+    assert exact.documents.read(new.source_id, start_char=new.start_char,
+                                end_char=new.end_char).content == new.content
+
+
+def test_cached_regex_scope_order_and_filters_follow_insert_delete_and_rename(tmp_path, exact):
+    (tmp_path / 'z.md').write_text('needle')
+    exact.prepare()
+    (tmp_path / 'a.md').write_text('needle')
+    for options in ({'regex': True}, {'case_sensitive': False}):
+        assert [h.source for h in exact.search('needle', **options).results] == ['a.md', 'z.md']
+        assert [h.source for h in exact.search('needle', filters={'source': 'z.md'}, **options).results] == ['z.md']
+    assert [h.source for h in exact.search('.md', target='source', regex=True).results] == ['a.md', 'z.md']
+    (tmp_path / 'a.md').unlink()
+    (tmp_path / 'z.md').rename(tmp_path / 'b.md')
+    assert [h.source for h in exact.search('needle', regex=True).results] == ['b.md']
+    assert [h.source for h in exact.search('.md', target='source', regex=True).results] == ['b.md']
+    assert exact.search('needle', regex=True, filters={'source': 'z.md'}).results == ()
+
+
+def test_cached_sources_cannot_escape_scope_after_symlink_replacement(tmp_path):
+    root = tmp_path / 'notes'; root.mkdir()
+    (root / 'a.md').write_text('original')
+    outside = tmp_path / 'private.md'; outside.write_text('private')
+    with ExactRetriever(DocumentAccess(root, vault_id='v')) as tool:
+        tool.prepare()
+        (root / 'a.md').unlink()
+        (root / 'a.md').symlink_to(outside)
+        assert tool.search('original', regex=True).results == ()
+        assert tool.search('private', case_sensitive=False).results == ()
+        assert tool.search('private', filters={'source': 'a.md'}).results == ()
+
+
+def test_preparation_interruption_is_resumable_and_does_not_hide_bad_input(tmp_path, exact, monkeypatch):
+    from threading import Event
+    from arkb.retrieval import text_cache
+    from arkb.retrieval.exact import ExactCancelled
+    for name in ('a.md', 'b.md'):
+        (tmp_path / name).write_text('needle')
+    cancel = Event()
+    load = text_cache._load_note
+    def interrupted(path):
+        note = load(path)
+        if path.name == 'b.md':
+            cancel.set()
+        return note
+    monkeypatch.setattr(text_cache, '_load_note', interrupted)
+    with pytest.raises(ExactCancelled):
+        exact.prepare(cancel=cancel)
+    assert len(exact._cache._entries) == 1
+    monkeypatch.setattr(text_cache, '_load_note', load)
+    assert exact.prepare()['documents'] == 2
+    (tmp_path / 'b.md').write_bytes(b'\xff')
+    with pytest.raises(UnicodeDecodeError):
+        exact.search('needle', regex=True)
+
+
+def test_prepared_cache_cleanup_is_explicit(tmp_path, exact):
+    (tmp_path / 'a.md').write_text('needle')
+    exact.prepare()
+    root = exact._cache.directory
+    assert root.exists()
+    exact.close()
+    exact.close()
+    assert not root.exists()
+    with pytest.raises(RuntimeError, match='closed'):
+        exact.search('needle')
+
+
+@pytest.mark.parametrize('source', ['bad\\source.md', 'C:note.md'])
+def test_cache_preserves_document_source_validation(tmp_path, exact, source):
+    (tmp_path / source).write_text('needle')
+    with pytest.raises(ValueError, match='canonical'):
+        exact.prepare()
+
+
+def test_cache_detects_partial_writes(tmp_path, exact, monkeypatch):
+    (tmp_path / 'a.md').write_text('needle')
+    exact._cache.directory  # Allocate the private store before injecting failure.
+    write = exact._cache._bodies.write
+    monkeypatch.setattr(exact._cache._bodies, 'write', lambda body: write(body[:1]))
+    with pytest.raises(OSError, match='Incomplete'):
+        exact.prepare()
+    assert not exact._cache._entries
+
+
+def test_waiting_for_shared_cache_obeys_timeout(exact):
+    from threading import Event, Thread
+    from time import monotonic
+    from arkb.retrieval.exact import ExactTimeout
+    entered, release = Event(), Event()
+    def busy():
+        with exact._lock:
+            entered.set()
+            release.wait(5)
+    thread = Thread(target=busy)
+    thread.start()
+    assert entered.wait(2)
+    start = monotonic()
+    try:
+        with pytest.raises(ExactTimeout):
+            exact.search('needle', timeout=.03)
+        assert monotonic()-start < .5
+    finally:
+        release.set()
+        thread.join(2)

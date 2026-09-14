@@ -1,0 +1,413 @@
+{
+  "elapsed_seconds": 30.055814708117396,
+  "error": {
+    "type": "ExactTimeout",
+    "message": "Exact matching exceeded its deadline."
+  },
+  "result_sha256": null,
+  "hits": null,
+  "profile_by_self": [
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'read' of '_io.TextIOWrapper' objects>",
+      "calls": 40473,
+      "self_seconds": 17.810708310000003,
+      "cumulative_seconds": 18.121742232000003
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 205,
+      "function": "iterencode",
+      "calls": 121419,
+      "self_seconds": 4.03575291,
+      "cumulative_seconds": 4.03575291
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'splitlines' of 'str' objects>",
+      "calls": 40473,
+      "self_seconds": 1.1399557070000002,
+      "cumulative_seconds": 1.1399557070000002
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _io.open>",
+      "calls": 40473,
+      "self_seconds": 0.81674977,
+      "cumulative_seconds": 0.8399486770000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.lstat>",
+      "calls": 242838,
+      "self_seconds": 0.46444412100000004,
+      "cumulative_seconds": 0.46444412100000004
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _hashlib.openssl_sha256>",
+      "calls": 121419,
+      "self_seconds": 0.461581159,
+      "cumulative_seconds": 0.461581159
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'encode' of 'str' objects>",
+      "calls": 121419,
+      "self_seconds": 0.42842450600000004,
+      "cumulative_seconds": 0.42842450600000004
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 207,
+      "function": "__lt__",
+      "calls": 1535027,
+      "self_seconds": 0.41551707000000004,
+      "cumulative_seconds": 0.715131606
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'join' of 'str' objects>",
+      "calls": 242839,
+      "self_seconds": 0.290395888,
+      "cumulative_seconds": 0.290395888
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _codecs.utf_8_decode>",
+      "calls": 40473,
+      "self_seconds": 0.289612694,
+      "cumulative_seconds": 0.289612694
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'find' of 'str' objects>",
+      "calls": 40472,
+      "self_seconds": 0.22672529000000002,
+      "cumulative_seconds": 0.22672529000000002
+    },
+    {
+      "file": "<frozen posixpath>",
+      "line": 391,
+      "function": "realpath",
+      "calls": 40473,
+      "self_seconds": 0.17801186700000002,
+      "cumulative_seconds": 0.7287839140000001
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 198,
+      "function": "_parts_normcase",
+      "calls": 3070054,
+      "self_seconds": 0.167443698,
+      "cumulative_seconds": 0.248693299
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/documents.py",
+      "line": 30,
+      "function": "_load_note",
+      "calls": 40473,
+      "self_seconds": 0.15503154700000002,
+      "cumulative_seconds": 20.757248304
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/models.py",
+      "line": 304,
+      "function": "_digest",
+      "calls": 121419,
+      "self_seconds": 0.150811037,
+      "cumulative_seconds": 5.299867046
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/models.py",
+      "line": 180,
+      "function": "__post_init__",
+      "calls": 40473,
+      "self_seconds": 0.150058352,
+      "cumulative_seconds": 0.430831881
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.isinstance>",
+      "calls": 2949639,
+      "self_seconds": 0.143603845,
+      "cumulative_seconds": 0.143603845
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/documents.py",
+      "line": 88,
+      "function": "records",
+      "calls": 40473,
+      "self_seconds": 0.12558333200000002,
+      "cumulative_seconds": 29.722219418
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sorted>",
+      "calls": 1,
+      "self_seconds": 0.12384581300000001,
+      "cumulative_seconds": 0.9723124580000001
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 174,
+      "function": "_str_normcase",
+      "calls": 262087,
+      "self_seconds": 0.117252535,
+      "cumulative_seconds": 0.319182208
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 257,
+      "function": "_parse_path",
+      "calls": 80947,
+      "self_seconds": 0.107736656,
+      "cumulative_seconds": 0.214281195
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 117,
+      "function": "__init__",
+      "calls": 181141,
+      "self_seconds": 0.088796546,
+      "cumulative_seconds": 0.1345161
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/__init__.py",
+      "line": 183,
+      "function": "dumps",
+      "calls": 121419,
+      "self_seconds": 0.074684022,
+      "cumulative_seconds": 4.226499327
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.stat>",
+      "calls": 40473,
+      "self_seconds": 0.07257701100000001,
+      "cumulative_seconds": 0.08192711500000001
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 183,
+      "function": "encode",
+      "calls": 121419,
+      "self_seconds": 0.07176516100000001,
+      "cumulative_seconds": 4.1357178590000006
+    }
+  ],
+  "profile_by_cumulative": [
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/profile_tool_overhead.py",
+      "line": 65,
+      "function": "<lambda>",
+      "calls": 1,
+      "self_seconds": 3.334e-06,
+      "cumulative_seconds": 30.000957709
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/exact.py",
+      "line": 108,
+      "function": "search",
+      "calls": 1,
+      "self_seconds": 9.875000000000001e-06,
+      "cumulative_seconds": 30.000954375000003
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/exact.py",
+      "line": 125,
+      "function": "literals",
+      "calls": 1,
+      "self_seconds": 0.031107024,
+      "cumulative_seconds": 30.000939625
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/documents.py",
+      "line": 88,
+      "function": "records",
+      "calls": 40473,
+      "self_seconds": 0.12558333200000002,
+      "cumulative_seconds": 29.722219418
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/documents.py",
+      "line": 30,
+      "function": "_load_note",
+      "calls": 40473,
+      "self_seconds": 0.15503154700000002,
+      "cumulative_seconds": 20.757248304
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 539,
+      "function": "read_text",
+      "calls": 40473,
+      "self_seconds": 0.029321735,
+      "cumulative_seconds": 19.103627577
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_abc.py",
+      "line": 628,
+      "function": "read_text",
+      "calls": 40473,
+      "self_seconds": 0.030144921,
+      "cumulative_seconds": 19.071212568
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'read' of '_io.TextIOWrapper' objects>",
+      "calls": 40473,
+      "self_seconds": 17.810708310000003,
+      "cumulative_seconds": 18.121742232000003
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/models.py",
+      "line": 212,
+      "function": "from_note",
+      "calls": 40473,
+      "self_seconds": 0.049632802000000004,
+      "cumulative_seconds": 5.488410386
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/models.py",
+      "line": 304,
+      "function": "_digest",
+      "calls": 121419,
+      "self_seconds": 0.150811037,
+      "cumulative_seconds": 5.299867046
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/models.py",
+      "line": 30,
+      "function": "document_revision",
+      "calls": 40473,
+      "self_seconds": 0.012571613,
+      "cumulative_seconds": 4.979273147000001
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/__init__.py",
+      "line": 183,
+      "function": "dumps",
+      "calls": 121419,
+      "self_seconds": 0.074684022,
+      "cumulative_seconds": 4.226499327
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 183,
+      "function": "encode",
+      "calls": 121419,
+      "self_seconds": 0.07176516100000001,
+      "cumulative_seconds": 4.1357178590000006
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/json/encoder.py",
+      "line": 205,
+      "function": "iterencode",
+      "calls": 121419,
+      "self_seconds": 4.03575291,
+      "cumulative_seconds": 4.03575291
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/documents.py",
+      "line": 80,
+      "function": "_paths",
+      "calls": 40473,
+      "self_seconds": 0.046474354,
+      "cumulative_seconds": 2.8270713570000003
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'splitlines' of 'str' objects>",
+      "calls": 40473,
+      "self_seconds": 1.1399557070000002,
+      "cumulative_seconds": 1.1399557070000002
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sorted>",
+      "calls": 1,
+      "self_seconds": 0.12384581300000001,
+      "cumulative_seconds": 0.9723124580000001
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 529,
+      "function": "open",
+      "calls": 40473,
+      "self_seconds": 0.012679353,
+      "cumulative_seconds": 0.855276412
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 664,
+      "function": "resolve",
+      "calls": 40473,
+      "self_seconds": 0.021026595000000002,
+      "cumulative_seconds": 0.8421473230000001
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method _io.open>",
+      "calls": 40473,
+      "self_seconds": 0.81674977,
+      "cumulative_seconds": 0.8399486770000001
+    },
+    {
+      "file": "<frozen posixpath>",
+      "line": 391,
+      "function": "realpath",
+      "calls": 40473,
+      "self_seconds": 0.17801186700000002,
+      "cumulative_seconds": 0.7287839140000001
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 207,
+      "function": "__lt__",
+      "calls": 1535027,
+      "self_seconds": 0.41551707000000004,
+      "cumulative_seconds": 0.715131606
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/pathlib/_local.py",
+      "line": 393,
+      "function": "is_relative_to",
+      "calls": 40473,
+      "self_seconds": 0.034660955,
+      "cumulative_seconds": 0.578959757
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/knowledge/chunking.py",
+      "line": 44,
+      "function": "whole_note_chunks",
+      "calls": 40473,
+      "self_seconds": 0.025090549,
+      "cumulative_seconds": 0.523906039
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method posix.lstat>",
+      "calls": 242838,
+      "self_seconds": 0.46444412100000004,
+      "cumulative_seconds": 0.46444412100000004
+    }
+  ]
+}

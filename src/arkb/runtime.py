@@ -84,7 +84,8 @@ class Runtime:
         filters = validate_request(pattern, top_k, {'source': source} if source is not None else None)
         with self._snapshot(db, vault_id, required=False) as (storage, manifest):
             documents = DocumentAccess(self._notes_directory(storage, manifest, notes_dir), vault_id=vault_id)
-            return ExactRetriever(documents).search(pattern, top_k=top_k, filters=filters)
+            with ExactRetriever(documents) as exact:
+                return exact.search(pattern, top_k=top_k, filters=filters)
 
     def search(self, query: str, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
                mode: str = DEFAULT_RETRIEVAL_MODE, top_k: int = 2, source: str | None = None,
@@ -225,20 +226,29 @@ class Runtime:
             rerank_candidates=settings.rerank_candidates)
 
     def agent_tools(self, *, engine: 'RetrievalEngine', directory: Path, vault_id: str,
-                    mode: str = 'semantic', rerank: bool = False) -> 'AgentTools':
+                    mode: str = 'semantic', rerank: bool = False,
+                    prepare_exact: bool = False) -> 'AgentTools':
         """Bind live document tools to an already prepared retrieval engine.
 
         Use the same directory/vault as indexing. The caller selects a default
         search mode; the agent can choose any mode supported by the engine.
-        This composition opens no clients and creates no new resource owners.
+        This composition opens no model clients. Runtime owns the disposable
+        exact-text cache; prepare_exact warms it before accepting large-scope
+        queries. Preparation cost must be reported separately from query time.
         """
         self._require_open()
+        if type(prepare_exact) is not bool:
+            raise ValueError('prepare_exact must be a boolean.')
         from arkb.agent.tools import AgentTools
         from arkb.knowledge.documents import DocumentAccess
         from arkb.retrieval.exact import ExactRetriever
 
         documents = DocumentAccess(directory, vault_id=vault_id)
-        return AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine,
+        exact = ExactRetriever(documents)
+        self._resources.callback(exact.close)
+        if prepare_exact:
+            exact.prepare()
+        return AgentTools(documents=documents, exact=exact, engine=engine,
                           mode=mode, rerank=rerank)
 
     def run_agent(self, query: str, *, tools: 'AgentTools',

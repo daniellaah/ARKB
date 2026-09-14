@@ -1,0 +1,84 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "check": "original/prepared READY manifest, cache counts, exact ordered records/vectors and remote calls equal",
+      "status": "passed",
+      "documents": 26,
+      "chunks": 2096
+    },
+    {
+      "check": "all original bindings restored after successful build",
+      "status": "passed"
+    },
+    {
+      "check": "empty body, Markdown sections, fenced code, repeated/overlapping text preserve exact metadata",
+      "status": "passed"
+    },
+    {
+      "check": "changed source revision",
+      "status": "passed"
+    },
+    {
+      "check": "wrong original metadata digest",
+      "status": "passed"
+    },
+    {
+      "check": "wrong recovered plan manifest",
+      "status": "passed"
+    },
+    {
+      "check": "sample cannot be used for full validation",
+      "status": "passed"
+    },
+    {
+      "check": "different source order",
+      "status": "passed"
+    },
+    {
+      "check": "different chunk budget",
+      "status": "passed"
+    },
+    {
+      "check": "changed input text",
+      "status": "passed"
+    },
+    {
+      "check": "input budget smaller than prepared count",
+      "status": "passed"
+    },
+    {
+      "check": "all original bindings restored on exception",
+      "status": "passed"
+    }
+  ],
+  "sample_plan_sha256": "03e7ea82d76d98ba97c3c6a0f34a32d218b4fb8b60251e52c254c26a6929a130",
+  "builder_seconds": {
+    "original": 19.0801242091693,
+    "prepared": 0.9060498329345137
+  },
+  "remote_calls": [
+    {
+      "method": "upsert",
+      "records_sha256": "38399f3d57bedf76739c54a10e8d9927142eb184cc8a6d92a9070f959bdecf5d",
+      "vectors_sha256": "a1a2d58e251c0239dd7011b3d7764c63f43fc24cfc56c7ab57a41d6ae6684e02",
+      "rows": 2096
+    },
+    {
+      "method": "verify_snapshot",
+      "records_sha256": "38399f3d57bedf76739c54a10e8d9927142eb184cc8a6d92a9070f959bdecf5d",
+      "vectors_sha256": "a1a2d58e251c0239dd7011b3d7764c63f43fc24cfc56c7ab57a41d6ae6684e02",
+      "rows": 2096
+    },
+    {
+      "method": "wait_ready",
+      "expected_count": 2096
+    }
+  ],
+  "model_calls": 0,
+  "real_qdrant_calls": 0,
+  "production_writes": 0,
+  "script_sha256": "0f36cefd67dfe4b8332c4a1f63682ce2ae6df4752009db01763422f3e6e22963",
+  "adapter_sha256": "9684f880a71c491f245b75102e112b7fc934143be44043761a8965e590a10b9f",
+  "recovery_sha256": "a61ed6341e41f7bccedb6442ece2544c477bd2df5f0bbeda3b304a1350e56cd8"
+}

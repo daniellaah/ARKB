@@ -1,0 +1,376 @@
+{
+  "status": "completed",
+  "protocol_sha256": "4d1b045414b5a5e414478eb0b13ee725d16b766eb754c7502b3f49d35967b98a",
+  "datasets": {
+    "nfcorpus": {
+      "dataset": "nfcorpus",
+      "queries": 323,
+      "corpus_count": 3633,
+      "mean_metrics": {
+        "bm25": {
+          "ndcg@10": 0.30606959641244214,
+          "recall@10": 0.1485367994541355,
+          "recall@20": 0.1786203644821444,
+          "recall@100": 0.2358682956192219
+        },
+        "semantic": {
+          "ndcg@10": 0.3540104206791903,
+          "recall@10": 0.17341818722030083,
+          "recall@20": 0.2184314092045318,
+          "recall@100": 0.33300723419978245
+        },
+        "C0": {
+          "ndcg@10": 0.36274344695005484,
+          "recall@10": 0.17598600574242587,
+          "recall@20": 0.2169583633247326,
+          "recall@100": 0.3352962837073862
+        }
+      },
+      "paired_C0_minus_semantic": {
+        "ndcg@10": {
+          "mean_delta": 0.008733026270864417,
+          "ci95": [
+            -0.004257755472499105,
+            0.02190332993152358
+          ],
+          "wins": 104,
+          "ties": 125,
+          "losses": 94
+        },
+        "recall@10": {
+          "mean_delta": 0.0025678185221250515,
+          "ci95": [
+            -0.004090851604086577,
+            0.009066076830545253
+          ],
+          "wins": 57,
+          "ties": 208,
+          "losses": 58
+        },
+        "recall@20": {
+          "mean_delta": -0.0014730458797992624,
+          "ci95": [
+            -0.012702688897437697,
+            0.008519230668160224
+          ],
+          "wins": 71,
+          "ties": 180,
+          "losses": 72
+        },
+        "recall@100": {
+          "mean_delta": 0.002289049507603726,
+          "ci95": [
+            -0.007901612667741307,
+            0.011964292131507164
+          ],
+          "wins": 86,
+          "ties": 181,
+          "losses": 56
+        }
+      },
+      "cutoffs": {
+        "10": {
+          "macro": {
+            "relevant_total": 38.18575851393189,
+            "in_C0_top_k": 2.6439628482972135,
+            "in_union_below_C0_top_k": 14.291021671826625,
+            "absent_from_union": 21.25077399380805,
+            "recall": 0.17598600574242587,
+            "union_coverage": 0.563205688377464,
+            "union_below_top_k_fraction": 0.3872196826350382,
+            "absent_fraction": 0.4367943116225359,
+            "oracle_recall_at_k": 0.4354004302743517,
+            "oracle_minus_actual_recall": 0.25941442453192587,
+            "unavoidable_cutoff_fraction": 0.1278052581031123
+          },
+          "pooled_query_document_counts": {
+            "relevant_total": 12334,
+            "in_C0_top_k": 854,
+            "in_union_below_C0_top_k": 4616,
+            "absent_from_union": 6864
+          }
+        },
+        "20": {
+          "macro": {
+            "relevant_total": 38.18575851393189,
+            "in_C0_top_k": 3.801857585139319,
+            "in_union_below_C0_top_k": 13.13312693498452,
+            "absent_from_union": 21.25077399380805,
+            "recall": 0.2169583633247326,
+            "union_coverage": 0.563205688377464,
+            "union_below_top_k_fraction": 0.3462473250527314,
+            "absent_fraction": 0.4367943116225359,
+            "oracle_recall_at_k": 0.5109371532031954,
+            "oracle_minus_actual_recall": 0.2939787898784629,
+            "unavoidable_cutoff_fraction": 0.05226853517426864
+          },
+          "pooled_query_document_counts": {
+            "relevant_total": 12334,
+            "in_C0_top_k": 1228,
+            "in_union_below_C0_top_k": 4242,
+            "absent_from_union": 6864
+          }
+        },
+        "100": {
+          "macro": {
+            "relevant_total": 38.18575851393189,
+            "in_C0_top_k": 8.287925696594428,
+            "in_union_below_C0_top_k": 8.647058823529411,
+            "absent_from_union": 21.25077399380805,
+            "recall": 0.3352962837073862,
+            "union_coverage": 0.563205688377464,
+            "union_below_top_k_fraction": 0.22790940467007792,
+            "absent_fraction": 0.4367943116225359,
+            "oracle_recall_at_k": 0.5608867185857477,
+            "oracle_minus_actual_recall": 0.22559043487836153,
+            "unavoidable_cutoff_fraction": 0.002318969791716377
+          },
+          "pooled_query_document_counts": {
+            "relevant_total": 12334,
+            "in_C0_top_k": 2677,
+            "in_union_below_C0_top_k": 2793,
+            "absent_from_union": 6864
+          }
+        }
+      },
+      "movements": {
+        "semantic_top10_relevant_lost": {
+          "queries": 108,
+          "query_document_pairs": 203
+        },
+        "C0_top10_relevant_added": {
+          "queries": 106,
+          "query_document_pairs": 203
+        },
+        "bm25_exclusive_relevant": {
+          "queries": 142,
+          "query_document_pairs": 523
+        },
+        "semantic_exclusive_relevant": {
+          "queries": 265,
+          "query_document_pairs": 2650
+        }
+      },
+      "queries_with_zero_union_positives": 16,
+      "queries_with_union_positive_but_zero_C0_top10": 68,
+      "illustrative_query_ids": {
+        "largest_ndcg_losses": [
+          "PLAIN-711",
+          "PLAIN-1929",
+          "PLAIN-531"
+        ],
+        "largest_ndcg_gains": [
+          "PLAIN-1288",
+          "PLAIN-2019",
+          "PLAIN-1794"
+        ]
+      },
+      "verification": {
+        "summary_metric_max_error": 0.0,
+        "trec_eval_max_error": 4.440892098500626e-16,
+        "reference_metric_checks": 5814,
+        "partition_checks": 969,
+        "consumed_files_sha256": {
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/bm25.trec": "dcf8472473288f41a433f5d80e79c49a12195872465fed47f0192a45cf8c133b",
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/semantic.trec": "72f32b3cbab4d82ef89df9648d828f3712c0bf7710374ef96ed49d7b30456bf0",
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/C0.trec": "13e06400f592d7776f7fa72a504aef3b9e0ebbd2e737d8523dffaed374dbdef5",
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/summary.json": "43b0a7f65b47dcea6ee33ee53a6159f592d0c1a34412e14ad1340e60ff6050d7",
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/protocol.json": "44f697a66b6c817e5fe4ca6ee9bfcc397b8b4dbce5291a31936e54db144ed641",
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/experiment.json": "a4b988dbfd622d5460bed3823ab411d93737ca54c0596674537caa8eba374f36",
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/development-decision.json": "c7a2ca91edf749ddbcd65ec95f02a6f68a0a5b116ba349fc708821680d8d4d31",
+          "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/data-manifest.json": "364c4530f3bbcb82ee7aa5299f5df7b7344543e8a578d72512e42b140c5bd466",
+          "/Volumes/ARKBPhaseC/data/nfcorpus/manifest.json": "364c4530f3bbcb82ee7aa5299f5df7b7344543e8a578d72512e42b140c5bd466",
+          "/Volumes/ARKBPhaseC/data/nfcorpus/queries.json": "ef91b91cfbbda63fa0a4481be0309e5f9da17888e3c92f13345dc69200a6a624",
+          "/Volumes/ARKBPhaseC/data/nfcorpus/qrels.json": "12550e956e7cbd989419f3ef0240f107d8b9720677b1661bea83703310707140"
+        },
+        "prior_replay_sha256": "a2989af1f136a2dee9a103d560899def641a91c28ab1bd4f03e81806d8898c4e",
+        "run_checksums_sha256": "1d6fd614a87ea105d5674489b6435e5b98f32d1093afacc2746f4c71b3d7e79c"
+      }
+    },
+    "fiqa": {
+      "dataset": "fiqa",
+      "queries": 648,
+      "corpus_count": 57638,
+      "mean_metrics": {
+        "bm25": {
+          "ndcg@10": 0.2336737388931114,
+          "recall@10": 0.2959404792738127,
+          "recall@20": 0.3531697169428651,
+          "recall@100": 0.5106861074453667
+        },
+        "semantic": {
+          "ndcg@10": 0.4449073872159186,
+          "recall@10": 0.5307308989021952,
+          "recall@20": 0.6072703188443929,
+          "recall@100": 0.7840276364581921
+        },
+        "C0": {
+          "ndcg@10": 0.3696519147382994,
+          "recall@10": 0.4478664639544269,
+          "recall@20": 0.5368601819990708,
+          "recall@100": 0.7492075268695639
+        }
+      },
+      "paired_C0_minus_semantic": {
+        "ndcg@10": {
+          "mean_delta": -0.07525547247761924,
+          "ci95": [
+            -0.09510427065849707,
+            -0.05561828347923169
+          ],
+          "wins": 146,
+          "ties": 241,
+          "losses": 261
+        },
+        "recall@10": {
+          "mean_delta": -0.08286443494776828,
+          "ci95": [
+            -0.10800353346070939,
+            -0.0572985501081566
+          ],
+          "wins": 55,
+          "ties": 435,
+          "losses": 158
+        },
+        "recall@20": {
+          "mean_delta": -0.07041013684532203,
+          "ci95": [
+            -0.09289267317045095,
+            -0.04885611002509151
+          ],
+          "wins": 45,
+          "ties": 461,
+          "losses": 142
+        },
+        "recall@100": {
+          "mean_delta": -0.0348201095886281,
+          "ci95": [
+            -0.05047959981119704,
+            -0.01965805959729571
+          ],
+          "wins": 35,
+          "ties": 536,
+          "losses": 77
+        }
+      },
+      "cutoffs": {
+        "10": {
+          "macro": {
+            "relevant_total": 2.632716049382716,
+            "in_C0_top_k": 1.0277777777777777,
+            "in_union_below_C0_top_k": 1.3287037037037037,
+            "absent_from_union": 0.2762345679012346,
+            "recall": 0.4478664639544269,
+            "union_coverage": 0.9160004861393752,
+            "union_below_top_k_fraction": 0.46813402218494804,
+            "absent_fraction": 0.08399951386062496,
+            "oracle_recall_at_k": 0.9149540531484976,
+            "oracle_minus_actual_recall": 0.4670875891940707,
+            "unavoidable_cutoff_fraction": 0.0010464329908774351
+          },
+          "pooled_query_document_counts": {
+            "relevant_total": 1706,
+            "in_C0_top_k": 666,
+            "in_union_below_C0_top_k": 861,
+            "absent_from_union": 179
+          }
+        },
+        "20": {
+          "macro": {
+            "relevant_total": 2.632716049382716,
+            "in_C0_top_k": 1.2654320987654322,
+            "in_union_below_C0_top_k": 1.0910493827160495,
+            "absent_from_union": 0.2762345679012346,
+            "recall": 0.5368601819990708,
+            "union_coverage": 0.9160004861393752,
+            "union_below_top_k_fraction": 0.37914030414030414,
+            "absent_fraction": 0.08399951386062496,
+            "oracle_recall_at_k": 0.9160004861393752,
+            "oracle_minus_actual_recall": 0.37914030414030414,
+            "unavoidable_cutoff_fraction": 0.0
+          },
+          "pooled_query_document_counts": {
+            "relevant_total": 1706,
+            "in_C0_top_k": 820,
+            "in_union_below_C0_top_k": 707,
+            "absent_from_union": 179
+          }
+        },
+        "100": {
+          "macro": {
+            "relevant_total": 2.632716049382716,
+            "in_C0_top_k": 1.8317901234567902,
+            "in_union_below_C0_top_k": 0.5246913580246914,
+            "absent_from_union": 0.2762345679012346,
+            "recall": 0.7492075268695639,
+            "union_coverage": 0.9160004861393752,
+            "union_below_top_k_fraction": 0.1667929592698111,
+            "absent_fraction": 0.08399951386062496,
+            "oracle_recall_at_k": 0.9160004861393752,
+            "oracle_minus_actual_recall": 0.16679295926981114,
+            "unavoidable_cutoff_fraction": 0.0
+          },
+          "pooled_query_document_counts": {
+            "relevant_total": 1706,
+            "in_C0_top_k": 1187,
+            "in_union_below_C0_top_k": 340,
+            "absent_from_union": 179
+          }
+        }
+      },
+      "movements": {
+        "semantic_top10_relevant_lost": {
+          "queries": 173,
+          "query_document_pairs": 208
+        },
+        "C0_top10_relevant_added": {
+          "queries": 72,
+          "query_document_pairs": 79
+        },
+        "bm25_exclusive_relevant": {
+          "queries": 34,
+          "query_document_pairs": 37
+        },
+        "semantic_exclusive_relevant": {
+          "queries": 277,
+          "query_document_pairs": 461
+        }
+      },
+      "queries_with_zero_union_positives": 14,
+      "queries_with_union_positive_but_zero_C0_top10": 208,
+      "illustrative_query_ids": {
+        "largest_ndcg_losses": [
+          "1074",
+          "10912",
+          "2076"
+        ],
+        "largest_ndcg_gains": [
+          "5155",
+          "6715",
+          "1297"
+        ]
+      },
+      "verification": {
+        "summary_metric_max_error": 0.0,
+        "trec_eval_max_error": 2.220446049250313e-16,
+        "reference_metric_checks": 11664,
+        "partition_checks": 1944,
+        "consumed_files_sha256": {
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/bm25.trec": "cbbe73e8307e981c975787a52e6580f4f393df8b3990120ff9bbf4b970288a56",
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/semantic.trec": "47ceca57f051a6b29f61f05138b64d11f04376126655779ee7210dc553341526",
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/C0.trec": "4503eac606b4485ffe9c9f0f760b6e33d5c1d8ba659e2286eaf9ac63d4b973a4",
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/summary.json": "6323dc224e2efeb7f7cf9735f304e2f5ac76cb8e80b7a578f1923f354e8db581",
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/protocol.json": "c76e4e24e8b43019e7edaaa895ffd14428293fb6ec2bec1cc5caccc7940504ac",
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/experiment.json": "c8d3bc96c74350375ec194ace9324e935addd61d78153e02d740dd31143ce431",
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/development-decision.json": "c7a2ca91edf749ddbcd65ec95f02a6f68a0a5b116ba349fc708821680d8d4d31",
+          "/Volumes/ARKBPhaseC/validation/fiqa-r2/data-manifest.json": "ff9eb4f0b0ad69cd47871fe004b97838599a19ab2f097e071276a3d5577c5fe1",
+          "/Volumes/ARKBPhaseC/data/fiqa/manifest.json": "ff9eb4f0b0ad69cd47871fe004b97838599a19ab2f097e071276a3d5577c5fe1",
+          "/Volumes/ARKBPhaseC/data/fiqa/queries.json": "a32558c6ae7ad6c2e8d9a6dc900af49c9cfd12292320c4cf9e17d2b460b8f69e",
+          "/Volumes/ARKBPhaseC/data/fiqa/qrels.json": "3dedf4dfe75e732fcd1353b9f4baaf9d2650829afcbe9f4c700c4bc8d0d5fbf7"
+        },
+        "prior_replay_sha256": "19029f194da1500d1d03782ce54ca00c5a1d280b371d23dbfbfe285a687f12ac",
+        "run_checksums_sha256": "f78c2fcc51f3ae9fc7f4d78f892faca1b85d08383b417ec534610c2efc5d02ec"
+      }
+    }
+  }
+}

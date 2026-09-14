@@ -1,0 +1,25 @@
+{
+  "observed_at": "2026-09-13T15:23:31.030124+00:00",
+  "status": "adopted_validation_running",
+  "driver_pid": 4140,
+  "validation_pid": 4440,
+  "old_processes_verified_absent": [
+    31842,
+    97727,
+    97749,
+    98074
+  ],
+  "new_workflow_status": {
+    "status": "running",
+    "step": "validation",
+    "started_at": "2026-09-13T15:18:52.940569+00:00",
+    "original_job_stopped": true,
+    "plan": "/Volumes/ARKBPhaseC/plans/browsecomp-plus-chunks-v1",
+    "pid": 4140,
+    "updated_at": "2026-09-13T15:22:32.841023+00:00"
+  },
+  "complete_cache_backup_sha256": "16bbcc3d1d7af69ed1dea7679288606e1e801cbdc51881b6b4c98ca66d3f7ebe",
+  "full_plan_sha256": "5f439c96bd462ab0ab16861b8545650d6807b8306584c58dff85fd18bf6060b4",
+  "phase_c_complete": false,
+  "agentic_started": false
+}

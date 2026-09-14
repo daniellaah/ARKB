@@ -1,0 +1,51 @@
+{
+  "processes": {
+    "31842": {
+      "ppid": 1,
+      "state": "S",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python -u /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/resume_phase_c_prepared_once.py --storage /Volumes/ARKBPhaseC --original-recovery /Volumes/ARKBPhaseC/recovery-20260912T0420 --output /Volumes/ARKBPhaseC/preparation-20260912T0512 --original-parent-pid 28840 --original-child-pid 28843 --original-job com.arkb.phase-c.recovery-20260912-0420"
+    },
+    "97727": {
+      "ppid": 31842,
+      "state": "S",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python -u /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/complete_phase_c_validation.py --storage /Volumes/ARKBPhaseC --qdrant-url http://127.0.0.1:6340 --resume"
+    },
+    "97749": {
+      "ppid": 97727,
+      "state": "S",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/validate_phase_c.py --dataset /Volumes/ARKBPhaseC/data/browsecomp-plus --output /Volumes/ARKBPhaseC/validation/browsecomp-plus --reuse-cache /Volumes/ARKBPhaseC/cache/browsecomp-plus/index.sqlite --qdrant-url http://127.0.0.1:6340"
+    },
+    "98074": {
+      "ppid": 97749,
+      "state": "R",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python /Volumes/ARKBPhaseC/validation/browsecomp-plus/validate_phase_c.py --execute --dataset /Volumes/ARKBPhaseC/data/browsecomp-plus --output /Volumes/ARKBPhaseC/validation/browsecomp-plus --qdrant-url http://127.0.0.1:6340"
+    }
+  },
+  "paused_processes": {
+    "31842": {
+      "ppid": 1,
+      "state": "S",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python -u /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/resume_phase_c_prepared_once.py --storage /Volumes/ARKBPhaseC --original-recovery /Volumes/ARKBPhaseC/recovery-20260912T0420 --output /Volumes/ARKBPhaseC/preparation-20260912T0512 --original-parent-pid 28840 --original-child-pid 28843 --original-job com.arkb.phase-c.recovery-20260912-0420"
+    },
+    "97727": {
+      "ppid": 31842,
+      "state": "S",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python -u /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/complete_phase_c_validation.py --storage /Volumes/ARKBPhaseC --qdrant-url http://127.0.0.1:6340 --resume"
+    },
+    "97749": {
+      "ppid": 97727,
+      "state": "S",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python /Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/validate_phase_c.py --dataset /Volumes/ARKBPhaseC/data/browsecomp-plus --output /Volumes/ARKBPhaseC/validation/browsecomp-plus --reuse-cache /Volumes/ARKBPhaseC/cache/browsecomp-plus/index.sqlite --qdrant-url http://127.0.0.1:6340"
+    },
+    "98074": {
+      "ppid": 97749,
+      "state": "T",
+      "command": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python /Volumes/ARKBPhaseC/validation/browsecomp-plus/validate_phase_c.py --execute --dataset /Volumes/ARKBPhaseC/data/browsecomp-plus --output /Volumes/ARKBPhaseC/validation/browsecomp-plus --qdrant-url http://127.0.0.1:6340"
+    }
+  },
+  "original_candidate_builds": 0,
+  "original_retrieval_captures": 0,
+  "plan_sha256": "5f439c96bd462ab0ab16861b8545650d6807b8306584c58dff85fd18bf6060b4",
+  "audit_sha256": "18608d91cea7360a6cfc27ea8e316cdcc518cd99a62f4d142f6b22aebac95683",
+  "checked_at": "2026-09-13T15:18:53.076563+00:00"
+}

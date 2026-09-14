@@ -1,0 +1,65 @@
+[
+  {
+    "dataset": "browsecomp-plus",
+    "scope": "browsecomp-plus",
+    "documents": 100195,
+    "bytes": 3247637161,
+    "seconds": 54.232221458805725
+  },
+  {
+    "dataset": "fiqa",
+    "scope": "fiqa",
+    "documents": 57600,
+    "bytes": 44276480,
+    "seconds": 18.48887995793484
+  },
+  {
+    "dataset": "musique",
+    "scope": "41fdb57fdbf8be92bb2a8b06bb52b2df8ca3c28af34ad924ad3f6694a7c6dc60",
+    "documents": 20,
+    "bytes": 9017,
+    "seconds": 0.013329916168004274
+  },
+  {
+    "dataset": "musique",
+    "scope": "962f2ff66fc4341a457694e82cf311226fa697a4d4d970ebbb78cde9d204fb39",
+    "documents": 20,
+    "bytes": 11031,
+    "seconds": 0.007520625134930015
+  },
+  {
+    "dataset": "musique",
+    "scope": "ceb2125cd0915059928f4f178378a2edc3046aa37afc62bbb97c5dbd901b5633",
+    "documents": 20,
+    "bytes": 6252,
+    "seconds": 0.0070618330501019955
+  },
+  {
+    "dataset": "musique",
+    "scope": "dac6811e265f4ebe59c373e02bcc5a1ed43782599f9e4b115994d8c35ede24df",
+    "documents": 20,
+    "bytes": 8974,
+    "seconds": 0.007057124981656671
+  },
+  {
+    "dataset": "musique",
+    "scope": "e3b1ae4328335e4c7f821a22807fca788cfdb68c55e0b766b01f4b9a6b02b7ba",
+    "documents": 20,
+    "bytes": 7381,
+    "seconds": 0.006815125001594424
+  },
+  {
+    "dataset": "musique",
+    "scope": "ff778af9eeef925c355985f0cdb5b30dc4261b0fca79618a1bd0026ce3fa6568",
+    "documents": 20,
+    "bytes": 7641,
+    "seconds": 0.006153875030577183
+  },
+  {
+    "dataset": "nfcorpus",
+    "scope": "nfcorpus",
+    "documents": 3633,
+    "bytes": 5446688,
+    "seconds": 1.098517166916281
+  }
+]

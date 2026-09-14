@@ -1,0 +1,378 @@
+{
+  "elapsed_seconds": 9.516696445643902e-05,
+  "error": null,
+  "result_sha256": "af4a0c48a2f20c711ab0124c072d5eee8d84b0ef22a7bfbda793b0025f2e3cbe",
+  "hits": 0,
+  "profile_by_self": [
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'get' of 'dict' objects>",
+      "calls": 1,
+      "self_seconds": 1.9334e-05,
+      "cumulative_seconds": 1.9334e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+      "calls": 1,
+      "self_seconds": 1.6083000000000002e-05,
+      "cumulative_seconds": 1.6083000000000002e-05
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/bm25.py",
+      "line": 62,
+      "function": "search",
+      "calls": 1,
+      "self_seconds": 1.3208000000000001e-05,
+      "cumulative_seconds": 5.9666e-05
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 109,
+      "function": "validate_request",
+      "calls": 1,
+      "self_seconds": 6.167e-06,
+      "cumulative_seconds": 7.125e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'findall' of 're.Pattern' objects>",
+      "calls": 1,
+      "self_seconds": 2.8330000000000002e-06,
+      "cumulative_seconds": 2.8330000000000002e-06
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/re/__init__.py",
+      "line": 270,
+      "function": "findall",
+      "calls": 1,
+      "self_seconds": 2.667e-06,
+      "cumulative_seconds": 7.792000000000001e-06
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/bm25.py",
+      "line": 20,
+      "function": "_tokens",
+      "calls": 1,
+      "self_seconds": 2.5e-06,
+      "cumulative_seconds": 1.1083e-05
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 88,
+      "function": "__post_init__",
+      "calls": 1,
+      "self_seconds": 2.335e-06,
+      "cumulative_seconds": 4.542e-06
+    },
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/profile_tool_overhead.py",
+      "line": 65,
+      "function": "<lambda>",
+      "calls": 1,
+      "self_seconds": 2.334e-06,
+      "cumulative_seconds": 6.2e-05
+    },
+    {
+      "file": "<string>",
+      "line": 2,
+      "function": "__init__",
+      "calls": 1,
+      "self_seconds": 1.916e-06,
+      "cumulative_seconds": 6.458000000000001e-06
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/re/__init__.py",
+      "line": 330,
+      "function": "_compile",
+      "calls": 1,
+      "self_seconds": 1.4170000000000002e-06,
+      "cumulative_seconds": 2.2920000000000002e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.isinstance>",
+      "calls": 6,
+      "self_seconds": 1.209e-06,
+      "cumulative_seconds": 1.209e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sorted>",
+      "calls": 2,
+      "self_seconds": 1.2080000000000001e-06,
+      "cumulative_seconds": 1.2080000000000001e-06
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 97,
+      "function": "_text",
+      "calls": 3,
+      "self_seconds": 8.74e-07,
+      "cumulative_seconds": 1.333e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.any>",
+      "calls": 1,
+      "self_seconds": 7.08e-07,
+      "cumulative_seconds": 8.33e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'strip' of 'str' objects>",
+      "calls": 4,
+      "self_seconds": 7.070000000000001e-07,
+      "cumulative_seconds": 7.070000000000001e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method math.log1p>",
+      "calls": 1,
+      "self_seconds": 6.660000000000001e-07,
+      "cumulative_seconds": 6.660000000000001e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.len>",
+      "calls": 3,
+      "self_seconds": 4.59e-07,
+      "cumulative_seconds": 4.59e-07
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 116,
+      "function": "validate_options",
+      "calls": 1,
+      "self_seconds": 4.1700000000000004e-07,
+      "cumulative_seconds": 4.1700000000000004e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method unicodedata.normalize>",
+      "calls": 1,
+      "self_seconds": 4.16e-07,
+      "cumulative_seconds": 4.16e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'casefold' of 'str' objects>",
+      "calls": 1,
+      "self_seconds": 3.75e-07,
+      "cumulative_seconds": 3.75e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'items' of 'dict' objects>",
+      "calls": 1,
+      "self_seconds": 1.2500000000000002e-07,
+      "cumulative_seconds": 1.2500000000000002e-07
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 93,
+      "function": "<genexpr>",
+      "calls": 1,
+      "self_seconds": 1.2500000000000002e-07,
+      "cumulative_seconds": 1.2500000000000002e-07
+    }
+  ],
+  "profile_by_cumulative": [
+    {
+      "file": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/experiments/profile_tool_overhead.py",
+      "line": 65,
+      "function": "<lambda>",
+      "calls": 1,
+      "self_seconds": 2.334e-06,
+      "cumulative_seconds": 6.2e-05
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/bm25.py",
+      "line": 62,
+      "function": "search",
+      "calls": 1,
+      "self_seconds": 1.3208000000000001e-05,
+      "cumulative_seconds": 5.9666e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'get' of 'dict' objects>",
+      "calls": 1,
+      "self_seconds": 1.9334e-05,
+      "cumulative_seconds": 1.9334e-05
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'disable' of '_lsprof.Profiler' objects>",
+      "calls": 1,
+      "self_seconds": 1.6083000000000002e-05,
+      "cumulative_seconds": 1.6083000000000002e-05
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/bm25.py",
+      "line": 20,
+      "function": "_tokens",
+      "calls": 1,
+      "self_seconds": 2.5e-06,
+      "cumulative_seconds": 1.1083e-05
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/re/__init__.py",
+      "line": 270,
+      "function": "findall",
+      "calls": 1,
+      "self_seconds": 2.667e-06,
+      "cumulative_seconds": 7.792000000000001e-06
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 109,
+      "function": "validate_request",
+      "calls": 1,
+      "self_seconds": 6.167e-06,
+      "cumulative_seconds": 7.125e-06
+    },
+    {
+      "file": "<string>",
+      "line": 2,
+      "function": "__init__",
+      "calls": 1,
+      "self_seconds": 1.916e-06,
+      "cumulative_seconds": 6.458000000000001e-06
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 88,
+      "function": "__post_init__",
+      "calls": 1,
+      "self_seconds": 2.335e-06,
+      "cumulative_seconds": 4.542e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'findall' of 're.Pattern' objects>",
+      "calls": 1,
+      "self_seconds": 2.8330000000000002e-06,
+      "cumulative_seconds": 2.8330000000000002e-06
+    },
+    {
+      "file": "/Users/daboluo/.local/share/uv/python/cpython-3.13-macos-aarch64-none/lib/python3.13/re/__init__.py",
+      "line": 330,
+      "function": "_compile",
+      "calls": 1,
+      "self_seconds": 1.4170000000000002e-06,
+      "cumulative_seconds": 2.2920000000000002e-06
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 97,
+      "function": "_text",
+      "calls": 3,
+      "self_seconds": 8.74e-07,
+      "cumulative_seconds": 1.333e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.isinstance>",
+      "calls": 6,
+      "self_seconds": 1.209e-06,
+      "cumulative_seconds": 1.209e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.sorted>",
+      "calls": 2,
+      "self_seconds": 1.2080000000000001e-06,
+      "cumulative_seconds": 1.2080000000000001e-06
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.any>",
+      "calls": 1,
+      "self_seconds": 7.08e-07,
+      "cumulative_seconds": 8.33e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'strip' of 'str' objects>",
+      "calls": 4,
+      "self_seconds": 7.070000000000001e-07,
+      "cumulative_seconds": 7.070000000000001e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method math.log1p>",
+      "calls": 1,
+      "self_seconds": 6.660000000000001e-07,
+      "cumulative_seconds": 6.660000000000001e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method builtins.len>",
+      "calls": 3,
+      "self_seconds": 4.59e-07,
+      "cumulative_seconds": 4.59e-07
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 116,
+      "function": "validate_options",
+      "calls": 1,
+      "self_seconds": 4.1700000000000004e-07,
+      "cumulative_seconds": 4.1700000000000004e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<built-in method unicodedata.normalize>",
+      "calls": 1,
+      "self_seconds": 4.16e-07,
+      "cumulative_seconds": 4.16e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'casefold' of 'str' objects>",
+      "calls": 1,
+      "self_seconds": 3.75e-07,
+      "cumulative_seconds": 3.75e-07
+    },
+    {
+      "file": "~",
+      "line": 0,
+      "function": "<method 'items' of 'dict' objects>",
+      "calls": 1,
+      "self_seconds": 1.2500000000000002e-07,
+      "cumulative_seconds": 1.2500000000000002e-07
+    },
+    {
+      "file": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1/measured-source/src/arkb/retrieval/models.py",
+      "line": 93,
+      "function": "<genexpr>",
+      "calls": 1,
+      "self_seconds": 1.2500000000000002e-07,
+      "cumulative_seconds": 1.2500000000000002e-07
+    }
+  ]
+}

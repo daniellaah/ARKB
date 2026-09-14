@@ -2,6 +2,7 @@
 
 from collections.abc import Iterator
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 from arkb.knowledge.chunking import _sections, whole_note_chunks
@@ -80,10 +81,25 @@ class DocumentAccess:
     def _paths(self, source: str | None = None) -> Iterator[Path]:
         if source is not None:
             _require_text(source, 'source')
-        for path in sorted(self.directory.iterdir()):
-            if (path.suffix == '.md' and (source is None or path.name == source)
-                    and path.resolve().is_relative_to(self.directory) and path.is_file()):
+            # A source selector addresses one flat filename, never a caller path.
+            with os.scandir(self.directory):
+                pass  # Preserve missing-directory and non-directory failures.
+            if Path(source).name != source or Path(source).suffix != '.md':
+                return
+            path = self.directory / source
+            if path.resolve().is_relative_to(self.directory) and path.is_file():
                 yield path
+            return
+        # DirEntry avoids resolving every ancestor and constructing/sorting
+        # 100,000 Path objects. Resolve symlinks explicitly to retain confinement.
+        with os.scandir(self.directory) as scan:
+            entries = sorted((e for e in scan if e.name.endswith('.md') and e.name != '.md'),
+                             key=lambda e: e.name)
+        for entry in entries:
+            if entry.is_file():
+                path = Path(entry.path)
+                if not path.is_symlink() or path.resolve().is_relative_to(self.directory):
+                    yield path
 
     def records(self, *, source: str | None = None) -> Iterator[ChunkRecord]:
         """Yield current complete bodies in filename order, filtering before I/O.

@@ -1,0 +1,31 @@
+{
+  "original_plan_sha256": "851e49dcac0f2fc28bf368dc69b3ca831c6838892a6a10c8486b90ce1263ef7c",
+  "script_sha256": "a61ed6341e41f7bccedb6442ece2544c477bd2df5f0bbeda3b304a1350e56cd8",
+  "source_files": {
+    "src/arkb/knowledge/chunking.py": "914759b34a4be9eda7de5033869cfdc2331f75592f27b1a42c759a7052219e5a",
+    "src/arkb/knowledge/documents.py": "15c756fb1c296e6c3824a2e724706ba8e3c6fae84f6521fd0f4b9283ed84be33",
+    "src/arkb/knowledge/embeddings.py": "703b427358631dfc5285ca4e8494a20a885e84f8538080097a4abfd1bfd3863a",
+    "src/arkb/knowledge/models.py": "3fdec6de8e3902fe9509d49caf9aae51c0b933aaa84e68446b80216ac2b9e6a8"
+  },
+  "sample_sha256": "f13987d1ef9b631549dc7e42326394c4c2348bc2a412bd463c6d7ca23c967d70",
+  "status": "completed",
+  "started_at": "2026-09-13T15:02:16.518831+00:00",
+  "total_documents": 26,
+  "completed_documents": 26,
+  "workers": 8,
+  "original_chunker_fallback_documents": 0,
+  "elapsed_seconds": 0.40163270803168416,
+  "schema": "arkb-recovered-chunks-v1",
+  "scope": "sample",
+  "documents": 26,
+  "chunks": 2096,
+  "all_document_chunk_hashes_match": true,
+  "all_embedding_inputs_match": true,
+  "model_calls": 0,
+  "index_writes": 0,
+  "original_plan": "/Volumes/ARKBPhaseC/plans/browsecomp-plus-v1",
+  "dataset": "/Volumes/ARKBPhaseC/data/browsecomp-plus",
+  "dataset_manifest_sha256": "25cb4f6cd4e79a17b0ee28eab59b3183ceb2c5af73e9e25442b874b7b119f4cd",
+  "tokenizer": "9649b4c601a95320aea1c07d47068b30e822f903b494e6074f50af8dcfa17149",
+  "document_plans_sha256": "291c300be57e2922126e947c83e90ae9d0b57ee555a5e5040e309019bd399d40"
+}

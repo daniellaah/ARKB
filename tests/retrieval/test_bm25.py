@@ -55,6 +55,46 @@ def test_ties_are_stable_across_corpus_order_and_invalid_inputs_fail():
             BM25Retriever(corpus).search('same', **options)
 
 
+def test_top_k_matches_reference_full_sort_with_dense_ties_and_filters():
+    import math
+    from collections import Counter
+    from arkb.retrieval.bm25 import BM25Retriever, _tokens
+    corpus = records(*(['same same rare', 'same', 'same padding', 'other'] * 40))
+    for ordered in (corpus, list(reversed(corpus))):
+        retriever = BM25Retriever(ordered)
+        frequencies = [Counter(_tokens(r.chunk.title+'\n\n'+r.chunk.content)) for r in ordered]
+        lengths = [sum(f.values()) for f in frequencies]
+        average = sum(lengths) / len(lengths)
+        for query in ('same', 'rare same', 'other same padding', 'absent', 'same same'):
+            for source in (None, '117.md', 'missing.md'):
+                scores = {}
+                for term in sorted(set(_tokens(query))):
+                    df = sum(term in f for f in frequencies)
+                    idf = math.log1p((len(ordered)-df+.5)/(df+.5))
+                    for i, f in enumerate(frequencies):
+                        if term not in f or (source is not None and ordered[i].chunk.source != source):
+                            continue
+                        norm = 1.2 * (1-.75+.75*lengths[i]/average)
+                        scores[i] = scores.get(i, 0.) + idf*f[term]*2.2/(f[term]+norm)
+                ranked = sorted(scores, key=lambda i: (-scores[i], ordered[i].document_id, ordered[i].chunk_id))
+                for k in (1, 5, 20, 200):
+                    actual = retriever.search(query, top_k=k, filters={'source': source} if source else None)
+                    assert [(h.source_id, h.chunk_id, h.score) for h in actual.results] == [
+                        (ordered[i].document_id, ordered[i].chunk_id, scores[i]) for i in ranked[:k]]
+
+
+def test_query_hashes_only_returned_evidence_after_preparation(monkeypatch):
+    import arkb.knowledge.models as models
+    from arkb.retrieval.bm25 import BM25Retriever
+    from unittest.mock import Mock
+    retriever = BM25Retriever(records(*(['same'] * 500)))
+    digest = Mock(wraps=models._digest)
+    monkeypatch.setattr(models, '_digest', digest)
+    assert len(retriever.search('same', top_k=5).results) == 5
+    # Full candidate scoring/tie-breaking must not rehash all 500 records.
+    assert digest.call_count < 100
+
+
 def test_sqlite_baseline_uses_published_semantic_chunks_without_models_or_vector_reads(tmp_path, qdrant, qdrant_config):
     from unittest.mock import Mock
     from ollama import Client, EmbedResponse

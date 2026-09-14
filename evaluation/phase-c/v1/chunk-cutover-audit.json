@@ -1,0 +1,53 @@
+{
+  "status": "passed",
+  "checks": [
+    {
+      "case": "plan_mismatch",
+      "status": "passed",
+      "events": []
+    },
+    {
+      "case": "already_advanced",
+      "status": "passed",
+      "events": []
+    },
+    {
+      "case": "pid_changed",
+      "status": "passed",
+      "events": []
+    },
+    {
+      "case": "advanced_when_paused",
+      "status": "passed",
+      "events": [
+        "pause",
+        "resume"
+      ]
+    },
+    {
+      "case": "incomplete_cache_backup",
+      "status": "passed",
+      "events": [
+        "pause",
+        "bootout"
+      ]
+    },
+    {
+      "case": "normal_cutover",
+      "status": "passed",
+      "events": [
+        "pause",
+        "bootout",
+        "use_phase_c_chunks.py",
+        "replay_phase_c_validation.py",
+        "finalize_phase_c.py"
+      ]
+    }
+  ],
+  "real_process_mutations": 0,
+  "real_model_calls": 0,
+  "real_retrieval_calls": 0,
+  "production_writes": 0,
+  "workflow_sha256": "f2b71dfce8a8e5049cecb98bbc7cdbc4658f6738cf0f4f083a0db93f34fa1448",
+  "audit_sha256": "625f76d7ec9ada0a1d89633cacfc3312a159ef03c27d39504630f870cbb03dc6"
+}
