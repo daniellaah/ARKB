@@ -1,0 +1,390 @@
+{
+  "checked_at": "2026-09-14T07:19:48.575548+00:00",
+  "status": "passed_with_auxiliary_archive_limitation",
+  "protocol_sha256": "8c3eb9ca245fd7912630b7e4d0e6900120a0b854c14d42dbd9c85856cbceeeac",
+  "source_files_verified": 96,
+  "attempts": 98,
+  "trace_checks": 1211,
+  "provider_requests": 435,
+  "tool_calls": 384,
+  "valid_tool_calls": 374,
+  "input_errors": 10,
+  "operational_failures": 0,
+  "final_failure_categories": {
+    "output_token_limit": 1,
+    "invalid_final_reference": 2
+  },
+  "inference_seconds": 1593.156733667478,
+  "setup_seconds": 639.2658422896639,
+  "worker_wall_seconds": 2402.134677,
+  "retained_scope_checks": [
+    {
+      "scope": "browsecomp-plus",
+      "dataset": "browsecomp-plus",
+      "calls": 10,
+      "sha256": "b9867b3f39b544a96f669b196b7eccb488b95f8efe58a58442ae74dc81ec4293"
+    },
+    {
+      "scope": "fiqa",
+      "dataset": "fiqa",
+      "calls": 10,
+      "sha256": "2d8d4717f7da42e5e315176e9e2dd35cd0ac3ba324cc51d93f748d161511a3a0"
+    },
+    {
+      "scope": "nfcorpus",
+      "dataset": "nfcorpus",
+      "calls": 10,
+      "sha256": "cbd3a6e40926044fdcd78e5cf0b2937d5c9c36d2c90e3d5e99553fabab062786"
+    },
+    {
+      "scope": "dac6811e265f4ebe59c373e02bcc5a1ed43782599f9e4b115994d8c35ede24df",
+      "dataset": "musique",
+      "calls": 10,
+      "sha256": "1300ef0f454ba886af630c74990bb4ff9e7a50e3afa35c082f4f78d93864537c"
+    },
+    {
+      "scope": "ceb2125cd0915059928f4f178378a2edc3046aa37afc62bbb97c5dbd901b5633",
+      "dataset": "musique",
+      "calls": 10,
+      "sha256": "f2cc601fe671a808baf74487089b06e58fdbfcbe5e9258984ee234602af0223a"
+    },
+    {
+      "scope": "e3b1ae4328335e4c7f821a22807fca788cfdb68c55e0b766b01f4b9a6b02b7ba",
+      "dataset": "musique",
+      "calls": 10,
+      "sha256": "f4699b698890d82157b9ef71399c63bc15845ee89fa80cc3419ac52d83263fc5"
+    },
+    {
+      "scope": "ff778af9eeef925c355985f0cdb5b30dc4261b0fca79618a1bd0026ce3fa6568",
+      "dataset": "musique",
+      "calls": 10,
+      "sha256": "f04d1ab454d0a46fc59f0977dba6fa432f65ebf1062c6da07864d6b990395884"
+    },
+    {
+      "scope": "962f2ff66fc4341a457694e82cf311226fa697a4d4d970ebbb78cde9d204fb39",
+      "dataset": "musique",
+      "calls": 10,
+      "sha256": "a5dc61c91c0e7fd3aed0c8800940de47d0f014dbd32524862a14edefa4411b3c"
+    },
+    {
+      "scope": "41fdb57fdbf8be92bb2a8b06bb52b2df8ca3c28af34ad924ad3f6694a7c6dc60",
+      "dataset": "musique",
+      "calls": 10,
+      "sha256": "58985869e0884cc6764fbcd2bf7dd91511887e1708b3d7ce479ff473404fd9fb"
+    }
+  ],
+  "scope_preparations": 45,
+  "retained_scope_fixture_calls": 90,
+  "groups": [
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "match",
+      "calls": 28,
+      "valid_calls": 28,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 7.407486959127709,
+      "seconds_mean": 5.103914491167026,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "read",
+      "calls": 1,
+      "valid_calls": 0,
+      "input_errors": 1,
+      "unexpected_errors": 0,
+      "timely_completion_rate": null,
+      "seconds_p95": null,
+      "seconds_mean": null,
+      "error_codes": {
+        "source_unavailable": 1
+      },
+      "passed": false
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "search:bm25",
+      "calls": 14,
+      "valid_calls": 14,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 1.8062111251056194,
+      "seconds_mean": 0.7246361041241991,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "search:hybrid",
+      "calls": 24,
+      "valid_calls": 24,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 10.189281207975,
+      "seconds_mean": 2.361165199719835,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "search:semantic",
+      "calls": 30,
+      "valid_calls": 30,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 2.8969515000935644,
+      "seconds_mean": 0.6112360846716911,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "finish",
+      "calls": 9,
+      "valid_calls": 9,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.004421749850735068,
+      "seconds_mean": 0.0023077315288699335,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "match",
+      "calls": 9,
+      "valid_calls": 9,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 1.403485167073086,
+      "seconds_mean": 1.0463827591027237,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "read",
+      "calls": 4,
+      "valid_calls": 3,
+      "input_errors": 1,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.0010693329386413097,
+      "seconds_mean": 0.0009350693629433712,
+      "error_codes": {
+        "source_unavailable": 1
+      },
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "search:bm25",
+      "calls": 2,
+      "valid_calls": 2,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.030537375016137958,
+      "seconds_mean": 0.0304698544787243,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "search:hybrid",
+      "calls": 4,
+      "valid_calls": 4,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.18027908401563764,
+      "seconds_mean": 0.15344982297392562,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "search:semantic",
+      "calls": 6,
+      "valid_calls": 6,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.1980991659220308,
+      "seconds_mean": 0.14467740963057926,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "musique",
+      "tool": "finish",
+      "calls": 10,
+      "valid_calls": 10,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.007729999953880906,
+      "seconds_mean": 0.0019105165498331188,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "musique",
+      "tool": "match",
+      "calls": 37,
+      "valid_calls": 37,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.19248616602271795,
+      "seconds_mean": 0.012337176727030325,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "musique",
+      "tool": "read",
+      "calls": 46,
+      "valid_calls": 38,
+      "input_errors": 8,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.001212917035445571,
+      "seconds_mean": 0.0008123201367102171,
+      "error_codes": {
+        "source_unavailable": 2,
+        "invalid_reference": 5,
+        "invalid_arguments": 1
+      },
+      "passed": true
+    },
+    {
+      "dataset": "musique",
+      "tool": "search:bm25",
+      "calls": 23,
+      "valid_calls": 23,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.0016462919302284718,
+      "seconds_mean": 0.0011630887165665627,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "musique",
+      "tool": "search:hybrid",
+      "calls": 33,
+      "valid_calls": 33,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.1571113329846412,
+      "seconds_mean": 0.12521115033605107,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "musique",
+      "tool": "search:semantic",
+      "calls": 47,
+      "valid_calls": 47,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.14194566709920764,
+      "seconds_mean": 0.12380024553474753,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "finish",
+      "calls": 3,
+      "valid_calls": 3,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.002205624943599105,
+      "seconds_mean": 0.0016530693198243778,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "match",
+      "calls": 5,
+      "valid_calls": 5,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.074423624901101,
+      "seconds_mean": 0.06069964994676411,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "read",
+      "calls": 30,
+      "valid_calls": 30,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.001776041928678751,
+      "seconds_mean": 0.0008563541962454716,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "search:bm25",
+      "calls": 5,
+      "valid_calls": 5,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.010775375179946423,
+      "seconds_mean": 0.00703613362275064,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "search:hybrid",
+      "calls": 7,
+      "valid_calls": 7,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.13532783300615847,
+      "seconds_mean": 0.12275219043450696,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "search:semantic",
+      "calls": 7,
+      "valid_calls": 7,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.18273233296349645,
+      "seconds_mean": 0.14593954154822444,
+      "error_codes": {},
+      "passed": true
+    }
+  ],
+  "auxiliary_archive_limitation": "The v3 runner used scope hash plus PID for fixture artifact names. Repeated MuSiQue scope preparations overwrote earlier auxiliary check artifacts. Nine final scope artifacts (90 calls) remain independently verifiable. Earlier checks passed according to the frozen stop-on-failure control flow, but their raw timings cannot be independently replayed. All 98 measured attempts and 435 provider requests retain immutable journals. Future runner names include setup sequence; frozen v3 remains unchanged.",
+  "quality_status": "not scored; independent human review pending",
+  "core_dispatch_authorized": false
+}

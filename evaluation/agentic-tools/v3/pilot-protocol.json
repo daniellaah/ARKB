@@ -1,0 +1,121 @@
+{
+  "schema": "agentic-tools-v1-executable-pilot",
+  "created_at": "2026-09-14T06:11:39.888196+00:00",
+  "phase": "pilot",
+  "project_root": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases",
+  "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3",
+  "public_dir": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/v3",
+  "measured_source": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3/measured-source",
+  "models": {
+    "chat": {
+      "name": "qwen3.5:4b",
+      "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen35",
+        "families": [
+          "qwen35"
+        ],
+        "parameter_size": "4.7B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 262144,
+        "embedding_length": 2560
+      },
+      "definition_sha256": "5ba7f5030d06410307478b35009001fc1890217d94f1df510b0d53578e19a137",
+      "template_sha256": "b507b9c2f6ca642bffcd06665ea7c91f235fd32daeefdf875a0f938db05fb315",
+      "parameters": "presence_penalty               1.5\ntemperature                    1\ntop_k                          20\ntop_p                          0.95"
+    },
+    "embedding": {
+      "name": "qwen3-embedding:0.6b",
+      "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+      "details": {
+        "parent_model": "/Users/ollama/.ollama/models/blobs/sha256-06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "595.78M",
+        "quantization_level": "Q8_0",
+        "context_length": 32768,
+        "embedding_length": 1024
+      },
+      "definition_sha256": "8bfa6065d608042de96d74d7a857dd1651bd849ea149fe2b2429ebedff769ee2",
+      "template_sha256": "87a2728cb8dc9fe424d624542f6060ec05a1d285ebbec578bb078900e33396b5",
+      "parameters": null
+    },
+    "judge": {
+      "name": "qwen3:32b-q8_0",
+      "digest": "a46beca077e59287b7c80d6ce7354f0906b1c78ae90e67e6a4c02487e38f529e",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "32.8B",
+        "quantization_level": "Q8_0",
+        "context_length": 40960,
+        "embedding_length": 5120
+      },
+      "definition_sha256": "4d15c71a38e7188fd0927b870920e17737ffc22697d35ca9cbe584803fb81105",
+      "template_sha256": "ae370d884f108d16e7cc8fd5259ebc5773a0afa6e078b11f4ed7e39a27e0dfc4",
+      "parameters": "repeat_penalty                 1\nstop                           \"<|im_start|>\"\nstop                           \"<|im_end|>\"\ntemperature                    0.6\ntop_k                          20\ntop_p                          0.95"
+    }
+  },
+  "ollama_version": {
+    "version": "0.33.2"
+  },
+  "qdrant_url": "http://127.0.0.1:6340",
+  "tokenizer_cache": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.uv-cache/tokenizers",
+  "git_head": "befa4d457c47b07b001f2cb3161a5b414110a394",
+  "plan_sha256": "9f2aa88fce4ef5e7d43ee9287943434c1f152ec554ed90d85d3c038a0fc835d5",
+  "files": {
+    "selection.json": "1d52928b861dec794db7bd9a48c188e605afe09780376952ddd6fce7d57e54eb",
+    "design.json": "f79556e761285bba3c2d394e94fca14bf9484f8cc218ade4f488169ad4b4e9b8",
+    "inputs.json": "6a5311982ce6dd8fe96fb6e5d2fcb052382f6b35bc53a7db48b8e1929a4aabbb",
+    "context-indexes.json": "8e3a0103b666d9a609c58b61dd12e91852541904f3f77cf147b20f310d19086d",
+    "inference/scenarios.json": "531e5d53c7ecfd7d3815926e1a1402ea0eb5053323a31cfa8a0c030e401ee1f7",
+    "pilot-schedule.json": "927dd82632095ddc60f282397a56cbbe1554a001db78960cc6cdd8c8a1d91fe6",
+    "core-schedule.json": "d4b0deb39598c1a44d206742e578089a94911799ffdc6ef25f1630e395b40929",
+    "provider-preflight.json": "02b554af41a6b589aefb03682dc4ff8a22400a5a16706989054afd7529eeb29b",
+    "judge-design.json": "5c27b3fcb588c8d1bd40e67b2c37146572a21084f6202259256548a41e918461",
+    "measured-source-manifest.json": "aca61a62a785ed09f0135f04197410017af43a1c480c73ffeffaa6792a17456d",
+    "dependencies.json": "c7e7c41d3e000a2c22510d7b479e5437b63490c0b430e4392c470e8ff5d98532",
+    "boundary-tests.xml": "06819e01f9a625b8830786cc6ddac82bc385257bdd324af3589217af2168c9c9",
+    "scoring/browsecomp-answers.json": "59ac1c6cad4ade9dba2812d2ca99ffba52cbe56f0c45865ab684499d970a0f8a",
+    "scoring/musique.json": "068d635ee34039c98ef9f8d1710795ab2f5881ccbb05b88c1d43514590e4ecab",
+    "scoring/browsecomp-plus.json": "e0b245bd58df2bfad1a0f65268bf5bd36000c43a5b0be7bbc30beef2a707ab02",
+    "scoring/fiqa.json": "b4ecbb3b5e9c052220e1b096baaf4caf31c22e674b2e1a6f9446e404f096a1ca",
+    "scoring/nfcorpus.json": "97884a67607d31779d766a6615ee4579b6915fa7bda90859afee2b8a236ddda3",
+    "amendment.md": "1dcae609030b279ff224bb87e2d08429d9d16b90ed76f42a62a4b965aeb5d9b8",
+    "parent-pilot-accounting.json": "9e250832b700726ee34a841642bfc5c1f3feb2954989faa87f8e1dae2264fca5",
+    "readiness-policy.json": "df669b71db6efb2a7d9d2a2d3fc1ab528330209d3af6ff1885af19b94eb91746",
+    "repair-verification.json": "e89c62b5e4b5d514d68e8dd09affbc85c0ff0cbd0ea0c5f41779e7a6b2dd2ea6",
+    "preparation-provenance.json": "00be15a629e6759a7fdf529c62bbf0b844e59f6c153a6bc86136e7713db98e8e",
+    "registration-inputs.json": "c37bf5e3f9bc912142da768161dedc68f3118ec6fae70922035ec5faac399763"
+  },
+  "transport": {
+    "kind": "direct local HTTP, strict Ollama ChatResponse parsing",
+    "truncate": false,
+    "shift": false,
+    "timeout_seconds": 330
+  },
+  "primary_denominator": "all attempted trajectories; errors and nonanswers zero; judge failures pending",
+  "pilot_attempts": 98,
+  "core_attempts": 5460,
+  "core_dispatch_authorized": false,
+  "core_gate": "scope fixtures and all 98 pilot traces pass tool readiness; concurrency/repeatability study and justified new core protocol still required",
+  "human_review": "pending independent review; scores provisional until resolved",
+  "snapshot_policy": "reuse Phase C read-only SQLite and Qdrant indexes; MuSiQue prepared once separately",
+  "parent_protocol_sha256": "185bdf30dc47f42b54d5d65ac4bc0c4158686938894c7d8463dfd915a700cc5b",
+  "parent_output": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v2",
+  "inference_lock": "/Volumes/ARKBPhaseC/agentic-tools-v1/inference.lock",
+  "amendment_sha256": "1dcae609030b279ff224bb87e2d08429d9d16b90ed76f42a62a4b965aeb5d9b8",
+  "revision": "tool-repair-pilot-v3",
+  "readiness_policy": "readiness-policy.json",
+  "core_schedule_scope": "historical capacity projection only; replacement core design not selected or authorized",
+  "administrative_stop": "SIGINT/SIGTERM or stop-request.json; finish current trajectory, persist stop, never automatically retry a failed gate"
+}

@@ -8,6 +8,8 @@ import numpy as np
 from arkb.evaluation.external import digest, write_json
 from .contract import ARM_BY_ID, OPTIONS, evidence_sets
 from .selection import attempt_key
+from .records import read_records
+from .readiness import assess
 
 
 def audit_record(row, *, options=OPTIONS, think=True):
@@ -68,6 +70,7 @@ def failure_category(row):
 
 
 def summarize(output):
+    protocol, verified_records = read_records(output, require_complete=False)
     protocol_hash = digest(output / 'protocol.json')
     design = json.loads((output / 'design.json').read_text())
     scheduled = json.loads((output / 'pilot-schedule.json').read_text())
@@ -108,9 +111,12 @@ def summarize(output):
                         'projected_core_artifact_bytes': float(np.mean(sizes)) * counts[(dataset, arm)],
                         'final_statuses': dict(statuses), 'stop_reasons': dict(stops),
                         'model_requests': sum(len((r.get('result') or {}).get('observation', {}).get('models', [])) for r in rows)})
-    complete = len(records) == 98
+    required_attempts = protocol['pilot_attempts']
+    if len(scheduled) != required_attempts:
+        raise ValueError('Pilot schedule differs from registered count.')
+    complete = len(records) == required_attempts
     summary = {'schema': 'agentic-tools-pilot-accounting-v1', 'status': 'complete' if complete else 'partial',
-               'attempts_accounted': len(records), 'attempts_required': 98, 'trace_checks': checks,
+               'attempts_accounted': len(records), 'attempts_required': required_attempts, 'trace_checks': checks,
                'protocol_sha256': protocol_hash, 'analysis_sha256': digest(__file__), 'groups': metrics,
                'projected_core_inference_hours': sum(x['projected_core_seconds'] for x in metrics) / 3600 if complete else None,
                'pilot_artifact_bytes': sum(artifact_bytes.values()),
@@ -124,6 +130,44 @@ def summarize(output):
                'remaining_core_gate': ['technical review of all pilot attempts', 'final core protocol',
                                        'judge calibration or explicit provisional review qualification']}
     write_json(output / 'pilot-accounting.json', summary)
+    if 'readiness-policy.json' in protocol['files']:
+        policy_path = output / 'readiness-policy.json'
+        if digest(policy_path) != protocol['files']['readiness-policy.json']:
+            raise ValueError('Frozen readiness policy changed.')
+        gate = assess(verified_records, json.loads(policy_path.read_text()), complete=complete)
+        scenarios = json.loads((output / 'inference/scenarios.json').read_text())
+        identity = {(r['dataset'], r['id'], r['variant']): r for r in scenarios.values()}
+        required = {identity[r['dataset'], r['id'], r['variant']]['scenario_id']
+                    if r['dataset'] == 'musique' else r['dataset'] for r in scheduled}
+        manifest_path = output / 'scope-readiness-manifest.json'
+        scope_manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+        scopes = []
+        for name, checksum in scope_manifest.items():
+            path = output / 'scope-readiness' / name
+            if path.name != name or digest(path) != checksum:
+                raise ValueError('Scope readiness artifact integrity failure.')
+            scope = json.loads(path.read_text())
+            if scope['protocol_sha256'] != protocol_hash or len(scope['calls']) != len(json.loads(policy_path.read_text())['workload']):
+                raise ValueError('Scope check protocol or workload differs from registration.')
+            scopes.append(scope)
+        gate['required_scopes'] = sorted(required)
+        gate['checked_scopes'] = sorted({s['scope'] for s in scopes})
+        gate['scope_fixtures_passed'] = bool(scopes) and required == set(gate['checked_scopes']) and all(s['status'] == 'passed' for s in scopes)
+        if not gate['scope_fixtures_passed']:
+            gate['status'] = 'failed' if complete else 'pending'
+        gate['protocol_sha256'] = protocol_hash
+        gate['policy_sha256'] = digest(policy_path)
+        write_json(output / 'tool-readiness.json', gate)
+        summary.update(tool_readiness=gate['status'],
+                       cost_estimate_scope='Repaired pilot; the old 5460-attempt schedule is a historical capacity scenario, not the selected replacement design.',
+                       remaining_core_gate=['tool and scope readiness pass', 'measured concurrency and repeatability',
+                                            'justified replacement sample/repetition plan and frozen core protocol',
+                                            'judge calibration and independent review qualification'])
+        write_json(output / 'pilot-accounting.json', summary)
+    if protocol.get('project_core_costs') is False:
+        summary.update(projected_core_inference_hours=None, projected_core_artifact_gib=None,
+                       cost_estimate_scope='Selected development repetitions only; not a core population cost estimator.')
+        write_json(output / 'pilot-accounting.json', summary)
     return summary
 
 

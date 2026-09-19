@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>MKL_NUM_THREADS</key>
+		<string>4</string>
+		<key>OMP_NUM_THREADS</key>
+		<string>4</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>PYTHONDONTWRITEBYTECODE</key>
+		<string>1</string>
+		<key>PYTHONPATH</key>
+		<string>/Volumes/ARKBPhaseC/agentic-tools-v1/repeatability-v1/measured-source/src:/Volumes/ARKBPhaseC/agentic-tools-v1/repeatability-v1/measured-source</string>
+		<key>TOKENIZERS_PARALLELISM</key>
+		<string>false</string>
+	</dict>
+	<key>ExitTimeOut</key>
+	<integer>420</integer>
+	<key>KeepAlive</key>
+	<false/>
+	<key>Label</key>
+	<string>com.arkb.agentic-tools.repeatability-v1</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python</string>
+		<string>-u</string>
+		<string>-m</string>
+		<string>evaluation.agentic_tools.repeatability</string>
+		<string>--output</string>
+		<string>/Volumes/ARKBPhaseC/agentic-tools-v1/repeatability-v1</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Volumes/ARKBPhaseC/agentic-tools-v1/repeatability-v1/error.log</string>
+	<key>StandardOutPath</key>
+	<string>/Volumes/ARKBPhaseC/agentic-tools-v1/repeatability-v1/execution.log</string>
+	<key>WorkingDirectory</key>
+	<string>/Volumes/ARKBPhaseC/agentic-tools-v1/repeatability-v1/measured-source</string>
+</dict>
+</plist>

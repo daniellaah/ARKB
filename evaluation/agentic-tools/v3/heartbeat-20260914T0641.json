@@ -1,0 +1,253 @@
+{
+  "checked_at": "2026-09-14T06:41:13.512240+00:00",
+  "protocol_sha256": "8c3eb9ca245fd7912630b7e4d0e6900120a0b854c14d42dbd9c85856cbceeeac",
+  "completed_verified": 49,
+  "total": 98,
+  "dataset_counts": {
+    "browsecomp-plus": 28,
+    "fiqa": 14,
+    "nfcorpus": 7
+  },
+  "trace_checks": 521,
+  "operational_failures": 0,
+  "execution_failures": [],
+  "model_final_failure_categories": {
+    "output_token_limit": 1,
+    "invalid_final_reference": 1
+  },
+  "groups": [
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "match",
+      "calls": 28,
+      "valid_calls": 28,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 7.407486959127709,
+      "seconds_mean": 5.103914491167026,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "read",
+      "calls": 1,
+      "valid_calls": 0,
+      "input_errors": 1,
+      "unexpected_errors": 0,
+      "timely_completion_rate": null,
+      "seconds_p95": null,
+      "seconds_mean": null,
+      "error_codes": {
+        "source_unavailable": 1
+      },
+      "passed": false
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "search:bm25",
+      "calls": 14,
+      "valid_calls": 14,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 1.8062111251056194,
+      "seconds_mean": 0.7246361041241991,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "search:hybrid",
+      "calls": 24,
+      "valid_calls": 24,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 10.189281207975,
+      "seconds_mean": 2.361165199719835,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "tool": "search:semantic",
+      "calls": 30,
+      "valid_calls": 30,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 2.8969515000935644,
+      "seconds_mean": 0.6112360846716911,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "finish",
+      "calls": 9,
+      "valid_calls": 9,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.004421749850735068,
+      "seconds_mean": 0.0023077315288699335,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "match",
+      "calls": 9,
+      "valid_calls": 9,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 1.403485167073086,
+      "seconds_mean": 1.0463827591027237,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "read",
+      "calls": 4,
+      "valid_calls": 3,
+      "input_errors": 1,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.0010693329386413097,
+      "seconds_mean": 0.0009350693629433712,
+      "error_codes": {
+        "source_unavailable": 1
+      },
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "search:bm25",
+      "calls": 2,
+      "valid_calls": 2,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.030537375016137958,
+      "seconds_mean": 0.0304698544787243,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "search:hybrid",
+      "calls": 4,
+      "valid_calls": 4,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.18027908401563764,
+      "seconds_mean": 0.15344982297392562,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "fiqa",
+      "tool": "search:semantic",
+      "calls": 6,
+      "valid_calls": 6,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.1980991659220308,
+      "seconds_mean": 0.14467740963057926,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "finish",
+      "calls": 3,
+      "valid_calls": 3,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.002205624943599105,
+      "seconds_mean": 0.0016530693198243778,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "match",
+      "calls": 2,
+      "valid_calls": 2,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.074423624901101,
+      "seconds_mean": 0.07238512497860938,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "read",
+      "calls": 8,
+      "valid_calls": 8,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.002625166904181242,
+      "seconds_mean": 0.001063547097146511,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "search:bm25",
+      "calls": 1,
+      "valid_calls": 1,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.001675749896094203,
+      "seconds_mean": 0.001675749896094203,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "search:hybrid",
+      "calls": 2,
+      "valid_calls": 2,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.13091433281078935,
+      "seconds_mean": 0.11132070794701576,
+      "error_codes": {},
+      "passed": true
+    },
+    {
+      "dataset": "nfcorpus",
+      "tool": "search:semantic",
+      "calls": 3,
+      "valid_calls": 3,
+      "input_errors": 0,
+      "unexpected_errors": 0,
+      "timely_completion_rate": 1.0,
+      "seconds_p95": 0.18273233296349645,
+      "seconds_mean": 0.13174374999168018,
+      "error_codes": {},
+      "passed": true
+    }
+  ],
+  "partial": true,
+  "core_dispatch_authorized": false,
+  "source_files_verified": 96,
+  "runtime_processes_verified": {
+    "pipeline": 49664,
+    "runner": 49848,
+    "competing_training_processes": []
+  }
+}

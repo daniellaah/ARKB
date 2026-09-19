@@ -173,8 +173,22 @@ and development diagnostics can proceed within that scope. Formal execution
 must satisfy the revised, recorded gates first. The paused heartbeat must not
 restart the old schedule while those gates are unresolved.
 
-Pending work: detailed tool profiling and correction; executable readiness and
-graceful-stop checks; measured concurrency and variance studies; a justified,
-versioned replacement protocol and full pilot; then new core execution, grading,
-independent review qualification, audits and reporting. This design review does
-not claim those steps are complete or promise a new completion time.
+Tool profiling/repair and executable readiness/graceful-stop checks are now
+implemented. The [v3 pilot amendment](agentic-tool-selection-pilot-amendment-v3.md)
+defines a complete repaired development pilot, with immutable registration before
+inference and resource-aware startup. Its registration and execution state is
+tracked in evaluation/results/agentic-tools-v1/orchestration-status.json.
+
+Update 2026-09-18 UTC: the v3 pilot, the [serving screen](agentic-serving-v1-results.md)
+and the [repeatability study](agentic-repeatability-v1-results.md) are complete and
+audited. The [replacement core v2 protocol](agentic-core-v2-protocol.md) records
+the justified question counts, the repetition roles and estimands, paired
+precision and cost scenarios, the execution and pause policy, exposure of
+development questions and the dispatch gates. Its run directory is prepared with
+pinned inputs; the core-v2 pipeline registers and executes it only when the shared
+lock and GPU are free, then runs accounting, the independent audit, grading and
+analysis.
+
+Pending work: core v2 execution, grading, independent review qualification,
+audits and reporting. Nothing here authorizes the old core schedule or promises a
+completion time.

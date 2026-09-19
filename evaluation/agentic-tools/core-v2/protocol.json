@@ -1,0 +1,464 @@
+{
+  "schema": "agentic-tools-v1-executable-core",
+  "created_at": "2026-09-18T06:21:29.278603+00:00",
+  "phase": "core",
+  "project_root": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases",
+  "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v2",
+  "public_dir": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/core-v2",
+  "measured_source": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v2/measured-source",
+  "models": {
+    "chat": {
+      "name": "qwen3.5:4b",
+      "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen35",
+        "families": [
+          "qwen35"
+        ],
+        "parameter_size": "4.7B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 262144,
+        "embedding_length": 2560
+      },
+      "definition_sha256": "5ba7f5030d06410307478b35009001fc1890217d94f1df510b0d53578e19a137",
+      "template_sha256": "b507b9c2f6ca642bffcd06665ea7c91f235fd32daeefdf875a0f938db05fb315",
+      "parameters": "presence_penalty               1.5\ntemperature                    1\ntop_k                          20\ntop_p                          0.95"
+    },
+    "embedding": {
+      "name": "qwen3-embedding:0.6b",
+      "digest": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+      "details": {
+        "parent_model": "/Users/ollama/.ollama/models/blobs/sha256-06507c7b42688469c4e7298b0a1e16deff06caf291cf0a5b278c308249c3e439",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "595.78M",
+        "quantization_level": "Q8_0",
+        "context_length": 32768,
+        "embedding_length": 1024
+      },
+      "definition_sha256": "8bfa6065d608042de96d74d7a857dd1651bd849ea149fe2b2429ebedff769ee2",
+      "template_sha256": "87a2728cb8dc9fe424d624542f6060ec05a1d285ebbec578bb078900e33396b5",
+      "parameters": null
+    },
+    "judge": {
+      "name": "qwen3:32b-q8_0",
+      "digest": "a46beca077e59287b7c80d6ce7354f0906b1c78ae90e67e6a4c02487e38f529e",
+      "details": {
+        "parent_model": "",
+        "format": "gguf",
+        "family": "qwen3",
+        "families": [
+          "qwen3"
+        ],
+        "parameter_size": "32.8B",
+        "quantization_level": "Q8_0",
+        "context_length": 40960,
+        "embedding_length": 5120
+      },
+      "definition_sha256": "4d15c71a38e7188fd0927b870920e17737ffc22697d35ca9cbe584803fb81105",
+      "template_sha256": "ae370d884f108d16e7cc8fd5259ebc5773a0afa6e078b11f4ed7e39a27e0dfc4",
+      "parameters": "repeat_penalty                 1\nstop                           \"<|im_start|>\"\nstop                           \"<|im_end|>\"\ntemperature                    0.6\ntop_k                          20\ntop_p                          0.95"
+    }
+  },
+  "ollama_version": {
+    "version": "0.33.2"
+  },
+  "qdrant_url": "http://127.0.0.1:6340",
+  "tokenizer_cache": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.uv-cache/tokenizers",
+  "git_head": "befa4d457c47b07b001f2cb3161a5b414110a394",
+  "plan_sha256": "9f2aa88fce4ef5e7d43ee9287943434c1f152ec554ed90d85d3c038a0fc835d5",
+  "transport": {
+    "kind": "direct local HTTP, strict Ollama ChatResponse parsing",
+    "truncate": false,
+    "shift": false,
+    "timeout_seconds": 330
+  },
+  "primary_denominator": "all attempted trajectories; errors and nonanswers zero; judge failures pending",
+  "pilot_attempts": 98,
+  "core_attempts": 3640,
+  "core_dispatch_authorized": true,
+  "human_review": "pending",
+  "snapshot_policy": "reuse Phase C read-only SQLite and Qdrant indexes; MuSiQue prepared once separately",
+  "inference_lock": "/Volumes/ARKBPhaseC/agentic-tools-v1/inference.lock",
+  "readiness_policy": "readiness-policy.json",
+  "revision": "replacement-core-v2",
+  "parent_output": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3",
+  "parent_protocol_sha256": "8c3eb9ca245fd7912630b7e4d0e6900120a0b854c14d42dbd9c85856cbceeeac",
+  "primary_attempts": 3360,
+  "repeat_attempts": 280,
+  "core_gate": "v3 tool readiness passed and audited; serving screen negative; repeatability audited; unchanged inference files; frozen scoring identical to calibration; registered outcome-blind design; regression tests; provider preflight; model, server and dependency identities; free GPU",
+  "core_operational_policy": {
+    "schema": "arkb-core-operational-policy-v1",
+    "concurrency": 1,
+    "serving_basis": "serving-v1 negative client-concurrency screen; qwen35 has one execution slot in Ollama 0.33.2",
+    "tool_outcomes": "timeouts, tool errors, budget stops, invalid finals and nonanswers are measured outcomes retained in every denominator; never rerun, replaced or excluded",
+    "scope_fixtures": "frozen v3 readiness workload runs before the first measured attempt of every scope; a failed fixture pauses the run",
+    "pause_on_execution_failure": true,
+    "pause_on_gpu_competition": true,
+    "max_operational_failures_per_attempt": 3,
+    "window_min_valid_calls": 200,
+    "window_max_operational_rate": 0.01,
+    "review_rule": "operational-review.json lists reviewed attempt keys; reviewed attempts stay in the data, leave the pause rules and restart the rate window",
+    "trajectory_time_cap_hours": 32,
+    "time_cap_rule": "measured trajectory seconds of completed attempts; finish and preserve the current attempt, then pause; extension only by an explicit recorded time-cap-extension.json",
+    "fixed_rag_retrieval": "repeated on every attempt as in pilot v3; no cache",
+    "automatic_retries": false,
+    "resume": "verify all identities, skip immutable completed attempts, account explicitly for any interrupted attempt"
+  },
+  "administrative_stop": "SIGINT/SIGTERM or stop-request.json; finish the current trajectory, persist the stop; review before any explicit resume; never automatically retry",
+  "statistics": {
+    "seed": 20260912,
+    "resamples": 20000,
+    "primary_contrasts": [
+      "A-M",
+      "A-B",
+      "A-S",
+      "A-H"
+    ],
+    "nominal_percentiles": [
+      2.5,
+      97.5
+    ],
+    "primary_adjusted_percentiles": [
+      0.625,
+      99.375
+    ],
+    "minimum_gain": 0.05,
+    "unit": "query; MuSiQue original pair stratified by hop",
+    "primary_repetitions": [
+      0
+    ],
+    "repeat_subset": {
+      "dataset": "browsecomp-plus",
+      "ids": [
+        "960",
+        "293",
+        "582",
+        "706",
+        "353",
+        "605",
+        "720",
+        "236",
+        "887",
+        "364",
+        "562",
+        "234",
+        "595",
+        "987",
+        "596",
+        "105",
+        "984",
+        "788",
+        "775",
+        "638"
+      ],
+      "repetitions": [
+        0,
+        1,
+        2
+      ],
+      "estimand": "between-session variability of answer success and of the four primary paired differences under the identical registered protocol, environment and adjacent scheduling; one-way random-effects decomposition on 20 questions; descriptive only"
+    }
+  },
+  "estimands": {
+    "single_run": "mean single-session outcome of each arm over the registered question distribution, including session variability, on repetition zero of every registered question; paired A-All minus restricted-arm differences on the same questions",
+    "repeat_subset": "within-question between-session variance components on the registered subset; not additional independent questions"
+  },
+  "quality_status": "provisional_pending_independent_human_review",
+  "inference_files_equal_to_v3": {
+    "src/arkb/config.py": "7cd39b42294dd085ff608c2908a7ce179e7839c0ef89ad2e96734b106684c81c",
+    "src/arkb/__init__.py": "7c59091739862daa280f33a33d9f707eb28234472949efc32fe76beaf5d54a9b",
+    "src/arkb/runtime.py": "27f36beda4bd73e58784f84f35821fdfa6baca58db8050263566e78530464c31",
+    "src/arkb/agent/observation.py": "b0cc7604e7b7b9aeff355318c1e7d577b85144355c2092f151e5482088c057b7",
+    "src/arkb/agent/tools.py": "eb3fd67c41d8bacc7a665b904b7b85d60e3afc356dadd4417009852ba5d7f436",
+    "src/arkb/agent/session.py": "fc2a6682a856cf33fa870e02ee9f5ca290dc4adb9ce32b09d850cc0c87cd55c0",
+    "src/arkb/agent/__init__.py": "86f6dab0d9b85672cecb0567bbece9392c202995ce155a696b46ae4d91d69909",
+    "src/arkb/agent/loop.py": "251850a039c9dc414e0c552778c514773832af20780ff419efd001de81ab26c4",
+    "src/arkb/agent/state.py": "960c2e8d7796343a39118f3cf0da28a607e77efd7dca801b901d15ff992bc422",
+    "src/arkb/retrieval/bm25.py": "c953b3ca2d8da842fb0c1802e0a9455e209c99586819e5ed90d3265584ffb771",
+    "src/arkb/retrieval/rerank.py": "490d6123973d7e64e5b78ac065cf421f1025f95d45715076ea1924a3bf952460",
+    "src/arkb/retrieval/semantic.py": "47e60a65ab2ec2b45cc744b7195557570ca7b93a8ef06466a5c4a02a3d65307b",
+    "src/arkb/retrieval/models.py": "822682c84a2918edaf072994e7767b2da0a43b89cfd4a6a8e04810a7dc07a3dd",
+    "src/arkb/retrieval/qwen_rerank.py": "a5a5bffed7c74e3a26f9e0b27ba961c599b3e915d81183efb8fd00b95ad7f333",
+    "src/arkb/retrieval/hybrid.py": "4c68635956179a0eb508dd41e0c0d6e29d1b3a34be796a36d9c1fe02cb5ac7fa",
+    "src/arkb/retrieval/__init__.py": "08fca8a6854643174bae4f3058e6777f01a8b28f49696a2aa3758905f42d0a2a",
+    "src/arkb/retrieval/engine.py": "bb2df8afe2bdb4dd3045d68c1adad8dcd1b87883158781398fad94481cb4b47c",
+    "src/arkb/retrieval/exact.py": "df493e9ecb0371d6c581f911a36f698cf9076e259e91d7b44d548ac6d4c16309",
+    "src/arkb/retrieval/qwen_inputs.py": "d6d8815a1c1a71921175259a38b790d2701b84db9bb32af9824f04a37e4ccbc9",
+    "src/arkb/retrieval/text_cache.py": "39f085d85395685c7431b00a55a826a9a611f01557df6b77d178770ad1c1dba4",
+    "src/arkb/knowledge/chunking.py": "914759b34a4be9eda7de5033869cfdc2331f75592f27b1a42c759a7052219e5a",
+    "src/arkb/knowledge/models.py": "3fdec6de8e3902fe9509d49caf9aae51c0b933aaa84e68446b80216ac2b9e6a8",
+    "src/arkb/knowledge/qdrant.py": "e49e49d8fc59c6d9de7ba6413dda83e9061eb82f34487f485bd1c25e371d5dc8",
+    "src/arkb/knowledge/documents.py": "69ad2a6015fc40d9ad97fc1ffb07162e4f1febf1436857ae8445ef269ba4e456",
+    "src/arkb/knowledge/__init__.py": "4c59985ed6fd4eead38b369da817a47d103c86bf9d83b28481122349f4731913",
+    "src/arkb/knowledge/sqlite.py": "8be35c8bc299bb2ac260fc3053514fcaa30ed97a0ef972cb87f2815b4efa1804",
+    "src/arkb/knowledge/embeddings.py": "703b427358631dfc5285ca4e8494a20a885e84f8538080097a4abfd1bfd3863a",
+    "src/arkb/knowledge/indexing.py": "77e62dfc3fc9562be0b344c111013facf3e6e7b90eeb4835a6f08e768e65acd7",
+    "src/arkb/evaluation/pilot.py": "48fa17a054fe2ed0d0a5c1535a8eee88a3885389130d1971b87ac1d69b37dacb",
+    "src/arkb/evaluation/metrics.py": "2e3f77ef6852516fbd5c6940b44cceb7b37ff410b5475a80a7cc8a3a78bbab93",
+    "src/arkb/evaluation/baselines.py": "a2c6f86bbcb123b81cbcdde97909aa454c35e5585738b34bfb20039e66f57975",
+    "src/arkb/evaluation/reviews.py": "5cea6582b4e64515be9864b82886fc7668e83b3357a960f80a8445cd88f86e03",
+    "src/arkb/evaluation/regression.py": "104b95fe8f8a3310feb8e3d9f6e5e98d4f9df295008b90f2fe2a5f491efc6d8b",
+    "src/arkb/evaluation/reliability.py": "1258bf60ec60a76821496ba95f3f3c5cc9f922d3231253d8deb489d1fb116a11",
+    "src/arkb/evaluation/generation.py": "6e2618c2a5d99cc30c8f8cecb7d1ff8740ebf4871ad953cd7f1d6060a2ab54a5",
+    "src/arkb/evaluation/models.py": "df3d0d5affcc934fe0ab03c736e06dd07dffc7e06ba492e0db5cf285983d09c2",
+    "src/arkb/evaluation/agent_metrics.py": "bf62b575df63fe3deeb653d3d0db2c4edf8fdd537989acb6c2c2bdb5132652ae",
+    "src/arkb/evaluation/source_fusion.py": "24d5330cb4ba537188b3c6a1babef96d05ede596b6835e1d6c6fa68605d47c78",
+    "src/arkb/evaluation/datasets.py": "8d0008470fe3e6e15ce3dac051cd979117daf9cc7f6473ec327e83b2a6ccb5ee",
+    "src/arkb/evaluation/__init__.py": "ed672304ea66b7d921ff7c1ae71a3a167a24ee098f3e832105699c7c0aa3d1df",
+    "src/arkb/evaluation/core.py": "d2d65c9973b59fedf035ca94dd8f8c4cabd8574d37daf799c1ec0e6c0619731b",
+    "src/arkb/evaluation/gates.py": "e1fb776c59a245a8ab467c42c895d491087f197df1e6c21b7099cc4bebfce256",
+    "src/arkb/evaluation/controlled.py": "891ef26849877aef5638deaa79ef83b5da214bf6b73c4b4bf7bb1f66fd7d9d83",
+    "src/arkb/evaluation/comparison.py": "be1c2b417c8ebf6ec14954405c02cd535f6726aa0cdbaed4c20b4099b55f8553",
+    "src/arkb/evaluation/judges.py": "27c4839bab33b0023a1874f1509d345100cfd65cf5ea9d1bf97725b42c8d0114",
+    "src/arkb/evaluation/retrieval.py": "65266504c092256229f409a2f717134e4834b456c22ec40486ec81b0deed6e79",
+    "src/arkb/evaluation/environment.py": "3e4ed736f77232a4128f25d6beba2cd7ea8bb1191da925d30eca14dd1de3c08a",
+    "src/arkb/evaluation/external_agent.py": "a91dbe0a218677d1349c4fd2c562d8d9bfb6928887e987b3770efcfddc730d51",
+    "src/arkb/evaluation/browsecomp.py": "347964196218bbdd0de20c97bf877d2f363783dc664562c80f488eb5bd528b6e",
+    "src/arkb/evaluation/deadline.py": "48911e1d833bab8f0885088c7587ce83cb30f622ff738d42aff6ea5d1bbb0f16",
+    "src/arkb/evaluation/ablation_analysis.py": "7b61258f843f2b075f9d3e79146105e48d361c012722160ef6df1037632457c8",
+    "src/arkb/evaluation/v2.py": "66642b9d307e0cc6384109a9a9af550371171855b7c1f47633c5ce997852ccf1",
+    "src/arkb/evaluation/external.py": "d72cf60b60287870f35a021e5ba327f99713c1e178e9d5eb02f7cf7ab1750e38",
+    "src/arkb/evaluation/runs.py": "c4f0b4fcade05240709353babf5efd9ead963aa151638e4009d86ab29b76d1b6",
+    "src/arkb/evaluation/multihop.py": "b51993eeb3443b48879f8cf2289c3132250624c316d1ec6d4ff3a59e4ef6c962",
+    "src/arkb/evaluation/power.py": "53709f073c18eee052d0c205b5a20605cb020f71d5d39311fe6d8127686fbbe4",
+    "src/arkb/evaluation/calibration.py": "ac15e38e48f33174e636b9da683aeabeff9c5a02a89eea214fa46afbf2547465",
+    "src/arkb/evaluation/model_ablation.py": "bcbe82df79220846140ea9500bdfb868697fd21fad7dfc4f1a9cde100944c4bc",
+    "src/arkb/evaluation/outputs.py": "163aa401cd12caad9612c412ce0cb7948c4de63982d4ca3828094af6e23a9f48",
+    "src/arkb/generation/citations.py": "dfa86c93faba21627ae96d8a000dfd66421b43349a20ee336574f1bd64acdede",
+    "src/arkb/generation/models.py": "fc5212575990b812b4643e58445f65c119c5ac3723bbb88a2b005468043e88d8",
+    "src/arkb/generation/generate.py": "a2d5c6855fa2b6d936b177a9c61ea74d8c5d3d50fd6924a31d1b4e2c8712712a",
+    "src/arkb/generation/__init__.py": "de0f0603fbb5ecce71c15cfc172fffd531411402c906f28173d40cfac050bd5c",
+    "src/arkb/generation/context.py": "3d7a7b8487a2d1e20b2b6a476540f8425aac19889888e16db0334f67b86fc8f8",
+    "src/arkb/interfaces/__init__.py": "947d2633806fa7d1c2446d3e1c4f5e81b777674e338f4e333f67ae479fa4ed2a",
+    "src/arkb/interfaces/cli.py": "39a6ae335db8e4a28c1261132da98937cf0afb683f21393ffaa047dc10224690",
+    "evaluation/agentic_tools/contract.py": "4677c10f8f72aba9767444464b73ccf9d05c382c738bdbf883a61375af03b248",
+    "evaluation/agentic_tools/transport.py": "5967cffef262ed54c6236533b4e69d6ce11fb3a2ff6687c155c0a723b00f5d5a",
+    "evaluation/agentic_tools/dependencies.py": "ab7238d257e0fa6bd121ffc7822dc9947ad315990d3c01623096c080fdf8b3bf",
+    "evaluation/agentic_tools/selection.py": "7370511bbb40d558a66ed9800bc34f53e932b6317539055df574ed23f0e989fd",
+    "evaluation/agentic_tools/readiness.py": "7f76e02d2eba97fcc55360af9cf6c485b7afbefe56ea8267fbf441021606a4f8",
+    "evaluation/agentic_tools/stopping.py": "2af7426f78aed1186205c23e517b43790451707ed97a867c8439781c214b07cf"
+  },
+  "runner_change": "generic Metal-device GPU competitor detection, registered core pause rules and trajectory time cap in the harness; no model input, tool, budget or prompt change",
+  "analysis_change": "protocol-driven attempt and grade counts, repetition-zero primary analysis, registered repeat-subset variance decomposition",
+  "cost_estimate": {
+    "expected_trajectory_hours": 24.126730926730346,
+    "planning_hours_with_25_percent_headroom": 30.158413658412933,
+    "trajectory_time_cap_hours": 32,
+    "excludes": [
+      "scope setup and fixtures",
+      "judge inference",
+      "human review",
+      "administrative waiting",
+      "archival"
+    ]
+  },
+  "exposure": {
+    "public_labels": "all four benchmarks and their labels are public; no private unseen test set is claimed",
+    "development_material": {
+      "pilot_ids": {
+        "browsecomp-plus": [
+          "1128",
+          "263",
+          "555",
+          "864",
+          "981"
+        ],
+        "fiqa": [
+          "3446",
+          "7747"
+        ],
+        "nfcorpus": [
+          "PLAIN-2940",
+          "PLAIN-593"
+        ],
+        "musique": [
+          "2hop__511296_577502",
+          "3hop1__109185_720914_27537",
+          "4hop1__343844_17130_70784_61381"
+        ]
+      },
+      "old_core_started": {
+        "browsecomp-plus": [
+          "555"
+        ]
+      }
+    },
+    "core_v2_questions_inspected_before_inference": 0
+  },
+  "gates": {
+    "pilot": {
+      "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3",
+      "protocol_sha256": "8c3eb9ca245fd7912630b7e4d0e6900120a0b854c14d42dbd9c85856cbceeeac",
+      "attempts": 98,
+      "tool_readiness_sha256": "0873deb8e6171b2e7618f5718bf3fd483b0e43dbf3fbce97116e1d7f0ba37869",
+      "accounting_sha256": "087f7906667250839cceca24d37890192d184459f15aef7deea541ef857dd60f",
+      "completion_audit_status": "passed_with_auxiliary_archive_limitation"
+    },
+    "repeatability": {
+      "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/repeatability-v1",
+      "protocol_sha256": "16cc2c1ffcdf5819eaec0d304b770fa8e2313a47f613c4f3a9f73b96dd8b6bcc",
+      "new_trajectories": 70,
+      "summary_sha256": "f9845126136defe917ca12d5f71df5a6b7fb9824bd797b0291ab471f959252fc",
+      "completion_audit_status": "passed"
+    },
+    "serving": {
+      "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/serving-v1",
+      "protocol_sha256": "3c2588b98800eae6178de036cc4634c19dc021ab8f4a4fdbb1980cd1510f5437",
+      "screen_result": "no client concurrency passes the 10 percent rule",
+      "summary_sha256": "6ecdb6824af8aa365328465131a95b167193dc158768a89230022399b2b9287a"
+    },
+    "calibration": {
+      "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/calibration-v1",
+      "protocol_sha256": "c70f999ca2778245b7256a07e1b35cf338e1bddb54b6340b8fa7d8e2a1f8bd0c",
+      "responses": 42,
+      "judge_requests": 4,
+      "human_review": "pending",
+      "quality_status": "provisional"
+    },
+    "old_core": {
+      "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/core-v1",
+      "protocol_sha256": "453906858f404cb5f4b2f0fa1ba919ead2a925ec182e4b7a5ac69131fba956d5",
+      "completed_attempts": 11,
+      "interrupted_attempts": 1,
+      "exposed_questions": {
+        "browsecomp-plus": [
+          "555"
+        ]
+      },
+      "use": "exposed development material; never combined"
+    },
+    "design": {
+      "directory": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/core-v2",
+      "precision_cost_sha256": "bcf74c7000d7e315d47c6f291f65d1ed5cb71368346618fdb7b4e8fa61565456",
+      "selection_sha256": "933c642419c6b950e1784cd38f3ab34c3de840a962563048fa185f450c7ee0f1",
+      "schedule_sha256": "ce831c2a224f6fbcd467cf51857af8b2948f453660eb340f03843fc33d06653c",
+      "attempts": 3640
+    },
+    "inference_files_equal_to_v3": {
+      "src/arkb/config.py": "7cd39b42294dd085ff608c2908a7ce179e7839c0ef89ad2e96734b106684c81c",
+      "src/arkb/__init__.py": "7c59091739862daa280f33a33d9f707eb28234472949efc32fe76beaf5d54a9b",
+      "src/arkb/runtime.py": "27f36beda4bd73e58784f84f35821fdfa6baca58db8050263566e78530464c31",
+      "src/arkb/agent/observation.py": "b0cc7604e7b7b9aeff355318c1e7d577b85144355c2092f151e5482088c057b7",
+      "src/arkb/agent/tools.py": "eb3fd67c41d8bacc7a665b904b7b85d60e3afc356dadd4417009852ba5d7f436",
+      "src/arkb/agent/session.py": "fc2a6682a856cf33fa870e02ee9f5ca290dc4adb9ce32b09d850cc0c87cd55c0",
+      "src/arkb/agent/__init__.py": "86f6dab0d9b85672cecb0567bbece9392c202995ce155a696b46ae4d91d69909",
+      "src/arkb/agent/loop.py": "251850a039c9dc414e0c552778c514773832af20780ff419efd001de81ab26c4",
+      "src/arkb/agent/state.py": "960c2e8d7796343a39118f3cf0da28a607e77efd7dca801b901d15ff992bc422",
+      "src/arkb/retrieval/bm25.py": "c953b3ca2d8da842fb0c1802e0a9455e209c99586819e5ed90d3265584ffb771",
+      "src/arkb/retrieval/rerank.py": "490d6123973d7e64e5b78ac065cf421f1025f95d45715076ea1924a3bf952460",
+      "src/arkb/retrieval/semantic.py": "47e60a65ab2ec2b45cc744b7195557570ca7b93a8ef06466a5c4a02a3d65307b",
+      "src/arkb/retrieval/models.py": "822682c84a2918edaf072994e7767b2da0a43b89cfd4a6a8e04810a7dc07a3dd",
+      "src/arkb/retrieval/qwen_rerank.py": "a5a5bffed7c74e3a26f9e0b27ba961c599b3e915d81183efb8fd00b95ad7f333",
+      "src/arkb/retrieval/hybrid.py": "4c68635956179a0eb508dd41e0c0d6e29d1b3a34be796a36d9c1fe02cb5ac7fa",
+      "src/arkb/retrieval/__init__.py": "08fca8a6854643174bae4f3058e6777f01a8b28f49696a2aa3758905f42d0a2a",
+      "src/arkb/retrieval/engine.py": "bb2df8afe2bdb4dd3045d68c1adad8dcd1b87883158781398fad94481cb4b47c",
+      "src/arkb/retrieval/exact.py": "df493e9ecb0371d6c581f911a36f698cf9076e259e91d7b44d548ac6d4c16309",
+      "src/arkb/retrieval/qwen_inputs.py": "d6d8815a1c1a71921175259a38b790d2701b84db9bb32af9824f04a37e4ccbc9",
+      "src/arkb/retrieval/text_cache.py": "39f085d85395685c7431b00a55a826a9a611f01557df6b77d178770ad1c1dba4",
+      "src/arkb/knowledge/chunking.py": "914759b34a4be9eda7de5033869cfdc2331f75592f27b1a42c759a7052219e5a",
+      "src/arkb/knowledge/models.py": "3fdec6de8e3902fe9509d49caf9aae51c0b933aaa84e68446b80216ac2b9e6a8",
+      "src/arkb/knowledge/qdrant.py": "e49e49d8fc59c6d9de7ba6413dda83e9061eb82f34487f485bd1c25e371d5dc8",
+      "src/arkb/knowledge/documents.py": "69ad2a6015fc40d9ad97fc1ffb07162e4f1febf1436857ae8445ef269ba4e456",
+      "src/arkb/knowledge/__init__.py": "4c59985ed6fd4eead38b369da817a47d103c86bf9d83b28481122349f4731913",
+      "src/arkb/knowledge/sqlite.py": "8be35c8bc299bb2ac260fc3053514fcaa30ed97a0ef972cb87f2815b4efa1804",
+      "src/arkb/knowledge/embeddings.py": "703b427358631dfc5285ca4e8494a20a885e84f8538080097a4abfd1bfd3863a",
+      "src/arkb/knowledge/indexing.py": "77e62dfc3fc9562be0b344c111013facf3e6e7b90eeb4835a6f08e768e65acd7",
+      "src/arkb/evaluation/pilot.py": "48fa17a054fe2ed0d0a5c1535a8eee88a3885389130d1971b87ac1d69b37dacb",
+      "src/arkb/evaluation/metrics.py": "2e3f77ef6852516fbd5c6940b44cceb7b37ff410b5475a80a7cc8a3a78bbab93",
+      "src/arkb/evaluation/baselines.py": "a2c6f86bbcb123b81cbcdde97909aa454c35e5585738b34bfb20039e66f57975",
+      "src/arkb/evaluation/reviews.py": "5cea6582b4e64515be9864b82886fc7668e83b3357a960f80a8445cd88f86e03",
+      "src/arkb/evaluation/regression.py": "104b95fe8f8a3310feb8e3d9f6e5e98d4f9df295008b90f2fe2a5f491efc6d8b",
+      "src/arkb/evaluation/reliability.py": "1258bf60ec60a76821496ba95f3f3c5cc9f922d3231253d8deb489d1fb116a11",
+      "src/arkb/evaluation/generation.py": "6e2618c2a5d99cc30c8f8cecb7d1ff8740ebf4871ad953cd7f1d6060a2ab54a5",
+      "src/arkb/evaluation/models.py": "df3d0d5affcc934fe0ab03c736e06dd07dffc7e06ba492e0db5cf285983d09c2",
+      "src/arkb/evaluation/agent_metrics.py": "bf62b575df63fe3deeb653d3d0db2c4edf8fdd537989acb6c2c2bdb5132652ae",
+      "src/arkb/evaluation/source_fusion.py": "24d5330cb4ba537188b3c6a1babef96d05ede596b6835e1d6c6fa68605d47c78",
+      "src/arkb/evaluation/datasets.py": "8d0008470fe3e6e15ce3dac051cd979117daf9cc7f6473ec327e83b2a6ccb5ee",
+      "src/arkb/evaluation/__init__.py": "ed672304ea66b7d921ff7c1ae71a3a167a24ee098f3e832105699c7c0aa3d1df",
+      "src/arkb/evaluation/core.py": "d2d65c9973b59fedf035ca94dd8f8c4cabd8574d37daf799c1ec0e6c0619731b",
+      "src/arkb/evaluation/gates.py": "e1fb776c59a245a8ab467c42c895d491087f197df1e6c21b7099cc4bebfce256",
+      "src/arkb/evaluation/controlled.py": "891ef26849877aef5638deaa79ef83b5da214bf6b73c4b4bf7bb1f66fd7d9d83",
+      "src/arkb/evaluation/comparison.py": "be1c2b417c8ebf6ec14954405c02cd535f6726aa0cdbaed4c20b4099b55f8553",
+      "src/arkb/evaluation/judges.py": "27c4839bab33b0023a1874f1509d345100cfd65cf5ea9d1bf97725b42c8d0114",
+      "src/arkb/evaluation/retrieval.py": "65266504c092256229f409a2f717134e4834b456c22ec40486ec81b0deed6e79",
+      "src/arkb/evaluation/environment.py": "3e4ed736f77232a4128f25d6beba2cd7ea8bb1191da925d30eca14dd1de3c08a",
+      "src/arkb/evaluation/external_agent.py": "a91dbe0a218677d1349c4fd2c562d8d9bfb6928887e987b3770efcfddc730d51",
+      "src/arkb/evaluation/browsecomp.py": "347964196218bbdd0de20c97bf877d2f363783dc664562c80f488eb5bd528b6e",
+      "src/arkb/evaluation/deadline.py": "48911e1d833bab8f0885088c7587ce83cb30f622ff738d42aff6ea5d1bbb0f16",
+      "src/arkb/evaluation/ablation_analysis.py": "7b61258f843f2b075f9d3e79146105e48d361c012722160ef6df1037632457c8",
+      "src/arkb/evaluation/v2.py": "66642b9d307e0cc6384109a9a9af550371171855b7c1f47633c5ce997852ccf1",
+      "src/arkb/evaluation/external.py": "d72cf60b60287870f35a021e5ba327f99713c1e178e9d5eb02f7cf7ab1750e38",
+      "src/arkb/evaluation/runs.py": "c4f0b4fcade05240709353babf5efd9ead963aa151638e4009d86ab29b76d1b6",
+      "src/arkb/evaluation/multihop.py": "b51993eeb3443b48879f8cf2289c3132250624c316d1ec6d4ff3a59e4ef6c962",
+      "src/arkb/evaluation/power.py": "53709f073c18eee052d0c205b5a20605cb020f71d5d39311fe6d8127686fbbe4",
+      "src/arkb/evaluation/calibration.py": "ac15e38e48f33174e636b9da683aeabeff9c5a02a89eea214fa46afbf2547465",
+      "src/arkb/evaluation/model_ablation.py": "bcbe82df79220846140ea9500bdfb868697fd21fad7dfc4f1a9cde100944c4bc",
+      "src/arkb/evaluation/outputs.py": "163aa401cd12caad9612c412ce0cb7948c4de63982d4ca3828094af6e23a9f48",
+      "src/arkb/generation/citations.py": "dfa86c93faba21627ae96d8a000dfd66421b43349a20ee336574f1bd64acdede",
+      "src/arkb/generation/models.py": "fc5212575990b812b4643e58445f65c119c5ac3723bbb88a2b005468043e88d8",
+      "src/arkb/generation/generate.py": "a2d5c6855fa2b6d936b177a9c61ea74d8c5d3d50fd6924a31d1b4e2c8712712a",
+      "src/arkb/generation/__init__.py": "de0f0603fbb5ecce71c15cfc172fffd531411402c906f28173d40cfac050bd5c",
+      "src/arkb/generation/context.py": "3d7a7b8487a2d1e20b2b6a476540f8425aac19889888e16db0334f67b86fc8f8",
+      "src/arkb/interfaces/__init__.py": "947d2633806fa7d1c2446d3e1c4f5e81b777674e338f4e333f67ae479fa4ed2a",
+      "src/arkb/interfaces/cli.py": "39a6ae335db8e4a28c1261132da98937cf0afb683f21393ffaa047dc10224690",
+      "evaluation/agentic_tools/contract.py": "4677c10f8f72aba9767444464b73ccf9d05c382c738bdbf883a61375af03b248",
+      "evaluation/agentic_tools/transport.py": "5967cffef262ed54c6236533b4e69d6ce11fb3a2ff6687c155c0a723b00f5d5a",
+      "evaluation/agentic_tools/dependencies.py": "ab7238d257e0fa6bd121ffc7822dc9947ad315990d3c01623096c080fdf8b3bf",
+      "evaluation/agentic_tools/selection.py": "7370511bbb40d558a66ed9800bc34f53e932b6317539055df574ed23f0e989fd",
+      "evaluation/agentic_tools/readiness.py": "7f76e02d2eba97fcc55360af9cf6c485b7afbefe56ea8267fbf441021606a4f8",
+      "evaluation/agentic_tools/stopping.py": "2af7426f78aed1186205c23e517b43790451707ed97a867c8439781c214b07cf"
+    },
+    "scoring_files_equal_to_calibration": {
+      "judge.py": "e5c5d8dd317215ab64c823d1f83f0ed69e9d38ed1d4016857faa1bdea4068e38",
+      "labels.py": "177428f551e46ce6a8d1e208bdf9c40a87ed2fe6a810a96c5569120465969a51",
+      "scoring.py": "f2c0508425e7d4f189e6ab13e63148bd0326eae1317d0f9b5b6c725de42af5a2"
+    },
+    "loader_files_equal_to_v3": {
+      "records.py": "d109a66803cf9b5dbaa56dce20c2f627440f8f9f3060a53517ae76983c0f6f15"
+    },
+    "loader_disclosure": "records.py gained a provider-journal integrity check after calibration (pilot v2); it changes no score and equals the v3 and core-v1 snapshots.",
+    "prepared_at": "2026-09-18T05:42:35.935155+00:00",
+    "tests_passed": 1296,
+    "public_dir": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/core-v2",
+    "core_dispatch_authorized": false
+  },
+  "files": {
+    "calibration-controls.json": "333eee26a80da837e1d59d6b8bf9fea745f546c41084e542ee6d1abbc55e0bfb",
+    "calibration-protocol.json": "c70f999ca2778245b7256a07e1b35cf338e1bddb54b6340b8fa7d8e2a1f8bd0c",
+    "calibration-summary.json": "9d9de87dbf114a50c4f2c985bebfbef21fd6f391418e77e14e6585e872c9bc77",
+    "context-indexes.json": "8e3a0103b666d9a609c58b61dd12e91852541904f3f77cf147b20f310d19086d",
+    "core-protocol.md": "bfa2702c327235c9f3268a27e4d181c866b6274f77ca4fb6f6fc9363b3257c0c",
+    "core-schedule.json": "ce831c2a224f6fbcd467cf51857af8b2948f453660eb340f03843fc33d06653c",
+    "dependencies.json": "c7e7c41d3e000a2c22510d7b479e5437b63490c0b430e4392c470e8ff5d98532",
+    "design.json": "af0a6c5d8e2f128132b4d360fed53968050cd003494b531f3fa1d4a8010d5722",
+    "gate-evidence.json": "fb6bdb948dc72b06ff80d24cf77fb8f31b4e807c6cb9b5f085c0b0a14dd1c260",
+    "inference/scenarios.json": "b6764de62f38e7fc97f66b3a2d4a8ec6cf53725164f56a451f0149c21912b849",
+    "inputs.json": "6a5311982ce6dd8fe96fb6e5d2fcb052382f6b35bc53a7db48b8e1929a4aabbb",
+    "judge-design.json": "5c27b3fcb588c8d1bd40e67b2c37146572a21084f6202259256548a41e918461",
+    "pilot-accounting.json": "087f7906667250839cceca24d37890192d184459f15aef7deea541ef857dd60f",
+    "pilot-completion-audit.json": "fd61a9c2b4a31a09eb82ee4eb8b589a3f7a05365d283de3d2e3ace4b00556ecf",
+    "pilot-tool-readiness.json": "0873deb8e6171b2e7618f5718bf3fd483b0e43dbf3fbce97116e1d7f0ba37869",
+    "precision-cost.json": "bcf74c7000d7e315d47c6f291f65d1ed5cb71368346618fdb7b4e8fa61565456",
+    "readiness-policy.json": "df669b71db6efb2a7d9d2a2d3fc1ab528330209d3af6ff1885af19b94eb91746",
+    "repeatability-completion-audit.json": "ebc2fd78c30ac013d614470b92cddcfa1193a8e7270e2767f25e9ca5d5f59b90",
+    "repeatability-summary.json": "f9845126136defe917ca12d5f71df5a6b7fb9824bd797b0291ab471f959252fc",
+    "scoring/browsecomp-answers.json": "59ac1c6cad4ade9dba2812d2ca99ffba52cbe56f0c45865ab684499d970a0f8a",
+    "scoring/browsecomp-plus.json": "e0b245bd58df2bfad1a0f65268bf5bd36000c43a5b0be7bbc30beef2a707ab02",
+    "scoring/fiqa.json": "b4ecbb3b5e9c052220e1b096baaf4caf31c22e674b2e1a6f9446e404f096a1ca",
+    "scoring/musique.json": "068d635ee34039c98ef9f8d1710795ab2f5881ccbb05b88c1d43514590e4ecab",
+    "scoring/nfcorpus.json": "97884a67607d31779d766a6615ee4579b6915fa7bda90859afee2b8a236ddda3",
+    "selection.json": "933c642419c6b950e1784cd38f3ab34c3de840a962563048fa185f450c7ee0f1",
+    "serving-completion-audit.json": "81b9b4d6572f8eee7d6e93206a123307554d495c443de390f7b5e27871bde9bf",
+    "serving-summary.json": "6ecdb6824af8aa365328465131a95b167193dc158768a89230022399b2b9287a",
+    "tests.xml": "2211e5c0e9078fbb7f165860d3f5c2c95da7aa3cf6bb596752e723faf1d456ae",
+    "registration-inputs.json": "c2fefe3c21262197f385a630cb875d001ba7244fe6ab313c175f568ba42ac17f",
+    "provider-preflight.json": "699eb140da9c77668a7b38789810a410a6979eebe898233522bb19a6b3d415b3",
+    "measured-source-manifest.json": "25e4541755eabf549b179ca3c6decc1933f9e461a5cf8c7d58d82284d5124daf"
+  }
+}

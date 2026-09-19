@@ -11,19 +11,24 @@ from .prepare import ROOT, PUBLIC, utc
 from .transport import model_identity
 from .dependencies import verify_dependencies
 from .contract import OPTIONS, THINK
+from .readiness import POLICY
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--public-dir', type=Path, default=PUBLIC)
     parser.add_argument('--parent', type=Path)
-    a = parser.parse_args()
+    parser.add_argument('--tool-readiness', action='store_true')
+    a = parser.parse_args(argv)
     out = a.output.resolve()
     public = a.public_dir.resolve()
     public.mkdir(parents=True, exist_ok=True)
     if (out / 'protocol.json').exists():
         raise ValueError('Protocol already exists; use that registered run or an explicit amendment.')
+    if a.tool_readiness:
+        if not a.parent or json.loads((out / 'readiness-policy.json').read_text()) != POLICY:
+            raise ValueError('A repaired pilot requires its parent and the exact executable readiness policy.')
     preflight = json.loads((out / 'provider-preflight.json').read_text())
     if preflight['status'] != 'passed':
         raise ValueError('Provider preflight has not passed.')
@@ -60,7 +65,9 @@ def main():
               'scoring/browsecomp-answers.json', 'scoring/musique.json',
               'scoring/browsecomp-plus.json', 'scoring/fiqa.json', 'scoring/nfcorpus.json']
     if a.parent:
-        inputs.extend(['amendment.md', 'parent-pilot-accounting.json', 'finalization-probe-summary.json'])
+        inputs.extend(['amendment.md', 'parent-pilot-accounting.json'])
+        inputs.extend(['readiness-policy.json', 'repair-verification.json', 'preparation-provenance.json', 'registration-inputs.json']
+                     if a.tool_readiness else ['finalization-probe-summary.json'])
     protocol = {'schema': 'agentic-tools-v1-executable-pilot', 'created_at': utc(), 'phase': 'pilot',
                 'project_root': str(ROOT), 'output': str(out), 'public_dir': str(public),
                 'measured_source': str(source), 'models': {'chat': chat, 'embedding': embedding, 'judge': judge},
@@ -80,9 +87,15 @@ def main():
         parent = a.parent.resolve()
         if json.loads((parent / 'pilot-status.json').read_text())['status'] != 'completed':
             raise ValueError('Parent pilot is not complete.')
+        parent_protocol = json.loads((parent / 'protocol.json').read_text())
         protocol.update(parent_protocol_sha256=digest(parent / 'protocol.json'),
-                        parent_output=str(parent), inference_lock=str(parent / 'inference.lock'),
+                        parent_output=str(parent), inference_lock=parent_protocol.get('inference_lock', str(parent / 'inference.lock')),
                         amendment_sha256=digest(out / 'amendment.md'))
+    if a.tool_readiness:
+        protocol.update(revision='tool-repair-pilot-v3', readiness_policy='readiness-policy.json',
+                        core_schedule_scope='historical capacity projection only; replacement core design not selected or authorized',
+                        core_gate='scope fixtures and all 98 pilot traces pass tool readiness; concurrency/repeatability study and justified new core protocol still required',
+                        administrative_stop='SIGINT/SIGTERM or stop-request.json; finish current trajectory, persist stop, never automatically retry a failed gate')
     write_json(out / 'protocol.json', protocol)
     write_json(public / 'pilot-protocol.json', protocol)
     print(json.dumps({'protocol_sha256': digest(out / 'protocol.json'), 'source_files': len(files), 'pilot_attempts': 98}), flush=True)

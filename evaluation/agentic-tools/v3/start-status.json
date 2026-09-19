@@ -1,0 +1,20 @@
+{
+  "recorded_at": "2026-09-14T06:08:04.544942+00:00",
+  "pipeline": {
+    "pid": 49664,
+    "started_at": "2026-09-14T06:06:33.206215+00:00",
+    "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3",
+    "core_dispatch_authorized": false,
+    "status": "waiting_for_gpu",
+    "competing_processes": [
+      "49025 uv run mlx_lm.lora --config config.yaml",
+      "49027 /opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /Users/daboluo/MyWorkSpace/GitHub/llm-post-training-hub/.venv/bin/mlx_lm.lora --config config.yaml"
+    ],
+    "updated_at": "2026-09-14T06:06:33.243199+00:00",
+    "last_resource_check_at": "2026-09-14T06:08:03.597673+00:00"
+  },
+  "tests_passed": 1270,
+  "integration_deselected": 60,
+  "registration_inputs_sha256": "c37bf5e3f9bc912142da768161dedc68f3118ec6fae70922035ec5faac399763",
+  "core_dispatch_authorized": false
+}

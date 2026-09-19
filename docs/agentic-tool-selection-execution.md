@@ -1,5 +1,33 @@
 # Agentic tool-selection execution
 
+## Replacement core v2 — administratively stopped 2026-09-18 UTC
+
+Core v2 registered protocol `1cbb73f19ea5c302feab69372ea1c732e4224468fa7c9a76bbb050f38f76cf81`
+at 06:21 UTC and completed 16 attempts before the user chose to fix the diagnosed
+tool/retrieval-layer problems first. One attempt is timing-contaminated by an
+external Metal process and was reviewed; the stop and its accounting are in the
+run directory. The 16 attempts are a development smoke sample of the harness, not
+a study, and are never combined with a future registered core. The remaining
+3,624 attempts were not started. No resume is planned; a future study needs a new
+protocol, a product-shaped benchmark and a model-capacity axis.
+
+### Preparation record
+
+The [core v2 protocol](agentic-core-v2-protocol.md) replaces the suspended
+core-v1 schedule: 3,640 trajectories (3,360 primary single sessions over 320
+BrowseComp, 50 FiQA, 50 NFCorpus and 30 MuSiQue-pair questions selected by the
+frozen ID hash rule after excluding all pilot IDs and the started core-v1
+question, plus a registered 20-question BrowseComp repeat subset of 280). The run
+directory `/Volumes/ARKBPhaseC/agentic-tools-v1/core-v2` holds the pinned inputs,
+gate evidence, 480 scenarios and the regression report; public copies are under
+`evaluation/agentic-tools/core-v2/`. Job `com.arkb.agentic-tools.core-v2` waits
+for the shared inference lock and a free GPU, then runs provider preflight,
+freezes `protocol.json` and the source snapshot, executes from the frozen source
+and continues with accounting, the independent audit, grading and analysis.
+Consult `pipeline-status.json` and the durable orchestration record for progress.
+Human calibration and citation review remain pending; all quality results are
+provisional.
+
 ## Execution hold — 2026-09-14 UTC
 
 Core-v1 and its heartbeat are paused for [design review](agentic-tool-selection-design-review.md).

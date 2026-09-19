@@ -1,0 +1,31 @@
+{
+  "recorded_at": "2026-09-14T07:23:58.609905+00:00",
+  "status": "registered_waiting_for_gpu",
+  "output": "/Volumes/ARKBPhaseC/agentic-tools-v1/serving-v1",
+  "job": "com.arkb.agentic-tools.serving-v1",
+  "job_installed": false,
+  "worker_active": false,
+  "protocol_sha256": "3c2588b98800eae6178de036cc4634c19dc021ab8f4a4fdbb1980cd1510f5437",
+  "protocol_path": "/Volumes/ARKBPhaseC/agentic-tools-v1/serving-v1/protocol.json",
+  "status_path": "/Volumes/ARKBPhaseC/agentic-tools-v1/serving-v1/status.json",
+  "planned_calls": 90,
+  "completed_calls": 0,
+  "warmups": 9,
+  "concurrency_levels": [
+    1,
+    2,
+    4
+  ],
+  "repeat_count": 3,
+  "scope": "request-level serving and output stability; full Agent confirmation still required",
+  "plist": "/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/serving-v1/serving-v1.plist",
+  "frozen_runner": "/Volumes/ARKBPhaseC/agentic-tools-v1/serving-v1/probe.py",
+  "log_paths": [
+    "/Volumes/ARKBPhaseC/agentic-tools-v1/serving-v1/execution.log",
+    "/Volumes/ARKBPhaseC/agentic-tools-v1/serving-v1/error.log"
+  ],
+  "inference_lock": "/Volumes/ARKBPhaseC/agentic-tools-v1/inference.lock",
+  "tests_passed": 1276,
+  "integration_deselected": 60,
+  "next_action": "Check live GPU work and shared lock. If free and no existing job/process, bootstrap the saved plist once. Do not recreate the protocol or retry a started/failed probe automatically."
+}

@@ -52,7 +52,8 @@ def paired_comparisons(units, *, primary=False, resamples=20000):
             'coverage_note': 'Finite-sample bootstrap coverage is approximate; no pooled cross-dataset score.'}
 
 
-def query_units(rows, metric, *, variants=('v0',)):
+def query_units(rows, metric, *, variants=('v0',), repetitions=(0, 1, 2)):
+    """One unit per question; the registered repetitions are averaged, never counted as questions."""
     grouped = defaultdict(list)
     strata = {}
     for r in rows:
@@ -65,7 +66,7 @@ def query_units(rows, metric, *, variants=('v0',)):
         for arm in ARMS:
             cases = grouped[(identifier, arm.id)]
             identities = [(r['schedule']['variant'], r['schedule']['repetition']) for r in cases]
-            if len(set(identities)) != len(identities) or set(identities) != {(v, rep) for v in variants for rep in range(3)}:
+            if len(set(identities)) != len(identities) or set(identities) != {(v, rep) for v in variants for rep in repetitions}:
                 raise ValueError('A query is missing a repetition or contains duplicates.')
             if not variants:
                 raise ValueError('An arm has no repeated observations.')
@@ -73,3 +74,52 @@ def query_units(rows, metric, *, variants=('v0',)):
             values[arm.id] = None if any(v is None for v in items) else float(np.mean(items))
         result.append({'id': identifier, 'stratum': strata[identifier], 'values': values})
     return result
+
+
+def session_variability(rows, metric, *, repetitions=(0, 1, 2)):
+    """One-way random-effects decomposition on a registered repeat subset.
+
+    Returns per-arm and per-primary-contrast between-question and within-question
+    variance components and their ratio. This is descriptive evidence about
+    session variability on a small registered subset; it is not a population
+    intraclass correlation and never enters the primary contrasts.
+    """
+    if len(repetitions) < 2:
+        raise ValueError('Session variability needs at least two registered repetitions.')
+    grouped = defaultdict(dict)
+    for r in rows:
+        s = r['schedule']
+        if s['repetition'] in grouped[(s['id'], s['arm'])]:
+            raise ValueError('Duplicate repetition in the repeat subset.')
+        grouped[(s['id'], s['arm'])][s['repetition']] = r[metric]
+    ids = sorted({identifier for identifier, _ in grouped})
+    arm_ids = [a.id for a in ARMS]
+    if len(ids) < 2:
+        raise ValueError('Session variability needs at least two questions.')
+    for identifier in ids:
+        for arm in arm_ids:
+            if set(grouped.get((identifier, arm), {})) != set(repetitions):
+                raise ValueError('Repeat subset is incomplete.')
+    if any(v is None for cell in grouped.values() for v in cell.values()):
+        return {'status': 'pending_scores', 'questions': len(ids), 'repetitions': list(repetitions)}
+    k = len(repetitions)
+    matrix = {arm: np.array([[grouped[(identifier, arm)][rep] for rep in repetitions] for identifier in ids], dtype=float)
+              for arm in arm_ids}
+
+    def decompose(values):
+        n = values.shape[0]
+        question_means = values.mean(axis=1)
+        grand = values.mean()
+        ms_between = k * ((question_means - grand) ** 2).sum() / (n - 1)
+        ms_within = ((values - question_means[:, None]) ** 2).sum() / (n * (k - 1))
+        between = max(0.0, (ms_between - ms_within) / k)
+        total = between + ms_within
+        return {'grand_mean': float(grand), 'between_question_variance': float(between),
+                'within_question_variance': float(ms_within),
+                'repeat_correlation': float(between / total) if total > 0 else None,
+                'questions_with_identical_repetitions': int((values.min(axis=1) == values.max(axis=1)).sum())}
+    return {'status': 'complete', 'questions': len(ids), 'repetitions': list(repetitions),
+            'arms': {arm: decompose(matrix[arm]) for arm in arm_ids},
+            'primary_contrasts': {'A-All minus ' + ref: decompose(matrix['A-All'] - matrix[ref])
+                                  for ref in ('A-M', 'A-B', 'A-S', 'A-H')},
+            'scope': 'Descriptive one-way random-effects estimates on a small registered subset; not a population intraclass correlation; no best-of-k; excluded from primary contrasts.'}

@@ -12,10 +12,10 @@ from .transport import model_identity
 from .prepare import utc
 
 
-def main():
+def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument('--output', type=Path, required=True)
-    a = p.parse_args()
+    a = p.parse_args(argv)
     with httpx.Client(base_url='http://127.0.0.1:11434', timeout=180) as http:
         identity = model_identity(http, MODEL)
         report = {'status': 'running', 'started_at': utc(), 'chat_model': identity, 'probes': []}

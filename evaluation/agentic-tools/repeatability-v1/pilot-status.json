@@ -1,0 +1,16 @@
+{
+  "status": "completed",
+  "stage": "pilot_inference_complete",
+  "pid": 56108,
+  "started_at": "2026-09-14T08:23:37.169624+00:00",
+  "protocol_sha256": "16cc2c1ffcdf5819eaec0d304b770fa8e2313a47f613c4f3a9f73b96dd8b6bcc",
+  "completed": 70,
+  "total": 70,
+  "updated_at": "2026-09-14T08:43:51.271915+00:00",
+  "dataset": "musique",
+  "scenario_id": "ceb2125cd0915059928f4f178378a2edc3046aa37afc62bbb97c5dbd901b5633",
+  "scope": "ceb2125cd0915059928f4f178378a2edc3046aa37afc62bbb97c5dbd901b5633",
+  "current_attempt": "0451725298b3682c352958afee17e91b8ebce1f87290f08ff85c71dcf620d090",
+  "schedule_index": 69,
+  "arm": "A-M"
+}

@@ -1,0 +1,568 @@
+{
+  "schema": "agentic-tools-pilot-accounting-v1",
+  "status": "complete",
+  "attempts_accounted": 70,
+  "attempts_required": 70,
+  "trace_checks": 778,
+  "protocol_sha256": "16cc2c1ffcdf5819eaec0d304b770fa8e2313a47f613c4f3a9f73b96dd8b6bcc",
+  "analysis_sha256": "980e788ac51c9cdc81568c1aebb2696893829245f6fd203a6065fd2ae9fb5c41",
+  "groups": [
+    {
+      "dataset": "browsecomp-plus",
+      "arm": "F-H",
+      "pilot_attempts": 2,
+      "seconds_mean": 16.011614104383625,
+      "seconds_p50": 16.011614104383625,
+      "seconds_p95": 16.518269723223057,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 602323,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 2
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "arm": "A-M",
+      "pilot_attempts": 2,
+      "seconds_mean": 20.505143271177076,
+      "seconds_p50": 20.505143271177076,
+      "seconds_p95": 21.1354138147668,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 329440,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 16
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "arm": "A-B",
+      "pilot_attempts": 2,
+      "seconds_mean": 20.056165229529142,
+      "seconds_p50": 20.056165229529142,
+      "seconds_p95": 20.13814006044995,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 897836,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "max_evidence_tokens": 2
+      },
+      "model_requests": 8
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "arm": "A-S",
+      "pilot_attempts": 2,
+      "seconds_mean": 18.61915862513706,
+      "seconds_p50": 18.61915862513706,
+      "seconds_p95": 18.635717837605625,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 746349,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "max_evidence_tokens": 2
+      },
+      "model_requests": 8
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "arm": "A-H",
+      "pilot_attempts": 2,
+      "seconds_mean": 20.671195187489502,
+      "seconds_p50": 20.671195187489502,
+      "seconds_p95": 20.91058811835246,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 779581,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "max_evidence_tokens": 2
+      },
+      "model_requests": 8
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "arm": "A-All",
+      "pilot_attempts": 2,
+      "seconds_mean": 19.56621029204689,
+      "seconds_p50": 19.56621029204689,
+      "seconds_p95": 19.658410792122595,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 909693,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "max_evidence_tokens": 2
+      },
+      "model_requests": 12
+    },
+    {
+      "dataset": "browsecomp-plus",
+      "arm": "F-S",
+      "pilot_attempts": 2,
+      "seconds_mean": 8.942410604446195,
+      "seconds_p50": 8.942410604446195,
+      "seconds_p95": 8.952276872994844,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 550592,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 2
+    },
+    {
+      "dataset": "fiqa",
+      "arm": "A-H",
+      "pilot_attempts": 2,
+      "seconds_mean": 5.228557145455852,
+      "seconds_p50": 5.228557145455852,
+      "seconds_p95": 5.300447552138939,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 241936,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 5
+    },
+    {
+      "dataset": "fiqa",
+      "arm": "A-All",
+      "pilot_attempts": 2,
+      "seconds_mean": 7.497634270461276,
+      "seconds_p50": 7.497634270461276,
+      "seconds_p95": 7.672971051395871,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 308739,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 6
+    },
+    {
+      "dataset": "fiqa",
+      "arm": "F-S",
+      "pilot_attempts": 2,
+      "seconds_mean": 9.277462896076031,
+      "seconds_p50": 9.277462896076031,
+      "seconds_p95": 9.889492614998016,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 423993,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 2
+    },
+    {
+      "dataset": "fiqa",
+      "arm": "F-H",
+      "pilot_attempts": 2,
+      "seconds_mean": 11.054252604488283,
+      "seconds_p50": 11.054252604488283,
+      "seconds_p95": 12.117478385893628,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 490611,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 2
+    },
+    {
+      "dataset": "fiqa",
+      "arm": "A-M",
+      "pilot_attempts": 2,
+      "seconds_mean": 12.884793291450478,
+      "seconds_p50": 12.884793291450478,
+      "seconds_p95": 13.136228540947195,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 274168,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 16
+    },
+    {
+      "dataset": "fiqa",
+      "arm": "A-B",
+      "pilot_attempts": 2,
+      "seconds_mean": 6.309211062034592,
+      "seconds_p50": 6.309211062034592,
+      "seconds_p95": 6.542961293063127,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 261008,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 4
+    },
+    {
+      "dataset": "fiqa",
+      "arm": "A-S",
+      "pilot_attempts": 2,
+      "seconds_mean": 5.3028204791480675,
+      "seconds_p50": 5.3028204791480675,
+      "seconds_p95": 6.570146309898701,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 232088,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 4
+    },
+    {
+      "dataset": "nfcorpus",
+      "arm": "F-S",
+      "pilot_attempts": 2,
+      "seconds_mean": 7.489758582902141,
+      "seconds_p50": 7.489758582902141,
+      "seconds_p95": 7.76007317075273,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 410292,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 2
+    },
+    {
+      "dataset": "nfcorpus",
+      "arm": "F-H",
+      "pilot_attempts": 2,
+      "seconds_mean": 10.873658729484305,
+      "seconds_p50": 10.873658729484305,
+      "seconds_p95": 13.0121369732311,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 481831,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 1,
+        "partial": 1
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 2
+    },
+    {
+      "dataset": "nfcorpus",
+      "arm": "A-M",
+      "pilot_attempts": 2,
+      "seconds_mean": 12.833561333478428,
+      "seconds_p50": 12.833561333478428,
+      "seconds_p95": 13.505726071016397,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 492718,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 12
+    },
+    {
+      "dataset": "nfcorpus",
+      "arm": "A-B",
+      "pilot_attempts": 2,
+      "seconds_mean": 5.66329204197973,
+      "seconds_p50": 5.66329204197973,
+      "seconds_p95": 6.170517716673203,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 269396,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 6
+    },
+    {
+      "dataset": "nfcorpus",
+      "arm": "A-S",
+      "pilot_attempts": 2,
+      "seconds_mean": 5.829407125012949,
+      "seconds_p50": 5.829407125012949,
+      "seconds_p95": 5.914856762741692,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 271228,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 6
+    },
+    {
+      "dataset": "nfcorpus",
+      "arm": "A-H",
+      "pilot_attempts": 2,
+      "seconds_mean": 14.83385354152415,
+      "seconds_p50": 14.83385354152415,
+      "seconds_p95": 18.265919129305985,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 651101,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 10
+    },
+    {
+      "dataset": "nfcorpus",
+      "arm": "A-All",
+      "pilot_attempts": 2,
+      "seconds_mean": 6.17447441641707,
+      "seconds_p50": 6.17447441641707,
+      "seconds_p95": 6.684739241271745,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 292817,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2
+      },
+      "stop_reasons": {
+        "final": 2
+      },
+      "model_requests": 6
+    },
+    {
+      "dataset": "musique",
+      "arm": "A-M",
+      "pilot_attempts": 4,
+      "seconds_mean": 6.566193416772876,
+      "seconds_p50": 5.998132604523562,
+      "seconds_p95": 8.955944687558803,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 610506,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 4
+      },
+      "stop_reasons": {
+        "final": 4
+      },
+      "model_requests": 32
+    },
+    {
+      "dataset": "musique",
+      "arm": "A-B",
+      "pilot_attempts": 4,
+      "seconds_mean": 5.612301062559709,
+      "seconds_p50": 5.644828333519399,
+      "seconds_p95": 7.069076622393913,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 577005,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 3,
+        "answered": 1
+      },
+      "stop_reasons": {
+        "final": 4
+      },
+      "model_requests": 16
+    },
+    {
+      "dataset": "musique",
+      "arm": "A-S",
+      "pilot_attempts": 4,
+      "seconds_mean": 10.751657614659052,
+      "seconds_p50": 5.92604945844505,
+      "seconds_p95": 23.0200370293809,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 1106400,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2,
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "final": 4
+      },
+      "model_requests": 20
+    },
+    {
+      "dataset": "musique",
+      "arm": "A-H",
+      "pilot_attempts": 4,
+      "seconds_mean": 8.54947733291192,
+      "seconds_p50": 7.7183429159922525,
+      "seconds_p95": 13.090813135483767,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 912861,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "answered": 2,
+        "insufficient_evidence": 2
+      },
+      "stop_reasons": {
+        "final": 4
+      },
+      "model_requests": 21
+    },
+    {
+      "dataset": "musique",
+      "arm": "A-All",
+      "pilot_attempts": 4,
+      "seconds_mean": 11.066547260445077,
+      "seconds_p50": 10.233800791902468,
+      "seconds_p95": 14.662058750085997,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 1091420,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 4
+      },
+      "stop_reasons": {
+        "final": 4
+      },
+      "model_requests": 28
+    },
+    {
+      "dataset": "musique",
+      "arm": "F-S",
+      "pilot_attempts": 4,
+      "seconds_mean": 4.377144687285181,
+      "seconds_p50": 4.134447937482037,
+      "seconds_p95": 5.7703652768163005,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 449582,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 4
+      },
+      "stop_reasons": {
+        "final": 4
+      },
+      "model_requests": 4
+    },
+    {
+      "dataset": "musique",
+      "arm": "F-H",
+      "pilot_attempts": 4,
+      "seconds_mean": 3.847585208772216,
+      "seconds_p50": 3.816160521004349,
+      "seconds_p95": 3.9805905651301146,
+      "core_attempts": 0,
+      "projected_core_seconds": 0.0,
+      "pilot_artifact_bytes": 429118,
+      "projected_core_artifact_bytes": 0.0,
+      "final_statuses": {
+        "insufficient_evidence": 4
+      },
+      "stop_reasons": {
+        "final": 4
+      },
+      "model_requests": 4
+    }
+  ],
+  "projected_core_inference_hours": null,
+  "pilot_artifact_bytes": 15094632,
+  "projected_core_artifact_gib": null,
+  "estimate_excludes": [
+    "index setup",
+    "judge inference and retries",
+    "human review",
+    "archival"
+  ],
+  "quality_scores_used_for_estimate": false,
+  "core_dispatch_ready": false,
+  "failure_categories": {},
+  "failed_attempts": [],
+  "cost_estimate_scope": "Selected development repetitions only; not a core population cost estimator.",
+  "remaining_core_gate": [
+    "tool and scope readiness pass",
+    "measured concurrency and repeatability",
+    "justified replacement sample/repetition plan and frozen core protocol",
+    "judge calibration and independent review qualification"
+  ],
+  "tool_readiness": "passed"
+}

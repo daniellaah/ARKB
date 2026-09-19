@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>MKL_NUM_THREADS</key>
+		<string>4</string>
+		<key>OMP_NUM_THREADS</key>
+		<string>4</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>PYTHONDONTWRITEBYTECODE</key>
+		<string>1</string>
+		<key>PYTHONPATH</key>
+		<string>/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/src:/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases</string>
+		<key>TOKENIZERS_PARALLELISM</key>
+		<string>false</string>
+	</dict>
+	<key>KeepAlive</key>
+	<false/>
+	<key>Label</key>
+	<string>com.arkb.agentic-tools.pilot-v3</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/.venv/bin/python</string>
+		<string>-u</string>
+		<string>-m</string>
+		<string>evaluation.agentic_tools.pilot_pipeline</string>
+		<string>--output</string>
+		<string>/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3</string>
+		<string>--parent</string>
+		<string>/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v2</string>
+		<string>--public-dir</string>
+		<string>/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases/evaluation/agentic-tools/v3</string>
+		<string>--wait-for-gpu</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3/pipeline-error.log</string>
+	<key>StandardOutPath</key>
+	<string>/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3/pipeline.log</string>
+	<key>WorkingDirectory</key>
+	<string>/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases</string>
+</dict>
+</plist>

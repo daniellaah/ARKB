@@ -1,0 +1,61 @@
+{
+  "schema": "arkb-agentic-serving-probe-v1",
+  "created_at": "2026-09-14T07:21:42.627485+00:00",
+  "parent": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3",
+  "parent_protocol_sha256": "8c3eb9ca245fd7912630b7e4d0e6900120a0b854c14d42dbd9c85856cbceeeac",
+  "parent_readiness_sha256": "0873deb8e6171b2e7618f5718bf3fd483b0e43dbf3fbce97116e1d7f0ba37869",
+  "parent_source": "/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3/measured-source",
+  "model": {
+    "name": "qwen3.5:4b",
+    "digest": "2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    "details": {
+      "parent_model": "",
+      "format": "gguf",
+      "family": "qwen35",
+      "families": [
+        "qwen35"
+      ],
+      "parameter_size": "4.7B",
+      "quantization_level": "Q4_K_M",
+      "context_length": 262144,
+      "embedding_length": 2560
+    },
+    "definition_sha256": "5ba7f5030d06410307478b35009001fc1890217d94f1df510b0d53578e19a137",
+    "template_sha256": "b507b9c2f6ca642bffcd06665ea7c91f235fd32daeefdf875a0f938db05fb315",
+    "parameters": "presence_penalty               1.5\ntemperature                    1\ntop_k                          20\ntop_p                          0.95"
+  },
+  "ollama_version": {
+    "version": "0.33.2"
+  },
+  "inference_lock": "/Volumes/ARKBPhaseC/agentic-tools-v1/inference.lock",
+  "files": {
+    "requests.json": "9e196b6bedc3be083c72a884971063c992e7096e7dda3ec25cb772f5c2d37580",
+    "blocks.json": "581a97945445969eb3735a67b773f2760ec8c526d6ff9574ee630f8fbf22097f",
+    "probe.py": "950b753855cfad0c6900c2a6f5ee4cc28af9be6a43775283098d1637baa3adf0",
+    "plan.md": "e24094a4e8e1fc32e4bfa818d325fe656ea43e5eda2ed9dbbc5ede0394b35c01",
+    "tests.xml": "147be241c834e063327894274cc10addea79ff665322923a763930a05405d16b"
+  },
+  "requests": 90,
+  "warmups": 9,
+  "concurrency_levels": [
+    1,
+    2,
+    4
+  ],
+  "repetitions": 3,
+  "options": {
+    "temperature": 0,
+    "num_ctx": 32768,
+    "num_predict": 4096
+  },
+  "think": false,
+  "truncate": false,
+  "shift": false,
+  "scope": "request serving and output repeatability only; not full Agent throughput or answer quality",
+  "screen": {
+    "minimum_median_throughput_ratio": 1.1,
+    "operational_errors": 0,
+    "additional_length_outputs": 0
+  },
+  "core_dispatch_authorized": false
+}
