@@ -1,13 +1,13 @@
 """Seven capabilities with the existing Agent loop and canonical reference boundary.
 
-No answers or relevance labels are accepted by these adapters. The Agent loop's
-code object is reused with a private globals dictionary so concurrent callers'
-product instructions and ToolSession bindings are never mutated.
+No answers or relevance labels are accepted by these adapters. The Agent loop
+receives each arm's instructions and restricted tool boundary as explicit
+arguments, so product globals are never mutated.
 """
 from copy import deepcopy
 from dataclasses import asdict, dataclass
 import json
-from types import FunctionType, SimpleNamespace
+from types import SimpleNamespace
 
 from arkb.agent.loop import run_agent, _unique_fields
 from arkb.agent.observation import AgentBudget, AgentObserver
@@ -134,12 +134,11 @@ def new_observer(counter, identity):
 def controlled_agent(query, *, tools, arm, client, observer):
     if arm.fixed:
         raise ValueError('Use the one-pass adapter for a fixed arm.')
-    bindings = {**run_agent.__globals__, 'SYSTEM_INSTRUCTION': rendered_prompt(arm),
-                'ToolSession': RestrictedSession}
-    loop = FunctionType(run_agent.__code__, bindings, run_agent.__name__, run_agent.__defaults__, run_agent.__closure__)
-    loop.__kwdefaults__ = run_agent.__kwdefaults__
-    return loop(query, tools=RestrictedTools(tools, arm), client=client, model=MODEL,
-                max_turns=8, think=THINK, observer=observer)
+    # The product loop takes the arm's instructions and restricted boundary as
+    # explicit arguments, so product globals are never rebound or mutated.
+    return run_agent(query, tools=RestrictedTools(tools, arm), client=client, model=MODEL,
+                     max_turns=8, think=THINK, observer=observer,
+                     system_instruction=rendered_prompt(arm), session_factory=RestrictedSession)
 
 
 def pack_prefix(results, counter, ceiling):

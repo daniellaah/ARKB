@@ -146,86 +146,227 @@ def execute(out):
         return _execute(out, stop)
 
 
-def _execute(out, stop):
-    protocol = json.loads((out / 'protocol.json').read_text())
-    phase = protocol['phase']
-    if phase not in ('pilot', 'core') or protocol['schema'] != 'agentic-tools-v1-executable-' + phase:
-        raise ValueError('Unknown registered inference protocol.')
-    if phase == 'core' and protocol.get('core_dispatch_authorized') is not True:
-        raise ValueError('The core protocol has not passed dispatch gates.')
-    total = protocol[phase + '_attempts']
-    lock = Path(protocol.get('inference_lock', out / 'inference.lock')).open('a')
-    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    pid = os.getpid()
-    status_path = out / f'{phase}-status.json'
-    invocations = out / 'invocations'
-    invocations.mkdir(exist_ok=True)
-    invocation_path = invocations / (utc().replace(':', '-') + '.json')
-    meta = {'status': 'running', 'stage': 'verification', 'pid': pid, 'started_at': utc(),
-            'protocol_sha256': digest(out / 'protocol.json'), 'completed': 0, 'total': total}
-    def status(**changes):
-        meta.update(changes, updated_at=utc())
-        write_json(status_path, meta)
-        write_json(invocation_path, meta)
-    def pause():
-        if not stop.requested():
+class _Run:
+    """Per-invocation state shared by the execution steps below."""
+
+    def __init__(self, out, stop):
+        self.out, self.stop = out, stop
+        self.protocol = json.loads((out / 'protocol.json').read_text())
+        self.phase = self.protocol['phase']
+        if self.phase not in ('pilot', 'core') or self.protocol['schema'] != 'agentic-tools-v1-executable-' + self.phase:
+            raise ValueError('Unknown registered inference protocol.')
+        if self.phase == 'core' and self.protocol.get('core_dispatch_authorized') is not True:
+            raise ValueError('The core protocol has not passed dispatch gates.')
+        self.total = self.protocol[self.phase + '_attempts']
+        self.pid = os.getpid()
+        self.status_path = out / f'{self.phase}-status.json'
+        invocations = out / 'invocations'
+        invocations.mkdir(exist_ok=True)
+        self.invocation_path = invocations / (utc().replace(':', '-') + '.json')
+        self.meta = {'status': 'running', 'stage': 'verification', 'pid': self.pid, 'started_at': utc(),
+                     'protocol_sha256': digest(out / 'protocol.json'), 'completed': 0, 'total': self.total}
+        self.policy = self.guard = None
+        self.completed = 0
+        self.attempts = out / f'{self.phase}-attempts'
+        self.setup_path = out / f'{self.phase}-setup-costs.json'
+        self.setup = json.loads(self.setup_path.read_text()) if self.setup_path.exists() else []
+
+    @property
+    def protocol_hash(self):
+        return self.meta['protocol_sha256']
+
+    def status(self, **changes):
+        if self.guard:
+            changes.setdefault('guard', self.guard.state())
+        self.meta.update(changes, updated_at=utc())
+        write_json(self.status_path, self.meta)
+        write_json(self.invocation_path, self.meta)
+
+    def pause(self):
+        """True when an administrative stop is pending; the caller returns between attempts."""
+        if not self.stop.requested():
             return False
-        status(status='paused', stage='between_attempts', current_attempt=None,
-               administrative_stop=stop.persist())
+        self.status(status='paused', stage='between_attempts', current_attempt=None,
+                    administrative_stop=self.stop.persist())
         return True
-    status()
-    caffeinate = subprocess.Popen(['/usr/bin/caffeinate', '-i', '-w', str(pid)])
+
+    def yield_for_gpu(self, stage):
+        competitors = gpu_competitors()
+        if competitors:
+            self.status(status='waiting_for_gpu', stage=stage, competing_processes=competitors)
+        return bool(competitors)
+
+    def review(self, record, key):
+        """Apply the registered pause rules to one completed or just-finished attempt."""
+        if self.guard:
+            for reason in self.guard.observe(record):
+                self.stop.request(reason)
+        elif self.policy:
+            if operational_failures(record, self.policy):
+                self.stop.request('tool_readiness_failed:' + key)
+            # A missing trace/hard harness failure cannot establish readiness.
+            if execution_failure(record):
+                self.stop.request('unobserved_execution_failure:' + key)
+            if record['competing_processes_after']:
+                self.stop.request('gpu_competition_during_attempt:' + key)
+
+
+def _verify_registration(run):
+    out, protocol = run.out, run.protocol
+    verify_files(out, protocol)
+    if 'readiness-policy.json' in protocol['files']:
+        run.policy = json.loads((out / 'readiness-policy.json').read_text())
+        if not Path(__file__).resolve().is_relative_to(Path(protocol['measured_source']).resolve()):
+            raise ValueError('Run the registered frozen runner, not the working checkout.')
+    if 'dependencies.json' in protocol['files']:
+        verify_dependencies(json.loads((out / 'dependencies.json').read_text()))
+    run.guard = core_guard(out, protocol, run.policy)
+    run.schedules = json.loads((out / f'{run.phase}-schedule.json').read_text())
+    if len(run.schedules) != run.total:
+        raise ValueError('Schedule size differs from the registered attempt count.')
+    scenarios = json.loads((out / 'inference/scenarios.json').read_text())
+    run.by_identity = {(r['dataset'], r['id'], r['variant']): r for r in scenarios.values()}
+    run.inputs = json.loads((out / 'inputs.json').read_text())
+    run.contexts = json.loads((out / 'context-indexes.json').read_text())
+    run.attempts.mkdir(exist_ok=True)
+
+
+def _scan_completed(run):
+    """Verify every completed attempt's immutability; an interrupted one blocks resumption."""
+    for row in run.schedules:
+        path = run.attempts / attempt_key(run.protocol_hash, row)
+        if (path / 'result.json').exists():
+            record = json.loads((path / 'result.json').read_text())
+            check = json.loads((path / 'complete.json').read_text())
+            if (check['result_sha256'] != digest(path / 'result.json') or record['schedule'] != row
+                    or check['provider_sha256'] != digest(path / 'provider.jsonl')
+                    or record['protocol_sha256'] != run.protocol_hash):
+                raise ValueError('Completed attempt integrity failure.')
+            run.completed += 1
+            if run.guard:
+                run.review(record, path.name)
+            elif run.policy and (operational_failures(record, run.policy) or execution_failure(record)):
+                run.stop.request('tool_readiness_failure_in_completed_attempt')
+        elif path.exists():
+            raise ValueError('An interrupted attempt requires explicit accounting before resuming: ' + path.name)
+
+
+def _prepare_scope(run, runtime, stack, row, case, scope):
+    """Validate the frozen corpus/index of a scope and bind fresh tools to it; setup time is recorded apart."""
+    run.status(stage='prepare_index_access', dataset=row['dataset'], scenario_id=case['scenario_id'])
+    start = perf_counter()
+    if row['dataset'] == 'musique':
+        entry = case
+        expected = run.contexts[case['scenario_id']]['build']['manifest']
+        for name, checksum in case['context_sha256'].items():
+            if digest(Path(case['corpus']) / name) != checksum:
+                raise ValueError('Context source drift.')
+        if digest(case['sqlite']) != run.contexts[case['scenario_id']]['sqlite_sha256']:
+            raise ValueError('Prepared context SQLite changed.')
+    else:
+        entry = run.inputs[row['dataset']]
+        expected = entry['index_manifest']
+        # Validation is setup work and is excluded from trial timing.
+        data = load_external(Path(entry['data']))
+        data.verify_materialized(Path(entry['corpus']), omit_empty=row['dataset'] == 'fiqa')
+        del data
+        if digest(entry['sqlite']) != entry['sqlite_sha256']:
+            raise ValueError('Preserved SQLite changed before inference.')
+    storage = stack.enter_context(SQLiteStorage(Path(entry['sqlite']), read_only=True))
+    manifest = storage.active_manifest(entry['vault_id'])
+    if asdict(manifest) != expected:
+        raise ValueError('Manifest differs from frozen protocol.')
+    engine = runtime.retrieval_engine(storage, manifest, modes=('bm25', 'semantic'), exact=True)
+    tools = runtime.agent_tools(engine=engine, directory=Path(entry['corpus']),
+                                vault_id=entry['vault_id'], rerank=False, prepare_exact=True)
+    run.setup.append({'scope': scope, 'elapsed_ms': (perf_counter() - start) * 1000,
+                      'index_id': manifest.index_version, 'pid': run.pid, 'recorded_at': utc()})
+    write_json(run.setup_path, run.setup)
+    # Runtime owns the cache, but release it at each scope boundary
+    # instead of retaining all prior corpora until the run ends.
+    stack.callback(tools._exact.close)
+    return tools, manifest
+
+
+def _scope_readiness(run, tools, row, scope, manifest):
+    """Run the frozen synthetic workload on the complete scope and archive its own artifact."""
+    run.status(stage='scope_readiness', dataset=row['dataset'], scope=scope)
+    check = run_scope_checks(tools, row['dataset'], scope, run.policy)
+    checks = run.out / 'scope-readiness'
+    checks.mkdir(exist_ok=True)
+    check_path = checks / (hashlib.sha256(scope.encode()).hexdigest() + '-' + str(run.pid) + '-' + str(len(run.setup)) + '.json')
+    check.update(protocol_sha256=run.protocol_hash, index_id=manifest.index_version)
+    write_json(check_path, check)
+    manifest_path = run.out / 'scope-readiness-manifest.json'
+    check_manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+    check_manifest[check_path.name] = digest(check_path)
+    write_json(manifest_path, check_manifest)
+    if check['status'] != 'passed':
+        run.stop.request('scope_readiness_failed:' + scope)
+
+
+def _run_attempt(run, client, tools, counter, counter_id, index, row, case, key, directory):
+    """Execute one registered attempt under the hard deadline and persist its immutable record."""
+    directory.mkdir(exist_ok=False)
+    write_json(directory / 'attempt.json', {'key': key, 'protocol_sha256': run.protocol_hash,
+                                           'schedule': row, 'started_at': utc()})
+    run.status(stage='inference', current_attempt=key, schedule_index=index, arm=row['arm'],
+               dataset=row['dataset'], scenario_id=case['scenario_id'])
+    start = perf_counter()
+    result, error = None, None
+    observer = new_observer(counter, counter_id)
+    with (directory / 'provider.jsonl').open('x') as journal:
+        def emit(event):
+            journal.write(json.dumps({'at': utc(), **event}, ensure_ascii=False, allow_nan=False) + '\n')
+            journal.flush()
+        client.journal = emit
+        try:
+            with evaluation_deadline(360):
+                arm = ARM_BY_ID[row['arm']]
+                fn = fixed_rag if arm.fixed else controlled_agent
+                result = fn(case['query'], tools=tools, arm=arm, client=client, observer=observer)
+        except Exception as exc:
+            error = {'type': type(exc).__name__, 'message': str(exc)}
+    client.journal = None
+    elapsed_ms = (perf_counter() - start) * 1000
+    record = {'key': key, 'protocol_sha256': run.protocol_hash, 'schedule': row,
+              'scenario_id': case['scenario_id'], 'elapsed_ms': elapsed_ms,
+              'error': error, 'result': asdict(result) if result else None,
+              'completed_at': utc(), 'answer_quality': 'pending scoring and independent review'}
+    if result:
+        record['evidence_sources'] = evidence_sets(result.observation)
+    record['loaded_models_after'] = client.http.get('/api/ps').raise_for_status().json()
+    record['competing_processes_after'] = gpu_competitors()
+    write_json(directory / 'result.json', record)
+    write_json(directory / 'complete.json', {'result_sha256': digest(directory / 'result.json'),
+                                             'provider_sha256': digest(directory / 'provider.jsonl')})
+    run.completed += 1
+    run.status(completed=run.completed)
+    print(json.dumps({'completed': run.completed, 'total': run.total, 'dataset': row['dataset'], 'arm': row['arm'],
+                      'stop': result.stop_reason if result else 'error', 'elapsed_ms': elapsed_ms}), flush=True)
+    run.review(record, key)
+
+
+def _execute(out, stop):
+    run = _Run(out, stop)
+    lock = Path(run.protocol.get('inference_lock', out / 'inference.lock')).open('a')
+    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    run.status()
+    caffeinate = subprocess.Popen(['/usr/bin/caffeinate', '-i', '-w', str(run.pid)])
     client = None
     try:
-        verify_files(out, protocol)
-        policy = None
-        if 'readiness-policy.json' in protocol['files']:
-            policy = json.loads((out / 'readiness-policy.json').read_text())
-            if not Path(__file__).resolve().is_relative_to(Path(protocol['measured_source']).resolve()):
-                raise ValueError('Run the registered frozen runner, not the working checkout.')
-        if 'dependencies.json' in protocol['files']:
-            verify_dependencies(json.loads((out / 'dependencies.json').read_text()))
-        guard = core_guard(out, protocol, policy)
-        schedules = json.loads((out / f'{phase}-schedule.json').read_text())
-        if len(schedules) != total:
-            raise ValueError('Schedule size differs from the registered attempt count.')
-        scenarios = json.loads((out / 'inference/scenarios.json').read_text())
-        by_identity = {(r['dataset'], r['id'], r['variant']): r for r in scenarios.values()}
-        inputs = json.loads((out / 'inputs.json').read_text())
-        contexts = json.loads((out / 'context-indexes.json').read_text())
-        attempts = out / f'{phase}-attempts'
-        attempts.mkdir(exist_ok=True)
-        completed = 0
-        for row in schedules:
-            path = attempts / attempt_key(meta['protocol_sha256'], row)
-            if (path / 'result.json').exists():
-                record = json.loads((path / 'result.json').read_text())
-                check = json.loads((path / 'complete.json').read_text())
-                if (check['result_sha256'] != digest(path / 'result.json') or record['schedule'] != row
-                        or check['provider_sha256'] != digest(path / 'provider.jsonl')
-                        or record['protocol_sha256'] != meta['protocol_sha256']):
-                    raise ValueError('Completed attempt integrity failure.')
-                completed += 1
-                if guard:
-                    for reason in guard.observe(record):
-                        stop.request(reason)
-                elif policy and (operational_failures(record, policy) or execution_failure(record)):
-                    stop.request('tool_readiness_failure_in_completed_attempt')
-            elif path.exists():
-                raise ValueError('An interrupted attempt requires explicit accounting before resuming: ' + path.name)
-        status(completed=completed, stage='prepare_runtime', **({'guard': guard.state()} if guard else {}))
-        if pause():
+        _verify_registration(run)
+        _scan_completed(run)
+        run.status(completed=run.completed, stage='prepare_runtime')
+        if run.pause() or run.yield_for_gpu('prepare_runtime'):
             return
-        competing = gpu_competitors()
-        if competing:
-            status(status='waiting_for_gpu', competing_processes=competing)
-            return
+        protocol = run.protocol
         with Runtime(RuntimeConfig(offline=True, tokenizer_cache=Path(protocol['tokenizer_cache']),
                                    qdrant_url=protocol['qdrant_url'])) as runtime, ExitStack() as stack:
             tokenizer = runtime.tokenizer()
             from arkb.knowledge.embeddings import tokenizer_fingerprint
             token_hash = tokenizer_fingerprint(tokenizer)
-            if token_hash != inputs['browsecomp-plus']['backend']['input']['tokenizer']:
+            if token_hash != run.inputs['browsecomp-plus']['backend']['input']['tokenizer']:
                 raise ValueError('Reference tokenizer differs from the registered snapshot.')
             counter_id = 'reference-text:' + token_hash
             counter = lambda s: len(tokenizer.encode(s, add_special_tokens=False).ids)
@@ -233,140 +374,43 @@ def _execute(out, stop):
             client.verify_identity()
             if model_identity(client.http, 'qwen3-embedding:0.6b') != protocol['models']['embedding']:
                 raise ValueError('Embedding model identity changed.')
-            active_scope, tools, engine = None, None, None
-            setup_path = out / f'{phase}-setup-costs.json'
-            setup = json.loads(setup_path.read_text()) if setup_path.exists() else []
-            for index, row in enumerate(schedules):
-                key = attempt_key(meta['protocol_sha256'], row)
-                directory = attempts / key
+            active_scope, tools = None, None
+            for index, row in enumerate(run.schedules):
+                key = attempt_key(run.protocol_hash, row)
+                directory = run.attempts / key
                 if (directory / 'complete.json').exists():
                     continue
-                if pause():
+                if run.pause():
                     return
-                case = by_identity[(row['dataset'], row['id'], row['variant'])]
+                case = run.by_identity[(row['dataset'], row['id'], row['variant'])]
                 scope = case['scenario_id'] if row['dataset'] == 'musique' else row['dataset']
                 if scope != active_scope:
-                    tools = engine = None
+                    tools = None
                     stack.close()
                     gc.collect()
-                    status(stage='prepare_index_access', dataset=row['dataset'], scenario_id=case['scenario_id'])
-                    start = perf_counter()
-                    if row['dataset'] == 'musique':
-                        entry = case
-                        expected = contexts[case['scenario_id']]['build']['manifest']
-                        for name, checksum in case['context_sha256'].items():
-                            if digest(Path(case['corpus']) / name) != checksum:
-                                raise ValueError('Context source drift.')
-                        if digest(case['sqlite']) != contexts[case['scenario_id']]['sqlite_sha256']:
-                            raise ValueError('Prepared context SQLite changed.')
-                    else:
-                        entry = inputs[row['dataset']]
-                        expected = entry['index_manifest']
-                        # Validation is setup work and is excluded from trial timing.
-                        data = load_external(Path(entry['data']))
-                        data.verify_materialized(Path(entry['corpus']), omit_empty=row['dataset'] == 'fiqa')
-                        del data
-                        if digest(entry['sqlite']) != entry['sqlite_sha256']:
-                            raise ValueError('Preserved SQLite changed before inference.')
-                    storage = stack.enter_context(SQLiteStorage(Path(entry['sqlite']), read_only=True))
-                    manifest = storage.active_manifest(entry['vault_id'])
-                    if asdict(manifest) != expected:
-                        raise ValueError('Manifest differs from frozen protocol.')
-                    engine = runtime.retrieval_engine(storage, manifest, modes=('bm25', 'semantic'), exact=True)
-                    tools = runtime.agent_tools(engine=engine, directory=Path(entry['corpus']),
-                                                vault_id=entry['vault_id'], rerank=False, prepare_exact=True)
-                    setup.append({'scope': scope, 'elapsed_ms': (perf_counter() - start) * 1000,
-                                  'index_id': manifest.index_version, 'pid': pid, 'recorded_at': utc()})
-                    write_json(setup_path, setup)
+                    tools, manifest = _prepare_scope(run, runtime, stack, row, case, scope)
                     active_scope = scope
-                    # Runtime owns the cache, but release it at each scope boundary
-                    # instead of retaining all prior corpora until the run ends.
-                    stack.callback(tools._exact.close)
-                    if pause():
+                    if run.pause():
                         return
-                    if policy:
-                        competitors = gpu_competitors()
-                        if competitors:
-                            status(status='waiting_for_gpu', stage='before_scope_checks', competing_processes=competitors)
+                    if run.policy:
+                        if run.yield_for_gpu('before_scope_checks'):
                             return
-                        status(stage='scope_readiness', dataset=row['dataset'], scope=scope)
-                        check = run_scope_checks(tools, row['dataset'], scope, policy)
-                        checks = out / 'scope-readiness'
-                        checks.mkdir(exist_ok=True)
-                        check_path = checks / (hashlib.sha256(scope.encode()).hexdigest() + '-' + str(pid) + '-' + str(len(setup)) + '.json')
-                        check.update(protocol_sha256=meta['protocol_sha256'], index_id=manifest.index_version)
-                        write_json(check_path, check)
-                        manifest_path = out / 'scope-readiness-manifest.json'
-                        check_manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
-                        check_manifest[check_path.name] = digest(check_path)
-                        write_json(manifest_path, check_manifest)
-                        if check['status'] != 'passed':
-                            stop.request('scope_readiness_failed:' + scope)
-                        if pause():
+                        _scope_readiness(run, tools, row, scope, manifest)
+                        if run.pause():
                             return
-                competitors = gpu_competitors()
-                if competitors:
-                    status(status='waiting_for_gpu', stage='between_attempts', competing_processes=competitors)
+                if run.yield_for_gpu('between_attempts'):
                     return
                 client.verify_identity()
-                if pause():
+                if run.pause():
                     return
-                directory.mkdir(exist_ok=False)
-                write_json(directory / 'attempt.json', {'key': key, 'protocol_sha256': meta['protocol_sha256'],
-                                                       'schedule': row, 'started_at': utc()})
-                status(stage='inference', current_attempt=key, schedule_index=index, arm=row['arm'],
-                       dataset=row['dataset'], scenario_id=case['scenario_id'])
-                start = perf_counter()
-                result, error = None, None
-                observer = new_observer(counter, counter_id)
-                with (directory / 'provider.jsonl').open('x') as journal:
-                    def emit(event):
-                        journal.write(json.dumps({'at': utc(), **event}, ensure_ascii=False, allow_nan=False) + '\n')
-                        journal.flush()
-                    client.journal = emit
-                    try:
-                        with evaluation_deadline(360):
-                            arm = ARM_BY_ID[row['arm']]
-                            fn = fixed_rag if arm.fixed else controlled_agent
-                            result = fn(case['query'], tools=tools, arm=arm, client=client, observer=observer)
-                    except Exception as exc:
-                        error = {'type': type(exc).__name__, 'message': str(exc)}
-                client.journal = None
-                elapsed_ms = (perf_counter() - start) * 1000
-                record = {'key': key, 'protocol_sha256': meta['protocol_sha256'], 'schedule': row,
-                          'scenario_id': case['scenario_id'], 'elapsed_ms': elapsed_ms,
-                          'error': error, 'result': asdict(result) if result else None,
-                          'completed_at': utc(), 'answer_quality': 'pending scoring and independent review'}
-                if result:
-                    record['evidence_sources'] = evidence_sets(result.observation)
-                record['loaded_models_after'] = client.http.get('/api/ps').raise_for_status().json()
-                record['competing_processes_after'] = gpu_competitors()
-                write_json(directory / 'result.json', record)
-                write_json(directory / 'complete.json', {'result_sha256': digest(directory / 'result.json'),
-                                                         'provider_sha256': digest(directory / 'provider.jsonl')})
-                completed += 1
-                status(completed=completed, **({'guard': guard.state()} if guard else {}))
-                print(json.dumps({'completed': completed, 'total': total, 'dataset': row['dataset'], 'arm': row['arm'],
-                                  'stop': result.stop_reason if result else 'error', 'elapsed_ms': elapsed_ms}), flush=True)
-                if guard:
-                    for reason in guard.observe(record):
-                        stop.request(reason)
-                elif policy:
-                    failures = operational_failures(record, policy)
-                    if failures:
-                        stop.request('tool_readiness_failed:' + key)
-                    # A missing trace/hard harness failure cannot establish readiness.
-                    if execution_failure(record):
-                        stop.request('unobserved_execution_failure:' + key)
-                    if record['competing_processes_after']:
-                        stop.request('gpu_competition_during_attempt:' + key)
-                if pause():
+                _run_attempt(run, client, tools, counter, counter_id, index, row, case, key, directory)
+                if run.pause():
                     return
             client.verify_identity()
         verify_files(out, protocol)
-        status(status='completed', stage=phase + '_inference_complete', completed=total)
+        run.status(status='completed', stage=run.phase + '_inference_complete', completed=run.total)
     except BaseException as error:
-        status(status='failed', error={'type': type(error).__name__, 'message': str(error)})
+        run.status(status='failed', error={'type': type(error).__name__, 'message': str(error)})
         raise
     finally:
         if client:
