@@ -107,6 +107,9 @@ def _parser():
             command.add_argument('pattern' if name == 'match' else 'query', type=_nonblank)
             command.add_argument('--top-k', type=_positive_int, default=5 if name == 'match' else 2)
             command.add_argument('--source', type=_nonblank, help='Restrict to this exact source filename.')
+        if name == 'match':
+            command.add_argument('--unique-sources', action='store_true',
+                                 help='List each matching note once instead of every occurrence.')
         if name in ('match', 'ask'):
             command.add_argument('--notes-dir', type=Path,
                                  help='Live notes directory; defaults to the saved scope, then example_notes.')
@@ -157,7 +160,7 @@ def _execute(runtime, args):
     scope = {'db': args.db, 'vault_id': args.vault_id}
     if args.command == 'match':
         return runtime.match(args.pattern, **scope, notes_dir=args.notes_dir,
-                             top_k=args.top_k, source=args.source)
+                             top_k=args.top_k, source=args.source, unique_sources=args.unique_sources)
     if args.command == 'search':
         settings = RetrievalConfig(candidate_k=args.candidate_k, rrf_k=args.rrf_k,
             rerank_candidates=args.rerank_candidates, reranker_max_length=args.reranker_max_length,

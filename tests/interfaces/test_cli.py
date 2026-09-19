@@ -58,7 +58,7 @@ def test_match_calls_only_runtime_match_and_formats_occurrences(runtime, capsys)
     fake, _ = runtime
     assert main(['match', 'RAG', '--source', 'rag.md', '--top-k', '3', '--notes-dir', 'notes']) == 0
     fake.match.assert_called_once_with('RAG', db=DEFAULT_DB, vault_id='default',
-                                       notes_dir=Path('notes'), source='rag.md', top_k=3)
+                                       notes_dir=Path('notes'), source='rag.md', top_k=3, unique_sources=False)
     assert all(not getattr(fake, name).called for name in ('search', 'ask', 'index', 'status'))
     output = capsys.readouterr()
     assert 'rag.md (body chars 4:7)' in output.out and 'RAG' in output.out

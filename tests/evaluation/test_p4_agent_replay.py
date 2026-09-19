@@ -31,7 +31,10 @@ def test_offline_agent_replay_catches_incorrect_evidence_totals(tmp_path):
     source=next(s for s,d in data.source_map().items() if d=='a')
     scripted=[ScriptedModel(reply(calls=[tool_call('search',query='alpha',mode='bm25')]),
                 reply(calls=[tool_call('read',source=source)]),complete('alpha')),
-              ScriptedModel(reply(calls=[tool_call('search',query='beta',mode='bm25')]), complete('Insufficient evidence', constrained=True))]
+              # The oversized hit is withheld while the allowance stays open, so a free-form proposal
+              # precedes the reserved finalization request.
+              ScriptedModel(reply(calls=[tool_call('search',query='beta',mode='bm25')]), complete('Insufficient evidence', constrained=True),
+                            complete('Insufficient evidence', constrained=True))]
     rows=[]
     for i,(qid,query) in enumerate(data.queries.items()):
         observer=AgentObserver(budget=AgentBudget(max_tool_calls=12,max_query_calls=10,max_read_calls=6,

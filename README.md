@@ -194,6 +194,8 @@ It returns literal occurrences with source filenames and body character offsets.
 It does not require an index, embedding model, Qdrant, or generation model.
 
 `--top-k` limits occurrences, so multiple results may come from the same note.
+Add `--unique-sources` to list each matching note once. The JSON response reports
+`truncated: true` when more matches exist beyond `--top-k`.
 
 ### Semantic retrieval
 
@@ -431,7 +433,15 @@ Final Response
 The agent can select an available search mode on each `search` call.
 
 `match` and `search` return opaque evidence references. The Agent expands a result
-with `read(ref="…")`, or reads a known filename with `read(source="rag.md")`.
+with `read(ref="…")`, which returns the bounded heading section around the
+evidence by default (`expand="snippet"` for the excerpt only, `expand="document"`
+for the whole note), or reads a known filename with `read(source="rag.md")`.
+`match` lists occurrences by default; `unique_sources=true` lists each matching
+note once, and every `match` response reports `truncated` when more matches exist
+beyond `limit`. `search` returns ten ranked chunks by default. Under an evidence
+budget, a result that does not fit is delivered as its fitting prefix with the
+remainder recorded as withheld; a single oversized read is withheld with an
+explicit error rather than silently trimmed.
 References belong to one run and bind the source, revision and original span;
 edits, deletions and renames produce recoverable errors. Low-level Python
 document access still supports validated IDs, sections and ranges.

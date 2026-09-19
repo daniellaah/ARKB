@@ -76,7 +76,7 @@ class Runtime:
 
     def match(self, pattern: str, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
               notes_dir: Path | None = None, top_k: int = 5,
-              source: str | None = None) -> SearchResponse:
+              source: str | None = None, unique_sources: bool = False) -> SearchResponse:
         """Find literal occurrences in live files without models or a required index."""
         from arkb.knowledge.documents import DocumentAccess
         from arkb.retrieval.exact import ExactRetriever
@@ -85,7 +85,7 @@ class Runtime:
         with self._snapshot(db, vault_id, required=False) as (storage, manifest):
             documents = DocumentAccess(self._notes_directory(storage, manifest, notes_dir), vault_id=vault_id)
             with ExactRetriever(documents) as exact:
-                return exact.search(pattern, top_k=top_k, filters=filters)
+                return exact.search(pattern, top_k=top_k, filters=filters, unique_sources=unique_sources)
 
     def search(self, query: str, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
                mode: str = DEFAULT_RETRIEVAL_MODE, top_k: int = 2, source: str | None = None,

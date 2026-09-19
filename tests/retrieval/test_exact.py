@@ -286,3 +286,28 @@ def test_waiting_for_shared_cache_obeys_timeout(exact):
     finally:
         release.set()
         thread.join(2)
+
+
+def test_unique_sources_lists_each_document_once_and_reports_truncation(tmp_path, exact):
+    (tmp_path / 'a.md').write_text('word word word', encoding='utf-8')
+    (tmp_path / 'b.md').write_text('word', encoding='utf-8')
+    (tmp_path / 'c.md').write_text('word\nword', encoding='utf-8')
+    (tmp_path / 'd.md').write_text('nothing here', encoding='utf-8')
+    unique = exact.search('word', unique_sources=True, top_k=2)
+    assert [r.source for r in unique.results] == ['a.md', 'b.md'] and unique.truncated is True
+    assert [(r.start_char, r.end_char) for r in unique.results] == [(0, 4), (0, 4)]
+    complete = exact.search('word', unique_sources=True, top_k=3)
+    assert [r.source for r in complete.results] == ['a.md', 'b.md', 'c.md'] and complete.truncated is False
+    assert exact.search('word', unique_sources=True, top_k=50).truncated is False
+    occurrences = exact.search('word', top_k=2)
+    assert [r.source for r in occurrences.results] == ['a.md', 'a.md'] and occurrences.truncated is True
+    assert exact.search('word', top_k=6).truncated is False
+    assert exact.search('word', top_k=5).truncated is True
+    absent = exact.search('absent', unique_sources=True)
+    assert absent.results == () and absent.truncated is False
+    regex = exact.search('WORD', case_sensitive=False, unique_sources=True, top_k=1)
+    assert [r.source for r in regex.results] == ['a.md'] and regex.truncated is True
+    filtered = exact.search('word', filters={'source': 'c.md'}, unique_sources=True, top_k=1)
+    assert [r.source for r in filtered.results] == ['c.md'] and filtered.truncated is False
+    with pytest.raises(ValueError):
+        exact.search('word', unique_sources='yes')

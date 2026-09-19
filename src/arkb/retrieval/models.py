@@ -78,18 +78,23 @@ class SearchResponse:
     Rank is the one-based position in results, never a stale per-hit field.
     index_id identifies the pinned index when the method uses one. Failures
     raise exceptions rather than masquerading as successful empty responses.
+    truncated, when a method reports it, states that more matches existed
+    beyond the requested top_k; None means the method does not report it.
     """
 
     query: str
     method: str
     results: tuple[SearchResult, ...] = ()
     index_id: str | None = None
+    truncated: bool | None = None
 
     def __post_init__(self) -> None:
         _text(self.query, 'query')
         _text(self.method, 'method')
         if self.index_id is not None:
             _text(self.index_id, 'index_id')
+        if self.truncated is not None and type(self.truncated) is not bool:
+            raise ValueError('truncated must be a boolean or None.')
         if not isinstance(self.results, tuple) or any(not isinstance(r, SearchResult) for r in self.results):
             raise ValueError('results must be a ranked tuple of SearchResult objects.')
 

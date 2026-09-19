@@ -2,7 +2,7 @@ import json
 from dataclasses import asdict
 import pytest
 from arkb.agent import AgentBudget, AgentObserver, run_agent
-from tests.agent.helpers import ScriptedModel, reply, tool_call
+from tests.agent.helpers import ScriptedModel, complete, reply, tool_call
 
 
 def finish(messages):
@@ -36,8 +36,9 @@ def test_invalid_then_corrected_call_then_canonical_finish(tools):
 
 
 @pytest.mark.parametrize('limits,expected', [({'max_tool_calls': 1}, 'max_tool_calls'),
-    ({'max_read_calls': 1}, 'max_read_calls'), ({'max_evidence_tokens': 50}, 'max_evidence_tokens')])
+    ({'max_read_calls': 1}, 'max_read_calls'), ({'max_evidence_tokens': 42}, 'max_evidence_tokens')])
 def test_budget_exhaustion_delivers_prior_evidence_to_reserved_finalization(tools, limits, expected):
+    # a.md delivers 39 characters; with 42 the remaining allowance is below one tenth, so the run closes.
     observer = AgentObserver(budget=AgentBudget(**limits), counter=len, counter_identity='chars')
     model = ScriptedModel(reply(calls=[tool_call('read', source='a.md')]*3), final_json)
     result = run_agent('Read a.md', client=model, tools=tools, model='fake', observer=observer)
@@ -113,3 +114,18 @@ def test_many_invalid_finish_calls_consume_one_turn_and_cannot_loop(tools):
     assert result.stop_reason == 'final' and result.state.turn == 2
     assert sum(e['executed'] for e in result.observation['tools']) == 1
     assert all(e['skip_reason'] == 'invalid_finish' for e in result.observation['tools'][1:])
+
+
+def test_oversized_result_is_withheld_but_collection_continues_while_allowance_remains(tools):
+    observer = AgentObserver(budget=AgentBudget(max_evidence_tokens=60), counter=len, counter_identity='chars')
+    model = ScriptedModel(reply(calls=[tool_call('read', source='a.md'), tool_call('read', source='a.md')]),
+                          reply(calls=[tool_call('read', source='empty.md')]),
+                          complete('answer', constrained=True), complete('answer', constrained=True))
+    result = run_agent('Read', client=model, tools=tools, model='fake', observer=observer)
+    events = result.observation['tools']
+    assert [e['delivered_to_conversation'] for e in events[:3]] == [True, False, True]
+    assert result.trace.tool_calls[1].result['error']['code'] == 'evidence_too_large'
+    assert 'expand=section' in result.trace.tool_calls[1].result['error']['message']
+    assert result.observation['budget_stop_reason'] is None
+    assert result.stop_reason == 'final' and result.final.termination_reason == 'final_requested'
+    assert {c['source'] for c in result.final.citations} == {'a.md', 'empty.md'}

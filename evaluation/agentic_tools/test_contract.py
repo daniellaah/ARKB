@@ -135,13 +135,28 @@ def test_fixed_rag_one_request_same_schema_and_packed_reference_visibility():
 
 
 def test_agent_whole_oversize_observation_is_withheld():
-    client = Client([response(calls=[('search', {'query': 'q'})]),
-                     response(json.dumps({'answer': 'No evidence', 'status': 'insufficient_evidence', 'evidence_refs': []}))])
+    final = response(json.dumps({'answer': 'No evidence', 'status': 'insufficient_evidence', 'evidence_refs': []}))
+    client = Client([response(calls=[('search', {'query': 'q'})]), final, final])
     result = controlled_agent('q', tools=Capabilities(('x ' * 8001,)), arm=ARM_BY_ID['A-S'], client=client, observer=obs())
     assert result.final.status == 'insufficient_evidence'
-    assert result.observation['budget_stop_reason'] == 'max_evidence_tokens'
+    # The oversized hit is withheld; the untouched allowance keeps collection open.
+    assert result.observation['budget_stop_reason'] is None
+    assert result.observation['tools'][0]['withheld_hits'] == 1
     assert evidence_sets(result.observation) == {'returned': ['0.md'], 'delivered': [], 'submitted': []}
     assert result.observation['evidence']['delivered_tokens'] == 0
+
+
+def test_agent_search_results_are_delivered_as_the_fitting_prefix():
+    final = response(json.dumps({'answer': 'x', 'status': 'answered', 'evidence_refs': []}))
+    client = Client([response(calls=[('search', {'query': 'q'})]), final, final])
+    texts = ('x ' * 3000, 'y ' * 3000, 'z ' * 3000)
+    result = controlled_agent('q', tools=Capabilities(texts), arm=ARM_BY_ID['A-S'], client=client, observer=obs())
+    event = result.observation['tools'][0]
+    assert event['delivered_to_conversation'] and event['withheld_hits'] == 1 and len(event['delivered_refs']) == 2
+    assert evidence_sets(result.observation) == {'returned': ['0.md', '1.md', '2.md'], 'delivered': ['0.md', '1.md'], 'submitted': ['0.md', '1.md']}
+    conversation = json.loads(result.state.messages[3]['content'])
+    assert conversation['withheld_results'] == 1 and [h['source'] for h in conversation['results']] == ['0.md', '1.md']
+    assert result.observation['evidence']['delivered_tokens'] == 6000
 
 
 def test_reserved_finalization_eighth_request_and_no_product_global_change():

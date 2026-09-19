@@ -104,21 +104,43 @@ class AgentObserver:
     def start_tool(self,event):
         event.update(executed=True,status='running',started_ms=self.elapsed())
 
+    def remaining_evidence(self):
+        if not self.budget or self.budget.max_evidence_tokens is None:return None
+        return self.budget.max_evidence_tokens-sum(e['delivered_evidence_tokens'] or 0 for e in self.tools)
+
     def end_tool(self,event,result, *, references=None):
+        """Deliver every hit that fits the remaining allowance, in order; withhold the rest.
+
+        A multi-hit result is delivered as its longest fitting prefix and the event
+        records delivered_refs and withheld_hits. A single hit that does not fit is
+        withheld whole. The allowance closes only when nothing further can be
+        delivered usefully: fewer than one tenth of it remains.
+        """
         event.update(status=result.get('status','success'),elapsed_ms=self.elapsed()-event['started_ms'],raw_result=deepcopy(result),
                      error=deepcopy(result.get('error')))
         hits=[result.get('result')] if event['name']=='read' else result.get('results',[])
         texts=[h for h in hits if isinstance(h,dict) and isinstance(h.get('content'),str)]
-        if references is not None:
-            texts=[references[h['ref']] for h in texts]
-        count=sum(self.count(h['content']) for h in texts) if self.counter is not None else None
+        bound=[references[h['ref']] for h in texts] if references is not None else texts
+        counts=[self.count(h['content']) for h in bound] if self.counter is not None else [None]*len(bound)
+        count=sum(counts) if self.counter is not None else None
         event['returned_evidence_tokens']=count
         if self.deadline():return False
-        delivered=sum(e['delivered_evidence_tokens'] or 0 for e in self.tools)
-        if self.budget and self.budget.max_evidence_tokens is not None and delivered+count>self.budget.max_evidence_tokens:
-            self.reason='max_evidence_tokens';return False
+        limit=self.budget.max_evidence_tokens if self.budget else None
+        if limit is not None:
+            remaining=self.remaining_evidence()
+            kept,used=0,0
+            for value in counts:
+                if used+value>remaining:break
+                kept+=1;used+=value
+            if kept<len(bound):
+                event.update(withheld_hits=len(bound)-kept)
+                if kept==0 or event['name']=='read':
+                    if remaining<limit/10:self.reason='max_evidence_tokens'
+                    return False
+                event['delivered_refs']=[h['ref'] for h in texts[:kept]] if references is not None else None
+                bound,count=bound[:kept],used
         event.update(delivered_to_conversation=True,delivered_evidence_tokens=count)
-        for h in texts:
+        for h in bound:
             identity=json.dumps({key:h.get(key) for key in ('source','document_revision','start_char','end_char','content')},sort_keys=True,ensure_ascii=False)
             self._unique[identity]=self.count(h['content'])
         return True

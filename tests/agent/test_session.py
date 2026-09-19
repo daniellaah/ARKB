@@ -119,3 +119,33 @@ def test_search_depth_misuse_is_recoverable_before_backend(tools, engine):
     result = ToolSession(tools).invoke('search', {'query': 'x', 'mode': 'hybrid', 'limit': 21})
     assert result['status'] == 'recoverable_error' and result['error']['code'] == 'invalid_arguments'
     engine.search.assert_not_called()
+
+
+def test_read_expands_to_the_bounded_section_by_default_and_whole_document_on_request(tools, engine, documents):
+    from arkb.retrieval.models import SearchResult
+    body = 'intro line\n\n## First\n' + 'alpha ' * 200 + '\n\n## Second\n' + 'beta ' * 200
+    (documents.directory / 'long.md').write_text('# Long\n\n' + body, encoding='utf-8')
+    record = next(r for r in documents.records() if r.chunk.source == 'long.md')
+    full = documents.read(source='long.md').content
+    section_start, section_end = full.index('## Second'), len(full)
+    chunk_start = section_end - 300
+    hit = SearchResult(source_id=record.document_id, source='long.md', content=full[chunk_start:section_end], method='semantic',
+                       chunk_id='chunk-2', start_char=chunk_start, end_char=section_end,
+                       metadata={'title': 'Long', 'document_revision': record.document_revision, 'section_id': 'sec-2',
+                                 'section_start_char': section_start, 'section_end_char': section_end})
+    engine.search.return_value = SearchResponse(query='beta', method='semantic', index_id='snapshot', results=(hit,))
+    session = ToolSession(tools)
+    found = session.invoke('search', {'query': 'beta'}); session.deliver(found)
+    ref = found['results'][0]['ref']
+    section = session.invoke('read', {'ref': ref})['result']
+    assert section['content'] == full[section_start:section_end]
+    assert section['content'].startswith('## Second') and 'alpha' not in section['content']
+    assert session.references[section['ref']]['start_char'] == section_start
+    assert session.invoke('read', {'ref': ref, 'expand': 'document'})['result']['content'] == full
+    assert session.invoke('read', {'ref': ref, 'expand': 'snippet'})['result']['content'] == full[chunk_start:section_end]
+    match = session.invoke('match', {'query': 'beta beta', 'limit': 1}); session.deliver(match)
+    window = session.invoke('read', {'ref': match['results'][0]['ref']})['result']
+    bound = session.references[match['results'][0]['ref']]
+    assert session.references[window['ref']]['start_char'] == max(0, bound['start_char'] - 3000) and window['content'] in full
+    assert session.invoke('read', {'source': 'long.md', 'expand': 'snippet'})['status'] == 'recoverable_error'
+    assert session.invoke('read', {'source': 'long.md'})['result']['content'] == full

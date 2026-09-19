@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from arkb.retrieval.exact import ExactPatternError, ExactTimeout, ExactCancelled
 from arkb.knowledge.documents import DocumentNotFound
+from arkb.agent.tools import DEFAULT_SEARCH_LIMIT
 
 
 class ToolInputError(ValueError):
@@ -44,6 +45,20 @@ def validate_arguments(arguments, schema):
     source = arguments.get('source')
     if source is not None and (source in ('.', '..') or '/' in source or '\\' in source):
         raise ToolInputError('invalid_arguments', 'source must be a filename in this flat knowledge base.')
+
+
+SECTION_WINDOW_CHARS = 3000
+
+
+def section_bounds(bound, length):
+    """Bounded expansion around bound evidence: its heading section, else a window."""
+    start, end = bound.get('section_start_char'), bound.get('section_end_char')
+    if type(start) is int and type(end) is int and 0 <= start < end <= length:
+        return start, end
+    span_start, span_end = bound.get('start_char'), bound.get('end_char')
+    if type(span_start) is not int or type(span_end) is not int:
+        return 0, length
+    return max(0, span_start - SECTION_WINDOW_CHARS), min(length, span_end + SECTION_WINDOW_CHARS)
 
 
 class ToolSession:
@@ -98,17 +113,25 @@ class ToolSession:
             record.update(status='recoverable_error', error={'code': error.code, 'message': str(error)})
             raise
 
-    def _read(self, *, ref=None, source=None, expand='document'):
+    def _read(self, *, ref=None, source=None, expand='section'):
         if (ref is None) == (source is None):
             raise ToolInputError('invalid_arguments', 'Supply exactly one of ref or source.')
         if ref is not None:
             bound, current = self._resolve(ref)
             if expand == 'snippet':
                 return self._present(bound)
-            # A document expansion is taken from the single revision-checked read.
-            return self._present(current)
-        if expand != 'document':
-            raise ToolInputError('invalid_arguments', 'Reading a known source supports document expansion only.')
+            if expand == 'document':
+                # A document expansion is taken from the single revision-checked read.
+                return self._present(current)
+            start, end = section_bounds(bound, len(current['content']))
+            if (start, end) == (0, len(current['content'])):
+                return self._present(current)
+            # The bounded section is a verbatim slice of the same revision-checked read.
+            return self._present({**current, 'content': current['content'][start:end],
+                                  'start_char': start, 'end_char': end, 'chunk_id': None,
+                                  'section_id': bound.get('section_id')})
+        if expand not in ('document', 'section'):
+            raise ToolInputError('invalid_arguments', 'Reading a known source returns the whole document; use snippet only with a ref.')
         try:
             current = self.tools.read(source=source)['result']
         except DocumentNotFound as error:
@@ -143,15 +166,18 @@ class ToolSession:
                 raw = self.tools.match(**arguments, timeout=exact_timeout)
             else:
                 mode = arguments.get('mode') or self.tools._mode
-                limit = arguments.get('limit', 5)
+                limit = arguments.get('limit', DEFAULT_SEARCH_LIMIT)
                 engine = self.tools._engine
                 if mode == 'hybrid' and limit > engine.candidate_k:
                     raise ToolInputError('invalid_arguments', f'Hybrid limit must be <= {engine.candidate_k}.')
                 if self.tools._rerank and limit > engine.rerank_candidates:
                     raise ToolInputError('invalid_arguments', f'Reranked limit must be <= {engine.rerank_candidates}.')
                 raw = self.tools.search(**arguments)
-            return {'status': 'success', 'query': raw['query'],
-                    'results': [self._present(hit, raw.get('index_id')) for hit in raw['results']]}
+            observation = {'status': 'success', 'query': raw['query'],
+                           'results': [self._present(hit, raw.get('index_id')) for hit in raw['results']]}
+            if 'truncated' in raw:
+                observation['truncated'] = raw['truncated']
+            return observation
         except ToolInputError as error:
             return error_result(error.code, str(error))
         except ExactPatternError as error:

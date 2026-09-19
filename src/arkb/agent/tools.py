@@ -20,6 +20,8 @@ class Evidence(TypedDict):
     section_id: str | None
     start_char: int | None
     end_char: int | None
+    section_start_char: int | None
+    section_end_char: int | None
 
 
 class QueryResult(TypedDict):
@@ -36,15 +38,21 @@ def _evidence(result: SearchResult) -> Evidence:
         value = result.metadata.get(key)
         return value if isinstance(value, str) else None
 
+    def offset(key: str) -> int | None:
+        value = result.metadata.get(key)
+        return value if type(value) is int else None
+
     return Evidence(document_id=result.source_id, source=result.source, title=text('title'),
                     content=result.content, document_revision=text('document_revision'),
                     chunk_id=result.chunk_id, section_id=text('section_id'),
-                    start_char=result.start_char, end_char=result.end_char)
+                    start_char=result.start_char, end_char=result.end_char,
+                    section_start_char=offset('section_start_char'), section_end_char=offset('section_end_char'))
 
 
 def _query_result(response: SearchResponse) -> QueryResult:
     return {**QueryResult(query=response.query, results=[_evidence(hit) for hit in response.results]),
-            **({'index_id': response.index_id} if response.index_id is not None else {})}
+            **({'index_id': response.index_id} if response.index_id is not None else {}),
+            **({'truncated': response.truncated} if response.truncated is not None else {})}
 
 
 def tool_definitions(modes: tuple[str, ...], *, default_mode: str) -> tuple[dict[str, ConfigValue], ...]:
@@ -57,6 +65,11 @@ def tool_definitions(modes: tuple[str, ...], *, default_mode: str) -> tuple[dict
     search['parameters']['properties']['mode']['description'] = (
         f'Available strategies: {strategies or "none"}; omitted/null uses {default_mode}.')
     return definitions
+
+
+DEFAULT_MATCH_LIMIT = 5
+UNIQUE_SOURCES_LIMIT = 50
+DEFAULT_SEARCH_LIMIT = 10
 
 
 class AgentTools:
@@ -95,18 +108,32 @@ class AgentTools:
         return tool_definitions(tuple(modes), default_mode=self._mode)
 
     def match(self, query: str, *, target: str = 'content', regex: bool = False,
-              case_sensitive: bool = True, source: str | None = None, limit: int = 5,
-              timeout: float = 30) -> QueryResult:
-        """Use when you know an exact word, phrase, symbol, filename, or text pattern."""
+              case_sensitive: bool = True, source: str | None = None, limit: int | None = None,
+              timeout: float = 30, unique_sources: bool = False) -> QueryResult:
+        """Use when you know an exact word, phrase, symbol, filename, or text pattern.
+
+        unique_sources lists each matching note once; the result's truncated
+        flag says whether more matches existed beyond limit. An omitted limit
+        means five occurrences, or UNIQUE_SOURCES_LIMIT notes when unique_sources
+        is set, because one hit per note costs only a few evidence tokens.
+        """
+        if limit is None:
+            limit = UNIQUE_SOURCES_LIMIT if unique_sources else DEFAULT_MATCH_LIMIT
         return _query_result(self._exact.search(
             query, target=target, regex=regex, case_sensitive=case_sensitive,
             filters={'source': source} if source is not None else None, top_k=limit, timeout=timeout,
+            unique_sources=unique_sources,
         ))
 
-    def search(self, query: str, *, source: str | None = None, limit: int = 5,
+    def search(self, query: str, *, source: str | None = None, limit: int = DEFAULT_SEARCH_LIMIT,
                mode: str | None = None) -> QueryResult:
         """Use to discover relevant knowledge about a question, topic, or concept
         when you do not know the document's exact wording.
+
+        The default depth is ten chunks: on the development tracks one
+        five-chunk call bounded document recall at the engine's recall@5, while
+        ten results reach recall@10 at a modest evidence cost. Oversized results
+        are delivered as a fitting prefix by the observer, never silently cut.
         """
         filters = validate_request(query, limit, {'source': source} if source is not None else None)
         if mode is not None and mode not in ('bm25', 'semantic', 'hybrid'):
@@ -127,16 +154,20 @@ class AgentTools:
             document_id=document.document_id, source=document.source, title=document.title,
             content=document.content, document_revision=document.document_revision,
             chunk_id=None, section_id=document.section_id,
-            start_char=document.start_char, end_char=document.end_char))
+            start_char=document.start_char, end_char=document.end_char,
+            section_start_char=None, section_end_char=None))
 
 
 # Plain JSON schemas, independent of any model provider, framework, or dispatcher.
 TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
     {
         'name': 'match',
-        'description': 'Use when you know an exact word, phrase, symbol, filename, or text '
+        'description': 'Use only when you know an exact word, phrase, symbol, filename, or text '
                        'pattern. Returns literal occurrences by default; enable regex for '
-                       'patterns. Use target=source for filenames instead of document bodies.',
+                       'patterns. Use target=source for filenames instead of document bodies. '
+                       'unique_sources=true lists each matching note once (up to 50 unless limit '
+                       'is given). truncated=true in the response means more matches exist beyond '
+                       'limit: repeat the same call with a higher limit before claiming a complete list.',
         'parameters': {
             'type': 'object', 'required': ['query'], 'additionalProperties': False,
             'properties': {
@@ -146,7 +177,10 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
                 'case_sensitive': {'type': 'boolean', 'default': True},
                 'source': {'type': ['string', 'null'], 'minLength': 1,
                            'description': 'Restrict to this exact knowledge-relative source path.'},
-                'limit': {'type': 'integer', 'minimum': 1, 'default': 5},
+                'limit': {'type': 'integer', 'minimum': 1,
+                          'description': 'Maximum results; defaults to 5 occurrences, or 50 notes with unique_sources.'},
+                'unique_sources': {'type': 'boolean', 'default': False,
+                                   'description': 'At most one result per note; use it to enumerate matching notes completely.'},
             },
         },
     },
@@ -155,7 +189,9 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
         'description': 'Use to discover relevant knowledge about a question, topic, or '
                        'concept when you do not know the exact wording. Results are ordered '
                        'by relevance. Choose an available strategy from the mode parameter, '
-                       'or omit it for the default. Use read with a returned ref to expand context.',
+                       'or omit it for the default. If the results do not cover the question, '
+                       'search again with different wording, another mode, or a larger limit. '
+                       'Use read with a returned ref to expand context.',
         'parameters': {
             'type': 'object', 'required': ['query'], 'additionalProperties': False,
             'properties': {
@@ -164,7 +200,8 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
                          'description': 'Retrieval strategy for this call; omitted/null uses the configured default.'},
                 'source': {'type': ['string', 'null'], 'minLength': 1,
                            'description': 'Restrict to this exact knowledge-relative source path.'},
-                'limit': {'type': 'integer', 'minimum': 1, 'default': 5},
+                'limit': {'type': 'integer', 'minimum': 1, 'default': 10,
+                          'description': 'Number of ranked chunks; use up to 20 for broad questions.'},
             },
         },
     },
@@ -172,7 +209,9 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
         'name': 'read',
         'description': 'Expand returned evidence using ref. Alternatively read a known source filename. '
                        'Supply exactly one selector. References are bound to their source revision; '
-                       'if stale, search again or read the filename to get current text.',
+                       'if stale, search again or read the filename to get current text. expand=section '
+                       '(default) returns the bounded section around the evidence; snippet returns only '
+                       'the excerpt; document returns the whole note, which can be very long.',
         'parameters': {
             'type': 'object', 'oneOf': [{'required': ['ref']}, {'required': ['source']}],
             'additionalProperties': False,
@@ -180,7 +219,8 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
                 'ref': {'type': 'string', 'minLength': 1},
                 'source': {'type': 'string', 'minLength': 1,
                            'description': 'Known filename in the knowledge base, e.g. rag.md.'},
-                'expand': {'type': 'string', 'enum': ['document', 'snippet'], 'default': 'document'},
+                'expand': {'type': 'string', 'enum': ['section', 'snippet', 'document'], 'default': 'section',
+                           'description': 'section: heading section around the evidence (bounded); snippet: the excerpt only; document: the entire note.'},
             },
         },
     },

@@ -162,12 +162,18 @@ class ExactRetriever:
     def search(self, query: str, *, target: str = 'content', regex: bool = False,
                case_sensitive: bool = True, top_k: int = 5,
                filters: Mapping[str, str] | None = None, timeout: float = 30,
-               cancel: Event | None = None) -> SearchResponse:
+               cancel: Event | None = None, unique_sources: bool = False) -> SearchResponse:
+        """Occurrences in source order, or one hit per source with unique_sources.
+
+        The response reports truncated=True when at least one further eligible
+        match existed beyond top_k, so a caller can enumerate completely by
+        raising top_k or narrowing the pattern instead of guessing.
+        """
         filters = validate_request(query, top_k, filters)
         if target not in ('content', 'source'):
             raise ValueError('target must be content or source.')
-        if type(regex) is not bool or type(case_sensitive) is not bool:
-            raise ValueError('regex and case_sensitive must be booleans.')
+        if type(regex) is not bool or type(case_sensitive) is not bool or type(unique_sources) is not bool:
+            raise ValueError('regex, case_sensitive and unique_sources must be booleans.')
         if '\x00' in query:
             raise ExactPatternError('query must not contain a NUL character.')
         if type(timeout) not in (int, float) or not 0 <= timeout < float('inf'):
@@ -176,9 +182,10 @@ class ExactRetriever:
         _check(deadline, cancel)
         with self._locked(deadline, cancel):
             return self._search(query, target=target, regex=regex, case_sensitive=case_sensitive,
-                                top_k=top_k, source=filters.get('source'), deadline=deadline, cancel=cancel)
+                                top_k=top_k, source=filters.get('source'), deadline=deadline, cancel=cancel,
+                                unique_sources=unique_sources)
 
-    def _search(self, query, *, target, regex, case_sensitive, top_k, source, deadline, cancel):
+    def _search(self, query, *, target, regex, case_sensitive, top_k, source, deadline, cancel, unique_sources=False):
         entries = self._cache.scan(source=source, check=lambda: _check(deadline, cancel))
 
         def literals():
@@ -195,10 +202,16 @@ class ExactRetriever:
             deadline=deadline, cancel=cancel))
         results, sources = [], set()
         notes = {}
+        truncated = False
+        one_per_source = target == 'source' or unique_sources
         try:
             for entry, start, end in matches:
-                if target == 'source' and entry.source in sources:
+                if one_per_source and entry.source in sources:
                     continue
+                if len(results) == top_k:
+                    # One further eligible match proves the list is incomplete.
+                    truncated = True
+                    break
                 sources.add(entry.source)
                 if entry.source not in notes:
                     note = entry.note()
@@ -211,9 +224,7 @@ class ExactRetriever:
                     end_char=end if target == 'content' else None,
                     metadata={'title': note.title, 'document_revision': revision},
                 ))
-                if len(results) == top_k:
-                    break
         finally:
             matches.close()
         _check(deadline, cancel)
-        return SearchResponse(query=query, method='exact', results=tuple(results))
+        return SearchResponse(query=query, method='exact', results=tuple(results), truncated=truncated)

@@ -21,7 +21,9 @@ def test_search_maps_arguments_once_and_projects_only_evidence(tools, engine, do
                                          filters={'source': 'a.md'}, top_k=7)
     result, = output['results']
     assert set(result) == {'document_id', 'source', 'title', 'content', 'document_revision',
-                           'chunk_id', 'section_id', 'start_char', 'end_char'}
+                           'chunk_id', 'section_id', 'start_char', 'end_char', 'section_start_char', 'section_end_char'}
+    assert (result['section_start_char'], result['section_end_char']) == (
+        record.chunk.section_start_char, record.chunk.section_end_char)
     assert result['document_id'] == record.document_id
     assert result['chunk_id'] == record.chunk_id
     assert output['query'] == ' original '
@@ -30,7 +32,7 @@ def test_search_maps_arguments_once_and_projects_only_evidence(tools, engine, do
 
 def test_search_empty_defaults_and_underlying_error(tools, engine):
     assert tools.search('question') == {'query': 'question', 'results': []}
-    engine.search.assert_called_once_with('question', mode='semantic', rerank=False, filters={}, top_k=5)
+    engine.search.assert_called_once_with('question', mode='semantic', rerank=False, filters={}, top_k=10)
     error = RuntimeError('backend unavailable')
     engine.search.side_effect = error
     with pytest.raises(RuntimeError) as raised:
@@ -53,10 +55,10 @@ def test_search_default_is_host_configured_and_agent_can_override_it(documents, 
     tools = AgentTools(documents=documents, exact=ExactRetriever(documents), engine=engine,
                        mode='hybrid', rerank=True)
     tools.search('question')
-    engine.search.assert_called_once_with('question', mode='hybrid', rerank=True, filters={}, top_k=5)
+    engine.search.assert_called_once_with('question', mode='hybrid', rerank=True, filters={}, top_k=10)
     for mode in ('bm25', 'semantic', 'hybrid', None):
         tools.search('question', mode=mode)
-        engine.search.assert_called_with('question', mode=mode or 'hybrid', rerank=True, filters={}, top_k=5)
+        engine.search.assert_called_with('question', mode=mode or 'hybrid', rerank=True, filters={}, top_k=10)
     with pytest.raises(TypeError):
         tools.search('question', rerank=True)
     definitions = json.loads(json.dumps(TOOL_DEFINITIONS))

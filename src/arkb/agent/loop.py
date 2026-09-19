@@ -225,6 +225,14 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
                 stage = 'measurement'
                 delivered = observer.end_tool(event, result, references=session.references)
                 if not delivered:
+                    if observer.reason is None:
+                        # Withheld, but the allowance still permits smaller evidence.
+                        remaining = observer.remaining_evidence()
+                        append_result(function.name, error_result('evidence_too_large',
+                            f'This result ({event["returned_evidence_tokens"]} evidence tokens) exceeds the remaining '
+                            f'allowance ({remaining}) and was withheld. Read a smaller unit (expand=section or snippet), '
+                            'use a smaller limit, or finish with delivered evidence.'), event)
+                        continue
                     closing_reason = observer.reason
                     append_result(function.name, error_result('budget_exhausted',
                         'This result exceeded the remaining budget and was withheld. Finalize using prior evidence.'), event)
@@ -232,6 +240,12 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
                         pending.update(status='skipped', skip_reason=closing_reason)
                         append_result(pending['name'], error_result('budget_exhausted', 'Evidence collection is closed.'), pending)
                     break
+                if event.get('delivered_refs') is not None:
+                    kept = set(event['delivered_refs'])
+                    result = {**result, 'results': [h for h in result['results'] if h['ref'] in kept],
+                              'withheld_results': event['withheld_hits'],
+                              'note': f"{event['withheld_hits']} further result(s) withheld: evidence allowance nearly exhausted. "
+                                      'Read specific refs or finish.'}
                 append_result(function.name, result, event)
                 session.deliver(result)
                 if function.name == 'finish' and result['status'] == 'success':

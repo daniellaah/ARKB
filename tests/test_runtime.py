@@ -189,9 +189,9 @@ def test_match_entry_point_uses_exact_capability_without_index_or_services(tmp_p
     with Runtime() as runtime:
         result = runtime.match('RAG', db=db, notes_dir=tmp_path, vault_id='v', top_k=2, source='rag.md')
     assert search.call_args.args[1:] == ('RAG',)
-    assert search.call_args.kwargs == {'top_k': 2, 'filters': {'source': 'rag.md'}}
+    assert search.call_args.kwargs == {'top_k': 2, 'filters': {'source': 'rag.md'}, 'unique_sources': False}
     assert [(h.source, h.start_char, h.end_char) for h in result.results] == [('rag.md', 0, 3), ('rag.md', 8, 11)]
-    assert result.method == 'exact' and result.index_id is None
+    assert result.method == 'exact' and result.index_id is None and result.truncated is False
     model.assert_not_called()
     vector.assert_not_called()
     assert not db.exists()
