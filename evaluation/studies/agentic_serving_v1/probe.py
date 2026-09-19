@@ -1,6 +1,6 @@
 """Frozen request-level concurrency screen; no tool execution or answer scoring."""
 import argparse
-from collections import Counter, defaultdict
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from copy import deepcopy
 import fcntl
@@ -18,7 +18,7 @@ from time import perf_counter
 from arkb.evaluation.external import digest, write_json
 from arkb.agent.tools import FINAL_SCHEMA
 from evaluation.agentic_tools.contract import MODEL, OPTIONS, THINK
-from evaluation.agentic_tools.prepare import utc
+from evaluation.agentic_tools.common import utc
 from evaluation.agentic_tools.records import read_records
 from evaluation.agentic_tools.runner import verify_files, gpu_competitors
 from evaluation.agentic_tools.stopping import StopController

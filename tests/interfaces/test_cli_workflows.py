@@ -180,7 +180,7 @@ def test_match_uses_saved_directory_and_live_content_from_another_cwd(
 
 def test_ask_runs_multiple_agent_selected_modes_on_one_snapshot(indexed_client, workspace, monkeypatch, capsys):
     from arkb.retrieval import BM25Retriever
-    from tests.agent.helpers import ScriptedModel, reply, tool_call, complete
+    from tests.agent.helpers import ScriptedModel, reply, tool_call
 
     db = workspace / '.arkb/index.sqlite'
     captured_versions = []

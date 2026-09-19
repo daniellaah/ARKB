@@ -1,6 +1,5 @@
 """Replay saved validation legs, source ranks, evidence and all official metrics offline."""
 import argparse
-from dataclasses import asdict
 import gzip
 import hashlib
 import json

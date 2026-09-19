@@ -8,7 +8,7 @@ import numpy as np
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'experiments'))
 from run_phase_c import load_legs
-from arkb.evaluation.external import digest,verify_checksums,write_json
+from arkb.evaluation.external import verify_checksums,write_json
 
 
 def main():

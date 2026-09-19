@@ -1,4 +1,4 @@
-from arkb.knowledge.models import Chunk, Note, ChunkRecord
+from arkb.knowledge.models import Chunk
 from arkb.retrieval.semantic import snapshot_result
 
 

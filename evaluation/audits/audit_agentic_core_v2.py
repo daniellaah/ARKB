@@ -15,9 +15,9 @@ from ollama import ChatResponse
 
 from arkb.evaluation.external import digest, write_json
 from evaluation.agentic_tools.contract import ARMS
-from evaluation.agentic_tools.core_design import (COUNTS, PRIMARY_REPETITIONS, REPEAT_SUBSET, TOTAL, core_schedule,
+from evaluation.studies.agentic_core_v2.design import (COUNTS, PRIMARY_REPETITIONS, REPEAT_SUBSET, TOTAL, core_schedule,
                                                   exposed_questions, repeat_ids, selection_for_core)
-from evaluation.agentic_tools.prepare import utc
+from evaluation.agentic_tools.common import utc
 from evaluation.agentic_tools.readiness import assess
 from evaluation.agentic_tools.records import read_records
 from evaluation.agentic_tools.runner import CoreGuard, verify_files

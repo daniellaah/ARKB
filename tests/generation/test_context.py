@@ -166,7 +166,6 @@ def test_blank_and_duplicate_hits_are_traced_without_dropping_distinct_sources()
 
 
 def test_conflicting_overlap_raises_without_silently_rewriting_evidence():
-    from dataclasses import replace
     first, second = source_hit(0, 8), source_hit(4, 12)
     corrupt = Chunk('XXXXXXXX', 'Title', second.source, 0, second.start_char, second.end_char)
     record = ChunkRecord(second.metadata['vault_id'], second.metadata['document_revision'], corrupt)

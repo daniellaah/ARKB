@@ -1,5 +1,5 @@
 import json
-from unittest.mock import Mock, call
+from unittest.mock import Mock
 
 from ollama import ResponseError
 import pytest

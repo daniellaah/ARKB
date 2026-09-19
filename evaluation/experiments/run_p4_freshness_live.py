@@ -1,7 +1,6 @@
 """Verify actual SQLite/Qdrant publication versus live Markdown reads."""
 import argparse
 from dataclasses import asdict
-import json
 import os
 from pathlib import Path
 import shutil

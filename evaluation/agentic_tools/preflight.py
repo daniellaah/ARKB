@@ -1,6 +1,5 @@
 """Synthetic provider checks before benchmark trials; no benchmark text involved."""
 import argparse
-from dataclasses import asdict
 import json
 from pathlib import Path
 
@@ -9,7 +8,7 @@ from arkb.evaluation.external import write_json
 from arkb.agent.tools import FINAL_SCHEMA
 from .contract import MODEL, OPTIONS, THINK
 from .transport import model_identity
-from .prepare import utc
+from .common import utc
 
 
 def main(argv=None):

@@ -10,7 +10,7 @@ import httpx
 
 from arkb.evaluation.external import digest, write_json
 from .labels import parse_judge
-from .prepare import utc
+from .common import utc
 from .records import read_records
 from .runner import gpu_competitors
 from .scoring import canonical, answer_eligible, musique_row

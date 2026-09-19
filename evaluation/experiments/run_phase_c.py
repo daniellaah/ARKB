@@ -1,7 +1,5 @@
 """Replay preregistered fusion policies over immutable legs; no model calls."""
 import argparse
-from collections import Counter
-from dataclasses import asdict
 from datetime import datetime,timezone
 import gzip
 import json
@@ -14,7 +12,7 @@ from arkb.evaluation.external import digest,verify_checksums,write_json,rank_met
 from arkb.evaluation.source_fusion import fuse_sources
 from arkb.retrieval.models import SearchResult,SearchResponse
 from arkb.retrieval.hybrid import rrf
-from freeze_phase_c import DATASETS,unique,emit,stats
+from freeze_phase_c import DATASETS,unique,emit
 
 
 def load_legs(directory):

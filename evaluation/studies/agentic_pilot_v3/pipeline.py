@@ -9,23 +9,10 @@ import sys
 import time
 
 from arkb.evaluation.external import digest, write_json
-from .prepare import ROOT, utc
-from .runner import gpu_competitors, verify_files
-from .stopping import StopController
-
-
-def verify_registration_inputs(out):
-    pinned = json.loads((out / 'registration-inputs.json').read_text())
-    actual_names = {str(p.relative_to(ROOT)) for base in (ROOT / 'src', ROOT / 'evaluation/agentic_tools')
-                    for p in base.rglob('*.py')} | {'pyproject.toml'}
-    if actual_names != set(pinned['working_files']):
-        raise ValueError('Tested source file inventory changed before registration.')
-    for name, checksum in pinned['working_files'].items():
-        if digest(ROOT / name) != checksum:
-            raise ValueError('Tested source changed before registration: ' + name)
-    for name, checksum in pinned['prepared_files'].items():
-        if digest(out / name) != checksum:
-            raise ValueError('Prepared pilot input changed before registration: ' + name)
+from evaluation.agentic_tools.common import utc
+from evaluation.agentic_tools.registration import verify_registration_inputs
+from evaluation.agentic_tools.runner import gpu_competitors, verify_files
+from evaluation.agentic_tools.stopping import StopController
 
 
 def register_if_available(out, parent, public):
@@ -44,7 +31,8 @@ def register_if_available(out, parent, public):
             verify_files(out, protocol)
             return {'status': 'registered', 'protocol_sha256': digest(out / 'protocol.json')}
         verify_registration_inputs(out)
-        from . import preflight, freeze
+        from evaluation.agentic_tools import preflight
+        from evaluation.studies.agentic_pilot_v1 import freeze
         preflight.main(['--output', str(out)])
         competitors = gpu_competitors()
         if competitors:

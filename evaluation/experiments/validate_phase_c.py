@@ -21,7 +21,6 @@ from arkb.config import RuntimeConfig,RetrievalConfig
 from arkb.knowledge.sqlite import SQLiteStorage
 from freeze_phase_c import unique,emit
 from run_p4 import verify_snapshot
-from run_phase_c import paired
 
 
 def execute(a):

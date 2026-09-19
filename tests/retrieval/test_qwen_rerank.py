@@ -7,7 +7,6 @@ from unittest.mock import Mock
 import pytest
 
 from arkb.retrieval.qwen_rerank import QWEN_MODEL, QWEN_REVISION, QwenRerankerScorer
-from tests.retrieval.test_rerank import candidates
 
 
 def test_invalid_lengths_and_removed_model_overrides_fail_before_loading():

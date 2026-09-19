@@ -1,5 +1,4 @@
 """Deterministic freshness/scale probes and fail-closed holdout rotation ledger."""
-from collections import Counter
 from datetime import datetime, timezone
 import fcntl
 import hashlib
@@ -7,7 +6,7 @@ import json
 from pathlib import Path
 from time import perf_counter
 
-from arkb.evaluation.external import digest, write_json, sample_ids
+from arkb.evaluation.external import sample_ids
 from arkb.knowledge.documents import DocumentAccess
 from arkb.retrieval.bm25 import BM25Retriever
 from arkb.retrieval.exact import ExactRetriever

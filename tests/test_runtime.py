@@ -86,7 +86,7 @@ def test_runtime_runs_agent_with_reused_owned_model_client(monkeypatch):
     from arkb.agent import AgentTools, TOOL_DEFINITIONS
     from arkb.config import DEFAULT_GENERATION_MODEL, RuntimeConfig
     from arkb.runtime import Runtime
-    from tests.agent.helpers import reply, complete
+    from tests.agent.helpers import complete
 
     client = MagicMock()
     client.__enter__.return_value = client
@@ -113,7 +113,7 @@ def test_runtime_runs_agent_with_reused_owned_model_client(monkeypatch):
 def test_runtime_leaves_injected_model_client_caller_owned(monkeypatch):
     from arkb.agent import AgentTools, TOOL_DEFINITIONS
     from arkb.runtime import Runtime
-    from tests.agent.helpers import reply, complete
+    from tests.agent.helpers import complete
 
     factory, vector_factory = Mock(), Mock()
     monkeypatch.setattr('ollama.Client', factory)
@@ -233,7 +233,7 @@ def test_ask_requires_an_index_only_when_agent_requests_search(tmp_path):
 @pytest.mark.parametrize('options,expected', [({}, True), ({'think': True}, True), ({'think': False}, False)])
 def test_ask_forwards_thinking_to_the_agent_model(tmp_path, options, expected):
     from arkb.runtime import Runtime
-    from tests.agent.helpers import ScriptedModel, reply, complete
+    from tests.agent.helpers import ScriptedModel, complete
 
     model = ScriptedModel(complete('Hello', status='answered'))
     with Runtime() as runtime:

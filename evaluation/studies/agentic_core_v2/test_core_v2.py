@@ -5,16 +5,16 @@ import json
 import pytest
 
 from arkb.evaluation.external import digest, write_json
-from .contract import ARMS
-from .core_design import (COUNTS, PRIMARY_TOTAL, REPEAT_SUBSET, TOTAL, core_schedule, precision, repeat_ids,
+from evaluation.agentic_tools.contract import ARMS
+from .design import (COUNTS, PRIMARY_TOTAL, REPEAT_SUBSET, TOTAL, core_schedule, precision, repeat_ids,
                           required_questions, selection_for_core)
-from .readiness import POLICY
-from . import runner
-from .runner import CoreGuard, gpu_competitors
-from .selection import build_selection, attempt_key, key
-from .statistics import query_units, session_variability
-from .analyze import registered_analysis
-from .core_v2 import build_scenarios, check_tests
+from evaluation.agentic_tools.readiness import POLICY
+from evaluation.agentic_tools import runner
+from evaluation.agentic_tools.runner import CoreGuard, gpu_competitors
+from evaluation.agentic_tools.selection import build_selection, attempt_key, key
+from evaluation.agentic_tools.statistics import query_units, session_variability
+from evaluation.agentic_tools.analyze import registered_analysis
+from .pipeline import build_scenarios, check_tests
 
 
 def original_selection():

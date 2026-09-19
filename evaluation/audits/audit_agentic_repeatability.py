@@ -11,7 +11,7 @@ import re
 from ollama import ChatResponse
 
 from arkb.evaluation.external import digest, write_json
-from evaluation.agentic_tools.prepare import utc
+from evaluation.agentic_tools.common import utc
 from evaluation.agentic_tools.readiness import assess
 from evaluation.agentic_tools.records import read_records
 from evaluation.agentic_tools.runner import verify_files

@@ -11,7 +11,7 @@ from httpx import ReadTimeout
 import pytest
 
 from arkb.agent.state import AgentResult, AgentState
-from arkb.config import DEFAULT_DB, DEFAULT_GENERATION_MODEL, DEFAULT_RETRIEVAL_MODE, RetrievalConfig
+from arkb.config import DEFAULT_DB, DEFAULT_RETRIEVAL_MODE, RetrievalConfig
 from arkb.interfaces.cli import _parser, main
 from arkb.knowledge.indexing import BuildReport
 from arkb.knowledge.models import EmbeddingSpec, IndexManifest

@@ -7,10 +7,8 @@ cost. Labels are read only after inference, from labels.json.
 import argparse
 from collections import Counter, defaultdict
 from contextlib import ExitStack
-from copy import deepcopy
 from dataclasses import asdict
 import json
-import os
 from pathlib import Path
 import subprocess
 from time import perf_counter
@@ -29,7 +27,7 @@ from arkb.runtime import Runtime
 from evaluation.agentic_tools.analyze import first_positive_discovery
 from evaluation.agentic_tools.contract import (ARM_BY_ID, BUDGET, OPTIONS, controlled_agent, evidence_sets, fixed_rag,
                                                new_observer)
-from evaluation.agentic_tools.prepare import utc
+from evaluation.agentic_tools.common import utc
 from evaluation.agentic_tools.scoring import canonical, costs_and_behavior, evidence_coverage, musique_row
 from evaluation.agentic_tools.transport import LocalChatClient, model_identity
 

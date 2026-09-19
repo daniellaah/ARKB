@@ -93,28 +93,6 @@ def test_existing_stop_file_never_overwritten(tmp_path):
     assert path.read_text() == 'user supplied stop'
 
 
-def test_registration_waits_for_training_without_provider_calls(tmp_path, monkeypatch):
-    from . import pilot_pipeline, preflight
-    parent, out = tmp_path / 'parent', tmp_path / 'out'
-    parent.mkdir()
-    out.mkdir()
-    write_json(parent / 'protocol.json', {})
-    monkeypatch.setattr(pilot_pipeline, 'gpu_competitors', lambda: ['training process'])
-    monkeypatch.setattr(preflight, 'main', lambda *a: pytest.fail('Provider must not run during training'))
-    result = pilot_pipeline.register_if_available(out, parent, tmp_path)
-    assert result['status'] == 'waiting_for_gpu'
-    assert not (out / 'protocol.json').exists()
-
-
-def test_registration_does_not_take_another_inference_owners_lock(tmp_path):
-    import fcntl
-    from .pilot_pipeline import register_if_available
-    write_json(tmp_path / 'protocol.json', {})
-    with (tmp_path / 'inference.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        assert register_if_available(tmp_path, tmp_path, tmp_path)['status'] == 'waiting_for_inference_lock'
-
-
 def test_runner_pause_commits_one_attempt_and_resume_never_repeats_it(tmp_path, monkeypatch):
     from . import runner
     from .selection import attempt_key

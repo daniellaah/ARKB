@@ -1,7 +1,7 @@
 from copy import deepcopy
 import threading
 
-from evaluation.experiments.probe_agentic_serving import workload, blocks, normalized_message, summarize, one_call, ollama_process_memory
+from .probe import workload, blocks, normalized_message, summarize, one_call, ollama_process_memory
 
 
 def fixture_rows():

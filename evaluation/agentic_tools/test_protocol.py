@@ -1,6 +1,4 @@
 """Protocol, transport and evidence-integrity fixtures beyond tool happy paths."""
-from copy import deepcopy
-import json
 
 import pytest
 

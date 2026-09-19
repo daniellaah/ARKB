@@ -1,7 +1,6 @@
 """Freeze P4 candidates and execute registered downstream-only reranker trials."""
 
 import argparse
-from dataclasses import asdict
 from datetime import datetime, timezone
 import importlib.util
 from importlib.metadata import version

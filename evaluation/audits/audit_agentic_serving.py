@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ollama import ChatResponse
 from arkb.evaluation.external import digest, write_json
-from evaluation.agentic_tools.prepare import utc
+from evaluation.agentic_tools.common import utc
 from evaluation.agentic_tools.runner import verify_files
 
 

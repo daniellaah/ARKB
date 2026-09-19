@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from arkb.agent.state import AgentResult, AgentState, AgentToolTrace
+from arkb.agent.state import AgentToolTrace
 from arkb.evaluation.ablation_analysis import compare_models, summarize_trials, trial_behavior
 from arkb.evaluation.agent_metrics import evaluate_case
 from arkb.evaluation.model_ablation import (

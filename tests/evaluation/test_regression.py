@@ -1,4 +1,3 @@
-import json
 import pytest
 from arkb.evaluation.regression import freshness_probe, reserve_rotation, reserve_core_release
 

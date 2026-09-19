@@ -3,7 +3,6 @@
 from contextlib import closing
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 from uuid import uuid4

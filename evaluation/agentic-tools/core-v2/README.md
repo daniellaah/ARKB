@@ -10,7 +10,7 @@ Registered design and public copies for the replacement core study described in
 The authoritative run lives at `/Volumes/ARKBPhaseC/agentic-tools-v1/core-v2`.
 
 - `precision-cost.json`, `selection.json`, `core-schedule.json`: outcome-blind
-  design produced by `evaluation.agentic_tools.core_design` from the audited v3
+  design produced by `evaluation.studies.agentic_core_v2.design` from the audited v3
   pilot and the exposed core-v1 question list (3,640 attempts: 3,360 primary
   single sessions plus a 280-attempt registered BrowseComp repeat subset).
 - `draft-v0-20260914T0907/`: the earlier 3,360-attempt draft without the repeat

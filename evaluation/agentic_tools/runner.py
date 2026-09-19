@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 import re
 import subprocess
-import sys
 from time import monotonic, perf_counter
 
 from arkb.config import RuntimeConfig
@@ -21,7 +20,7 @@ from arkb.evaluation.deadline import evaluation_deadline
 from .contract import ARM_BY_ID, controlled_agent, fixed_rag, new_observer, evidence_sets
 from .selection import attempt_key
 from .transport import LocalChatClient, model_identity
-from .prepare import utc
+from .common import utc
 from .dependencies import verify_dependencies
 from .stopping import StopController
 from .readiness import run_scope_checks, operational_failures, execution_failure, call_rows

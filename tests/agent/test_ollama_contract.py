@@ -5,7 +5,6 @@ from unittest.mock import Mock
 
 import httpx
 from ollama import Client
-from pydantic import ValidationError
 import pytest
 
 from arkb.agent import AgentTools, run_agent

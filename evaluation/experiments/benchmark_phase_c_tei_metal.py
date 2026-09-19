@@ -10,7 +10,6 @@ import json
 import os
 from pathlib import Path
 import plistlib
-import shutil
 import signal
 import socket
 import statistics

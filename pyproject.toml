@@ -32,6 +32,7 @@ rerank = [
 [dependency-groups]
 dev = [
     "pytest>=8,<10",
+    "ruff>=0.16.8",
 ]
 
 [build-system]
@@ -43,3 +44,17 @@ cache-dir = ".uv-cache"
 
 [tool.pytest.ini_options]
 markers = ["integration: requires explicitly enabled model or external-service checks"]
+testpaths = ["tests", "evaluation"]
+norecursedirs = [".*", "*.egg", "build", "dist", "node_modules", "evaluation/results", "evaluation/data", "evaluation/agentic-tools", "evaluation/phase-a", "evaluation/phase-b", "evaluation/phase-c", "evaluation/reviews"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+# Frozen measured-source copies and result archives are evidence, never reformatted.
+exclude = ["evaluation/phase-a", "evaluation/phase-b", "evaluation/phase-c", "evaluation/results", "evaluation/agentic-tools", "evaluation/data", "evaluation/reviews", ".venv", ".uv-cache"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+select = ["F", "E9"]

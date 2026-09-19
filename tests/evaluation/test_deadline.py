@@ -5,7 +5,7 @@ import pytest
 from httpcore._exceptions import map_exceptions, ReadTimeout
 
 from arkb.agent import run_agent, AgentBudget, AgentObserver, TOOL_DEFINITIONS
-from arkb.evaluation.deadline import evaluation_deadline, EvaluationDeadlineExceeded
+from arkb.evaluation.deadline import evaluation_deadline
 from tests.agent.helpers import ScriptedModel, reply, tool_call
 
 

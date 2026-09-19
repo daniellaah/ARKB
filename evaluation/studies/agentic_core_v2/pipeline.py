@@ -21,18 +21,18 @@ import httpx
 import numpy as np
 
 from arkb.evaluation.external import digest, write_json
-from .contract import ARMS, OPTIONS, THINK
-from .core_design import (CORE_OPERATIONAL_POLICY, COUNTS, PRIMARY_REPETITIONS, PRIMARY_TOTAL, REPEAT_SUBSET,
+from evaluation.agentic_tools.contract import OPTIONS, THINK
+from .design import (CORE_OPERATIONAL_POLICY, COUNTS, PRIMARY_REPETITIONS, PRIMARY_TOTAL, REPEAT_SUBSET,
                           REPEAT_TOTAL, TOTAL, core_schedule, exposed_questions, repeat_ids, selection_for_core)
-from .dependencies import verify_dependencies
-from .pilot_pipeline import verify_registration_inputs
-from .prepare import ROOT, utc
-from .readiness import POLICY, assess
-from .records import read_records
-from .runner import CoreGuard, gpu_competitors, verify_files
-from .stopping import StopController
-from .summarize_pilot import audit_record, failure_category
-from .transport import model_identity
+from evaluation.agentic_tools.dependencies import verify_dependencies
+from evaluation.agentic_tools.registration import verify_registration_inputs, working_files
+from evaluation.agentic_tools.common import ROOT, utc
+from evaluation.agentic_tools.readiness import POLICY, assess
+from evaluation.agentic_tools.records import read_records
+from evaluation.agentic_tools.runner import CoreGuard, gpu_competitors, verify_files
+from evaluation.agentic_tools.stopping import StopController
+from evaluation.agentic_tools.summarize_pilot import audit_record, failure_category
+from evaluation.agentic_tools.transport import model_identity
 
 INFERENCE_FILES = ['evaluation/agentic_tools/' + n for n in
                    ('contract.py', 'transport.py', 'dependencies.py', 'selection.py', 'readiness.py', 'stopping.py')]
@@ -60,12 +60,6 @@ def check_tests(path, minimum=MINIMUM_TESTS):
     if passed < minimum or any(int(s.get(k, 0)) for s in suites for k in ('failures', 'errors', 'skipped')):
         raise ValueError('Regression tests are incomplete or failing.')
     return passed
-
-
-def working_files():
-    names = {str(p.relative_to(ROOT)) for base in (ROOT / 'src', ROOT / 'evaluation/agentic_tools')
-             for p in base.rglob('*.py')} | {'pyproject.toml'}
-    return {name: digest(ROOT / name) for name in sorted(names)}
 
 
 def inference_files_equal(pilot):
@@ -356,7 +350,7 @@ def register_if_available(out, public):
             verify_files(out, protocol)
             return {'status': 'registered', 'protocol_sha256': digest(out / 'protocol.json')}
         verify_registration_inputs(out)
-        from . import preflight
+        from evaluation.agentic_tools import preflight
         preflight.main(['--output', str(out)])
         competitors = gpu_competitors()
         if competitors:

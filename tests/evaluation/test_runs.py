@@ -219,7 +219,7 @@ def test_default_output_creates_distinct_runs_and_records_input_drift(config, mo
 
 def test_thin_cli_uses_owned_real_runtime_without_extending_main_cli(config, monkeypatch, capsys):
     from arkb.runtime import Runtime
-    from tests.agent.helpers import ScriptedModel, reply, complete
+    from tests.agent.helpers import ScriptedModel, complete
 
     # All requests answer directly: retrieval tasks fail evaluation but the run completes.
     client = ScriptedModel(*[complete('Hello', status='answered') for _ in range(6)])

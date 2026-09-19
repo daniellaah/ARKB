@@ -2,7 +2,6 @@
 import argparse
 from dataclasses import asdict, replace
 from functools import partial
-import gzip
 import hashlib
 import json
 from pathlib import Path

@@ -1,6 +1,5 @@
 """Official IDs/labels and full-corpus external adapter boundary."""
 import json
-from pathlib import Path
 import pytest
 from arkb.evaluation.external import digest,import_beir,load_external
 

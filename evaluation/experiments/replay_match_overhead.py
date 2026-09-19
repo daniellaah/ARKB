@@ -1,6 +1,6 @@
 """Replay every recorded pilot match call; no Agent generation or answer scoring."""
 import argparse
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import asdict
 from datetime import datetime, timezone
 import hashlib
