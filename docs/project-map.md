@@ -43,6 +43,7 @@ quality is measured, not assumed.
 
 Current and active:
 
+- [agile-vs-workflow-v1.md](agile-vs-workflow-v1.md): fully agentic against fixed-workflow retrieval on the development set (four arms, 9B with thinking, paired intervals; human review pending).
 - [devloop-fix-log.md](devloop-fix-log.md): the fix-first development log with baseline and after measurements.
 - [evaluation/devloop/README.md](../evaluation/devloop/README.md): how to run and compare development-loop runs.
 - [agentic-tool-selection-evaluation-plan.md](agentic-tool-selection-evaluation-plan.md): the seven-arm study design (plan of record).

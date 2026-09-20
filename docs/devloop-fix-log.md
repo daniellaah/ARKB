@@ -259,3 +259,17 @@ identical or within one question (exact 1.000 both, FiQA 0.324 both, NFCorpus
 study measured 31 of 35 identical statuses and 15 of 35 identical tool
 sequences between two runs of the same code, so this is the noise floor, not a
 behavior change.
+
+## Transport correction (2026-09-20 UTC)
+
+While wiring the evaluation adapters into the development loop, the direct
+transport (`DevChatClient`) turned out to override every request's `think`
+flag with the run-level flag. The product loop's no-thinking finalization
+(commit bfc04fa) therefore never reached Ollama from the development loop: in
+`long-cap-9b-think-finalfix2` all ten finalization requests are recorded with
+`think=false` yet every response carries thinking text, and the same holds for
+the 9B and 27B rows of the capacity axis above. The improvement attributed to
+"both fixes" on the long-document slice came from not replaying prior thinking
+alone. The transport now keeps the caller's flag (commit 942cdc4); the
+agentic-versus-workflow comparison is the first development-loop measurement
+in which agent finalization really runs without thinking.

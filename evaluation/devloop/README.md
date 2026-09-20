@@ -34,12 +34,22 @@ unreviewed; Chinese originals are kept beside them.
 .venv/bin/python -m evaluation.devloop.run compare evaluation/results/devloop/<a> evaluation/results/devloop/<b> --output evaluation/devloop/comparisons/<a>-vs-<b>.md
 ```
 
+```bash
+.venv/bin/python -m evaluation.devloop.bootstrap --run A-All=evaluation/results/devloop/<a> --run F-H=evaluation/results/devloop/<b> --contrast A-All:F-H --output evaluation/devloop/comparisons/<name>.md
+```
+
 `--adapter product` (default) runs the product agent loop with all tools, the
 product system prompt, temperature 0, 32,768 context and 4,096 output tokens,
 under the same 12/10/6 tool, 8,000-token evidence and 300-second budgets as the
-registered studies. `--adapter contract:A-All` (or any arm ID) runs the frozen
-evaluation adapter instead. `--model` and `--think` change the model; `--slices`
-and `--limit` select a subset for quick checks. The `devset-v1/scoring/` source maps
+registered studies. `--adapter contract:A-All` (or any arm ID) runs the
+evaluation adapter of that arm instead, with the same model, thinking and
+options as the command line asks for (the registered runner keeps its own
+frozen constants). `--model` and `--think` change the model; `--slices`
+and `--limit` select a subset for quick checks; `rescore` recomputes the
+scores of a saved run with the current scorer. `bootstrap` pairs any number of
+runs per scenario and reports slice-stratified percentile intervals (nominal,
+uncorrected); `review_sheet` exports a blinded human-review sheet with a
+hash-chosen sample and a separate arm mapping. The `devset-v1/scoring/` source maps
 are derived files (13 MB) that the build command regenerates; they are not
 committed. Runs record the git head, dirty
 state, source hashes and model identity. Results are gitignored under

@@ -1,0 +1,539 @@
+{
+ "runs": {
+  "F-S": {
+   "label": "aw-long-9b-think-F-S",
+   "model": "qwen3.5:9b",
+   "think": true,
+   "git_head": "942cdc4361a2f24447087a03d6a652a03911e323",
+   "dirty": true
+  },
+  "F-H": {
+   "label": "aw-long-9b-think-F-H",
+   "model": "qwen3.5:9b",
+   "think": true,
+   "git_head": "942cdc4361a2f24447087a03d6a652a03911e323",
+   "dirty": true
+  },
+  "A-S": {
+   "label": "aw-long-9b-think-A-S",
+   "model": "qwen3.5:9b",
+   "think": true,
+   "git_head": "942cdc4361a2f24447087a03d6a652a03911e323",
+   "dirty": true
+  },
+  "A-All": {
+   "label": "aw-long-9b-think-A-All",
+   "model": "qwen3.5:9b",
+   "think": true,
+   "git_head": "942cdc4361a2f24447087a03d6a652a03911e323",
+   "dirty": true
+  }
+ },
+ "contrasts": [
+  "A-All minus F-H",
+  "A-All minus F-S",
+  "A-S minus F-S",
+  "A-All minus A-S"
+ ],
+ "seed": 20260912,
+ "resamples": 20000,
+ "method": "per-scenario paired differences; slice-stratified percentile bootstrap; nominal 95% intervals; no multiplicity correction",
+ "blocks": [
+  {
+   "slice": "long-browsecomp",
+   "metric": "positive_recall_delivered",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 0.0125,
+    "A-S": 0.06964285714285715,
+    "F-H": 0.13035714285714284,
+    "F-S": 0.06428571428571428
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": -0.11785714285714284,
+     "nominal_95_ci": [
+      -0.22678571428571428,
+      -0.02678571428571428
+     ],
+     "wins": 1,
+     "ties": 3,
+     "losses": 6
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": -0.05178571428571428,
+     "nominal_95_ci": [
+      -0.10714285714285714,
+      0.0
+     ],
+     "wins": 0,
+     "ties": 7,
+     "losses": 3
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": 0.005357142857142855,
+     "nominal_95_ci": [
+      -0.075,
+      0.0875
+     ],
+     "wins": 2,
+     "ties": 6,
+     "losses": 2
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": -0.05714285714285714,
+     "nominal_95_ci": [
+      -0.14285714285714285,
+      0.0
+     ],
+     "wins": 0,
+     "ties": 8,
+     "losses": 2
+    }
+   ]
+  },
+  {
+   "slice": "long-browsecomp",
+   "metric": "positive_recall_returned",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 0.04107142857142857,
+    "A-S": 0.06964285714285715,
+    "F-H": 0.13035714285714284,
+    "F-S": 0.06428571428571428
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": -0.08928571428571427,
+     "nominal_95_ci": [
+      -0.2017857142857143,
+      0.0
+     ],
+     "wins": 1,
+     "ties": 5,
+     "losses": 4
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": -0.023214285714285715,
+     "nominal_95_ci": [
+      -0.0875,
+      0.030357142857142857
+     ],
+     "wins": 1,
+     "ties": 7,
+     "losses": 2
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": 0.005357142857142855,
+     "nominal_95_ci": [
+      -0.075,
+      0.0875
+     ],
+     "wins": 2,
+     "ties": 6,
+     "losses": 2
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": -0.02857142857142857,
+     "nominal_95_ci": [
+      -0.08571428571428572,
+      0.0
+     ],
+     "wins": 0,
+     "ties": 9,
+     "losses": 1
+    }
+   ]
+  },
+  {
+   "slice": "long-browsecomp",
+   "metric": "positive_recall_submitted",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 0.0125,
+    "A-S": 0.06964285714285715,
+    "F-H": 0.13035714285714284,
+    "F-S": 0.06428571428571428
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": -0.11785714285714284,
+     "nominal_95_ci": [
+      -0.22678571428571428,
+      -0.02678571428571428
+     ],
+     "wins": 1,
+     "ties": 3,
+     "losses": 6
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": -0.05178571428571428,
+     "nominal_95_ci": [
+      -0.10714285714285714,
+      0.0
+     ],
+     "wins": 0,
+     "ties": 7,
+     "losses": 3
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": 0.005357142857142855,
+     "nominal_95_ci": [
+      -0.075,
+      0.0875
+     ],
+     "wins": 2,
+     "ties": 6,
+     "losses": 2
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": -0.05714285714285714,
+     "nominal_95_ci": [
+      -0.14285714285714285,
+      0.0
+     ],
+     "wins": 0,
+     "ties": 8,
+     "losses": 2
+    }
+   ]
+  },
+  {
+   "slice": "long-browsecomp",
+   "metric": "elapsed_s",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 39.04823147489223,
+    "A-S": 41.295868958206846,
+    "F-H": 61.891709866700694,
+    "F-S": 57.30408521250356
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": -22.843478391808457,
+     "nominal_95_ci": [
+      -38.29325147347991,
+      -6.732657115014154
+     ],
+     "wins": 3,
+     "ties": 0,
+     "losses": 7
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": -18.255853737611325,
+     "nominal_95_ci": [
+      -32.332877283589916,
+      -3.7719014361367162
+     ],
+     "wins": 2,
+     "ties": 0,
+     "losses": 8
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": -16.008216254296713,
+     "nominal_95_ci": [
+      -28.6123865977698,
+      -3.434922127161996
+     ],
+     "wins": 3,
+     "ties": 0,
+     "losses": 7
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": -2.247637483314611,
+     "nominal_95_ci": [
+      -5.336854164737155,
+      0.8980159851279994
+     ],
+     "wins": 3,
+     "ties": 0,
+     "losses": 7
+    }
+   ]
+  },
+  {
+   "slice": "long-browsecomp",
+   "metric": "costs.model_requests",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 3.9,
+    "A-S": 4.1,
+    "F-H": 1.0,
+    "F-S": 1.0
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": 2.9,
+     "nominal_95_ci": [
+      2.7,
+      3.0
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": 2.9,
+     "nominal_95_ci": [
+      2.7,
+      3.0
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": 3.1,
+     "nominal_95_ci": [
+      2.8,
+      3.4000000000000004
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": -0.2,
+     "nominal_95_ci": [
+      -0.5999999999999996,
+      0.20000000000000018
+     ],
+     "wins": 1,
+     "ties": 6,
+     "losses": 3
+    }
+   ]
+  },
+  {
+   "slice": "long-browsecomp",
+   "metric": "tool_calls",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 3.2,
+    "A-S": 3.2,
+    "F-H": 1.0,
+    "F-S": 1.0
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": 2.2,
+     "nominal_95_ci": [
+      2.0,
+      2.5
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": 2.2,
+     "nominal_95_ci": [
+      2.0,
+      2.5
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": 2.2,
+     "nominal_95_ci": [
+      2.0,
+      2.5
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": 0.0,
+     "nominal_95_ci": [
+      -0.2999999999999998,
+      0.2999999999999998
+     ],
+     "wins": 1,
+     "ties": 8,
+     "losses": 1
+    }
+   ]
+  },
+  {
+   "slice": "long-browsecomp",
+   "metric": "prompt_tokens",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 31746.5,
+    "A-S": 32024.5,
+    "F-H": 11501.7,
+    "F-S": 11119.8
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": 20244.8,
+     "nominal_95_ci": [
+      18189.9775,
+      22175.162499999995
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": 20626.7,
+     "nominal_95_ci": [
+      18112.63,
+      22876.715
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": 20904.7,
+     "nominal_95_ci": [
+      17880.48,
+      24518.434999999998
+     ],
+     "wins": 10,
+     "ties": 0,
+     "losses": 0
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": -278.0,
+     "nominal_95_ci": [
+      -3957.0125,
+      3327.6799999999917
+     ],
+     "wins": 7,
+     "ties": 0,
+     "losses": 3
+    }
+   ]
+  },
+  {
+   "slice": "long-browsecomp",
+   "metric": "eval_tokens",
+   "n": 10,
+   "resamples": 20000,
+   "seed": 20260912,
+   "stratum_sizes": {
+    "long-browsecomp": 10
+   },
+   "arm_means": {
+    "A-All": 622.1,
+    "A-S": 763.0,
+    "F-H": 1682.8,
+    "F-S": 2075.9
+   },
+   "contrasts": [
+    {
+     "comparison": "A-All minus F-H",
+     "mean_difference": -1060.7,
+     "nominal_95_ci": [
+      -2349.5025,
+      210.6074999999993
+     ],
+     "wins": 6,
+     "ties": 0,
+     "losses": 4
+    },
+    {
+     "comparison": "A-All minus F-S",
+     "mean_difference": -1453.8,
+     "nominal_95_ci": [
+      -2709.1,
+      -190.9875000000011
+     ],
+     "wins": 5,
+     "ties": 0,
+     "losses": 5
+    },
+    {
+     "comparison": "A-S minus F-S",
+     "mean_difference": -1312.9,
+     "nominal_95_ci": [
+      -2495.8,
+      -155.19999999999993
+     ],
+     "wins": 5,
+     "ties": 0,
+     "losses": 5
+    },
+    {
+     "comparison": "A-All minus A-S",
+     "mean_difference": -140.9,
+     "nominal_95_ci": [
+      -348.9025,
+      53.30000000000007
+     ],
+     "wins": 3,
+     "ties": 0,
+     "losses": 7
+    }
+   ]
+  }
+ ]
+}
