@@ -182,8 +182,11 @@ class _AgentRun:
             state.messages.append({'role': 'system', 'content': _FINAL_INSTRUCTION})
         state.turn += 1
         self.turn_start = len(state.messages)
+        # The reserved finalization only formats an answer from delivered evidence;
+        # reasoning happened in earlier turns. Structured output with thinking on
+        # can return the reasoning and an empty object, so finalization does not think.
         request = dict(model=self.model, messages=list(state.messages), stream=False,
-                       think=self.think, options={'temperature': 0})
+                       think=self.think and not self.closing_reason, options={'temperature': 0})
         if self.closing_reason:
             request['format'] = deepcopy(FINAL_SCHEMA)
         else:

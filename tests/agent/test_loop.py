@@ -266,3 +266,12 @@ def test_non_assistant_response_is_rejected(tools):
     response = reply('invalid role'); response.message.role = 'user'
     result = run_agent('x', client=ScriptedModel(response), tools=tools, model='fake')
     assert result.stop_reason == 'error' and 'assistant message' in result.final.error['message']
+
+
+def test_reserved_finalization_never_thinks_even_when_collection_did(tools):
+    from tests.agent.helpers import ScriptedModel, complete, reply, tool_call
+    model = ScriptedModel(reply(calls=[tool_call('read', source='a.md')]), complete('answer', constrained=True))
+    result = run_agent('Read a.md', client=model, tools=tools, model='fake', max_turns=2, think=True)
+    assert result.stop_reason == 'final'
+    assert model.requests[0]['think'] is True and 'tools' in model.requests[0]
+    assert model.requests[1]['think'] is False and 'format' in model.requests[1]

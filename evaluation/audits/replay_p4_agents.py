@@ -71,7 +71,9 @@ def replay(run,dataset):
         for model in report['models']:
             request=model['request']
             if request['messages']!=state.messages[:len(request['messages'])]:raise ValueError('Request differs from conversation history.')
-            if (request['model']!=protocol['model'] or request['think']!=protocol['think'] or request['options']!={'temperature':0}
+            # Finalization may run without thinking (2026-09-19 loop change); historical runs thought throughout.
+            expected_think=(protocol['think'],False) if model.get('phase')=='finalization' else (protocol['think'],)
+            if (request['model']!=protocol['model'] or request['think'] not in expected_think or request['options']!={'temperature':0}
                     or request['stream'] is not False):raise ValueError('Request configuration mismatch.')
             if canonical and model.get('phase')=='finalization':
                 from arkb.agent.tools import FINAL_SCHEMA

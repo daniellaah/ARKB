@@ -51,7 +51,7 @@ explains both. Runtime and CLI expose `--unique-sources`. Retrieval and tool
 tests cover truncation detection in occurrence and unique modes.
 
 | Run | exact completeness (cited) | all 24 complete and exact | elapsed | v2 answered |
-| --- | ---: | ---: | ---: | ---: |
+| --- | ---: | ---: | ---: | ---: | ---: |
 | baseline | 0.722 | 11/24 | 8.4 s | 49/60 |
 | tool change + prompt line | 1.000 | 24/24 | 17.7 s | 42/60 |
 | tool change, schema guidance only | pending | pending | pending | pending |
@@ -156,7 +156,7 @@ same development set, followed by the product-shaped benchmark.
 ## Engine-only reference (no model)
 
 | Dataset | Mode | recall@5 | recall@10 | recall@20 |
-| --- | --- | ---: | ---: | ---: |
+| --- | --- | ---: | ---: | ---: | ---: |
 | FiQA | BM25 | 0.118 | 0.186 | 0.308 |
 | FiQA | Semantic | 0.294 | 0.407 | 0.505 |
 | FiQA | Hybrid | 0.242 | 0.344 | 0.462 |
@@ -165,3 +165,68 @@ same development set, followed by the product-shaped benchmark.
 | NFCorpus | Hybrid | 0.144 | 0.161 | 0.190 |
 
 Twenty queries per dataset, document-level positives, one call per mode.
+
+## Model-capacity axis (2026-09-19 UTC, same development set)
+
+Runs from a detached worktree of commit 32e6192 (tool fixes included), product
+adapter, same budgets. The long-document rows are added below as they complete.
+
+| Slice / metric | 4B, no thinking | 4B, thinking | 9B, thinking | 27B, thinking |
+| --- | ---: | ---: | ---: | ---: |
+| v2 answered (of 60) | 43 | 43 | 54 | 54 |
+| v2 span coverage, delivered | 0.947 | 1.000 | 0.968 | 0.968 |
+| v2 cited source recall | 0.913 | 0.923 | 0.990 | 0.990 |
+| exact-nfcorpus completeness (cited) | 1.000 | 0.917 | 1.000 | 1.000 |
+| recall-fiqa, delivered | 0.324 | 0.336 | 0.421 | 0.446 |
+| recall-nfcorpus, delivered | 0.170 | 0.174 | 0.194 | 0.191 |
+| MuSiQue support F1 | 0.233 | 0.567 | 0.674 | 0.713 |
+| MuSiQue answerability | 0.60 | 0.60 | 0.75 | 0.65 |
+| MuSiQue answer F1 | 0.083 | 0.048 | 0.084 | 0.069 |
+| Elapsed per question, v2 / recall | 7 s / 14 s | 15 s / 26 s | 28 s / 42 s | 64 s / 91 to 140 s |
+| Wall time, 144 questions | 25 min | 57 min | 86 min | 210 min |
+
+Reading:
+
+- **Thinking alone fixes evidence handling, not depth.** 4B with thinking
+  reaches full span coverage on v2 (1.000), halves `match` misuse (76 to 18
+  calls) and more than doubles MuSiQue support F1 (0.23 to 0.57), yet answers the
+  same 43 of 60 v2 questions, leaves FiQA recall at 0.34 and loses two exact
+  enumerations by citing fewer notes than it found. It costs about twice the
+  nonthinking time.
+- **9B with thinking removes the behaviors that limited 4B.** It uses the
+  default search depth and 1.7 to 2.2 searches per question, so FiQA recall
+  reaches the engine's recall@10 (0.42 against 0.41 measured without a model);
+  `match` misuse in semantic tasks drops from 76 calls to 8; the arithmetic and
+  sorting `no_retrieval` tasks are answered without tools (4 of 4 against 0);
+  MuSiQue support F1 triples.
+- **27B adds almost nothing on this set at two to three times the cost.**
+  Evidence metrics are identical or within one question of 9B; MuSiQue
+  answerability is lower. On a small development set this is a tie, not a loss.
+- **Answer F1 on MuSiQue is a format artifact.** With 9B and 27B, seven to nine
+  answered pairs contain the gold entity inside an explanatory sentence, and
+  token F1 against a short gold string stays near 0.1. The product's final
+  contract has one free-text `answer`; a short answer plus explanation would let
+  short-answer benchmarks score what the model actually found. This is a
+  contract decision, not a scorer patch, and no gold-guided trimming was applied.
+- **Still open at every size:** `evidence_gap` (the model guesses instead of
+  abstaining on unanswerable questions, 0 to 1 of 4), and NFCorpus recall,
+  whose 31 positives per query no five-to-ten-result agent covers.
+
+Implication for the next registered study: the 4B nonthinking setting used in
+the registered pilots sits below the capability threshold for the tool-selection
+question; 9B with thinking is the natural default arm, with 4B as a cost
+reference, and the study needs the answer-format contract settled first.
+
+## Refactor parity check (2026-09-19 UTC)
+
+After the readability refactor (agent loop as a run object with explicit
+instruction and session injection; runner split into named steps) the 4B
+nonthinking configuration was rerun from the refactored tree
+(`refactor-check-4b-nothink`, commit af2a976) and compared with the last
+pre-refactor run (`acquisition-fix-4b-nothink`): every slice metric is
+identical or within one question (exact 1.000 both, FiQA 0.324 both, NFCorpus
+0.170 to 0.172, v2 coverage 0.947 to 0.968), no errors in either run, 132 of
+144 final statuses and 89 of 144 tool sequences identical. The repeatability
+study measured 31 of 35 identical statuses and 15 of 35 identical tool
+sequences between two runs of the same code, so this is the noise floor, not a
+behavior change.
