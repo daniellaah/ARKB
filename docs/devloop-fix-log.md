@@ -212,6 +212,35 @@ Reading:
   abstaining on unanswerable questions, 0 to 1 of 4), and NFCorpus recall,
   whose 31 positives per query no five-to-ten-result agent covers.
 
+Long-document slice (ten BrowseComp-Plus queries, same budgets):
+
+| Model | delivered positive recall | finals | finalization defects | elapsed |
+| --- | ---: | --- | --- | ---: |
+| 4B, no thinking | 0.166 | 9 insufficient, 1 error | 0 of 10 | 25 s |
+| 9B, thinking (before the fixes below) | 0.000 | 6 insufficient, 4 error | 4 of 10 empty or truncated | 49 s |
+| 9B, thinking (after both fixes) | 0.014 | 10 insufficient | 0 of 10 | 46 s |
+| 27B, thinking | 0.097 | 9 insufficient, 1 error | 1 of 10 empty | 155 s |
+
+Every model exhausts the 8,000-token evidence allowance within two or three
+searches of 10 to 20 chunks of 512-token web-page text (121 to 236 withheld
+hits per ten questions), so on this track the budget, not model capacity, is
+binding; a long-document product setting needs either a larger allowance, a
+smaller default depth for long chunks, or previews with reads for full text.
+
+Two product defects surfaced here and are fixed (commit after bfc04fa):
+
+1. **Reserved finalization ran with thinking.** With `format` set and
+   thinking on, the model returned its reasoning and an empty object in three
+   of ten trajectories and once spent the whole 4,096-token output allowance
+   thinking. Finalization now sends `think=false`; reasoning has already
+   happened in earlier turns.
+2. **Replayed thinking primed more thinking.** Even with `think=false`, the
+   model kept thinking because earlier assistant messages carried their
+   `thinking` fields into later requests. Requests now omit prior thinking
+   (the trace keeps it). After both fixes every long-document trajectory ends
+   with a valid canonical final (0 of 10 empty), and the full development set
+   is unaffected (no empty finals occurred there before either).
+
 Implication for the next registered study: the 4B nonthinking setting used in
 the registered pilots sits below the capability threshold for the tool-selection
 question; 9B with thinking is the natural default arm, with 4B as a cost

@@ -275,3 +275,17 @@ def test_reserved_finalization_never_thinks_even_when_collection_did(tools):
     assert result.stop_reason == 'final'
     assert model.requests[0]['think'] is True and 'tools' in model.requests[0]
     assert model.requests[1]['think'] is False and 'format' in model.requests[1]
+
+
+def test_prior_thinking_is_kept_in_the_trace_but_not_replayed_to_the_model(tools):
+    from ollama import ChatResponse
+    from tests.agent.helpers import ScriptedModel, complete, tool_call
+    thinking_reply = ChatResponse(message={'role': 'assistant', 'content': '', 'thinking': 'private reasoning',
+                                           'tool_calls': [tool_call('read', source='a.md')]}, done=True, done_reason='stop')
+    model = ScriptedModel(thinking_reply, complete('answer', constrained=True))
+    result = run_agent('Read a.md', client=model, tools=tools, model='fake', max_turns=2, think=True)
+    assert result.stop_reason == 'final'
+    assistant = [m for m in result.state.messages if m['role'] == 'assistant']
+    assert assistant[0]['thinking'] == 'private reasoning'
+    replayed = [m for m in model.requests[1]['messages'] if m['role'] == 'assistant']
+    assert 'thinking' not in replayed[0] and replayed[0]['tool_calls']

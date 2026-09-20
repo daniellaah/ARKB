@@ -65,6 +65,10 @@ _FINAL_INSTRUCTION = (
 )
 
 
+def _without_thinking(message):
+    return {key: value for key, value in message.items() if key != 'thinking'} if message.get('thinking') else message
+
+
 def _unique_fields(pairs):
     value = {}
     for key, item in pairs:
@@ -185,7 +189,9 @@ class _AgentRun:
         # The reserved finalization only formats an answer from delivered evidence;
         # reasoning happened in earlier turns. Structured output with thinking on
         # can return the reasoning and an empty object, so finalization does not think.
-        request = dict(model=self.model, messages=list(state.messages), stream=False,
+        # Earlier thinking stays in the trace but is not replayed to the model:
+        # replayed reasoning primes further thinking even when it is disabled.
+        request = dict(model=self.model, messages=[_without_thinking(m) for m in state.messages], stream=False,
                        think=self.think and not self.closing_reason, options={'temperature': 0})
         if self.closing_reason:
             request['format'] = deepcopy(FINAL_SCHEMA)
