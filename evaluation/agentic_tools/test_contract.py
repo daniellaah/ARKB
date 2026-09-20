@@ -6,7 +6,7 @@ import json
 import pytest
 from ollama import ChatResponse
 
-from arkb.agent.loop import run_agent, SYSTEM_INSTRUCTION
+from arkb.agent.loop import run_agent, SYSTEM_INSTRUCTION, _FINAL_INSTRUCTION
 from arkb.agent.tools import tool_definitions
 from arkb.evaluation.multihop import canonical_prediction
 from arkb.agent.state import AgentFinal
@@ -117,17 +117,26 @@ def test_rank_prefix_stops_at_first_unfit_and_charges_duplicates():
     assert [x['reason'] for x in decisions] == ['included', 'included', 'evidence_ceiling', 'after_first_unfit']
 
 
-def test_fixed_rag_one_request_same_schema_and_packed_reference_visibility():
+def test_fixed_rag_reasons_then_formats_with_packed_reference_visibility():
     base = Capabilities(('a', 'x ' * 8001, 'z'))
-    def answer(request):
+    def reason(request):
         evidence = json.loads(request['messages'][-1]['content'].split('\n', 1)[1])
         assert len(evidence['results']) == 1
-        assert 'tools' not in request
-        return response(json.dumps({'answer': 'a', 'status': 'answered',
-                                    'evidence_refs': [evidence['results'][0]['ref']]}))
-    client = Client([answer])
+        assert 'tools' not in request and 'format' not in request
+        draft = response('The answer is a, from ' + evidence['results'][0]['ref'])
+        draft.message.thinking = 'private reasoning'
+        return draft
+    def answer(request):
+        assert 'format' in request and request['think'] is False
+        assert request['messages'][-1]['content'] == _FINAL_INSTRUCTION
+        assert request['messages'][-2]['role'] == 'assistant' and 'thinking' not in request['messages'][-2]
+        ref = request['messages'][-2]['content'].rsplit(' ', 1)[1]
+        return response(json.dumps({'answer': 'a', 'status': 'answered', 'evidence_refs': [ref]}))
+    client = Client([reason, answer])
     result = fixed_rag('original question', tools=base, arm=ARM_BY_ID['F-H'], client=client, observer=obs())
-    assert result.final.status == 'answered' and len(client.requests) == 1
+    assert result.final.status == 'answered' and len(client.requests) == 2
+    assert [m['phase'] for m in result.observation['models']] == ['fixed_reasoning', 'fixed_generation']
+    assert result.observation['models'][0]['response']['message']['thinking'] == 'private reasoning'
     assert base.calls == [('search', 'original question', {'mode': 'hybrid', 'limit': 20})]
     assert result.observation['evidence']['returned_tokens'] == 8003
     assert result.observation['evidence']['delivered_tokens'] == 1
@@ -216,21 +225,30 @@ def test_agent_adapter_records_supplied_model_and_thinks_only_while_collecting()
     assert [r['think'] for r in client.requests] == [True, True, False]
 
 
-def test_fixed_adapter_thinks_in_its_single_generation_when_asked():
+def test_fixed_adapter_thinks_while_reasoning_and_not_while_formatting():
     configuration = dict(model='qwen3.5:9b', think=True, options={'temperature': 0, 'num_ctx': 16384, 'num_predict': 2048})
-    client = Client([final_json()], options=configuration['options'], think=True)
+    client = Client([response('draft'), final_json()], options=configuration['options'], think=True)
     result = fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=client, observer=obs(**configuration), **configuration)
     assert result.final.status == 'insufficient_evidence'
-    request = result.observation['models'][0]['request']
-    assert request['model'] == 'qwen3.5:9b' and request['think'] is True and request['options'] == configuration['options']
-    assert client.requests[0]['model'] == 'qwen3.5:9b' and client.requests[0]['think'] is True
+    requests = [m['request'] for m in result.observation['models']]
+    assert [r['model'] for r in requests] == ['qwen3.5:9b'] * 2 and all(r['options'] == configuration['options'] for r in requests)
+    assert [r['think'] for r in requests] == [True, False] and [r['think'] for r in client.requests] == [True, False]
+    assert 'format' not in requests[0] and 'format' in requests[1]
+
+
+def test_truncated_fixed_reasoning_is_a_failure_without_a_formatting_request():
+    truncated = ChatResponse(model='qwen3.5:4b', done=True, done_reason='length', message={'role': 'assistant', 'content': ''})
+    client = Client([truncated, final_json()])
+    result = fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=client, observer=obs())
+    assert result.final.status == 'error' and result.final.error['stage'] == 'model_protocol'
+    assert len(client.requests) == 1 and len(result.observation['models']) == 1
 
 
 def test_defaults_keep_the_registered_contract_and_mismatched_observer_is_rejected():
-    client = Client([final_json()])
+    client = Client([response('draft'), final_json()])
     result = fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=client, observer=obs())
-    request = result.observation['models'][0]['request']
-    assert request['model'] == 'qwen3.5:4b' and request['think'] is False and request['options'] == OPTIONS
+    for request in (m['request'] for m in result.observation['models']):
+        assert request['model'] == 'qwen3.5:4b' and request['think'] is False and request['options'] == OPTIONS
     with pytest.raises(ValueError, match='Observer configuration'):
         fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=Client([final_json()]), observer=obs(), think=True)
     with pytest.raises(ValueError, match='Observer configuration'):

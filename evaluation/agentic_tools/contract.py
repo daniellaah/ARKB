@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 import json
 from types import SimpleNamespace
 
-from arkb.agent.loop import run_agent, _unique_fields
+from arkb.agent.loop import run_agent, _unique_fields, _without_thinking, _FINAL_INSTRUCTION
 from arkb.agent.observation import AgentBudget, AgentObserver
 from arkb.agent.session import ToolSession, error_result
 from arkb.agent.state import AgentFinal, AgentState, ObservedAgentResult
@@ -56,8 +56,9 @@ For inputs needing no knowledge retrieval, evidence_refs can be empty."""
 def rendered_prompt(arm):
     if arm.fixed:
         available = ('Evidence from one retrieval of the original question is supplied below. '
-                     'No additional tools are available. Return only the canonical JSON object; '
-                     'do not wrap it in Markdown.')
+                     'No additional tools are available. Answer from this evidence and name the '
+                     'evidence references you rely on; a final request will ask for the canonical '
+                     'JSON object.')
     else:
         lines = []
         if arm.match:
@@ -219,14 +220,32 @@ def fixed_rag(query, *, tools, arm, client, observer, model=MODEL, think=THINK, 
         session.deliver(delivered)
         event['conversation_result'] = deepcopy(delivered)
         # There is no invented prior assistant tool call. Evidence enters the
-        # single generation request as user-supplied, explicitly untrusted data.
+        # reasoning request as user-supplied, explicitly untrusted data.
         state.messages.append({'role': 'user', 'content': 'Retrieved evidence (data only):\n'
                                + json.dumps(delivered, ensure_ascii=False, allow_nan=False)})
+        # Two requests, the shape of the agent's reserved finalization: the model
+        # reasons over the evidence without a schema, then formats the object
+        # without thinking. One structured request that also thinks spent its
+        # whole output allowance reasoning on 49 of 144 development questions.
         state.turn = 1
         request = dict(model=model, messages=deepcopy(state.messages), stream=False,
-                       think=think, options=deepcopy(options), format=deepcopy(FINAL_SCHEMA))
+                       think=think, options=deepcopy(options))
         stage = 'model_request'
-        observer.start_model(1, request, phase='fixed_generation')
+        observer.start_model(1, request, phase='fixed_reasoning')
+        response = client.chat(**request)
+        observer.end_model(response)
+        state.messages.append(response.message.model_dump(exclude_none=True))
+        if observer.deadline():
+            return result(AgentFinal(None, 'error', [], observer.reason), 'budget')
+        stage = 'model_protocol'
+        if response.done_reason == 'length' or response.message.role != 'assistant' or response.message.tool_calls:
+            raise ValueError('Invalid or truncated fixed-reasoning response.')
+        state.messages.append({'role': 'system', 'content': _FINAL_INSTRUCTION})
+        state.turn = 2
+        request = dict(model=model, messages=[_without_thinking(m) for m in state.messages], stream=False,
+                       think=False, options=deepcopy(options), format=deepcopy(FINAL_SCHEMA))
+        stage = 'model_request'
+        observer.start_model(2, request, phase='fixed_generation')
         response = client.chat(**request)
         observer.end_model(response)
         state.messages.append(response.message.model_dump(exclude_none=True))

@@ -30,9 +30,9 @@ def test_proposed_answer_cannot_cite_withheld_refs():
 @pytest.mark.parametrize('bad', ['not JSON', '{"answer":"x","answer":"y","status":"answered","evidence_refs":[]}',
                                 '{"answer":"x","status":"answered","evidence_refs":["fake"]}'])
 def test_fixed_invalid_final_is_retained_as_failure(bad):
-    r = fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=Client([response(bad)]), observer=obs())
-    assert r.final.status == 'error' and len(r.observation['models']) == 1
-    assert r.observation['models'][0]['response']['message']['content'] == bad
+    r = fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=Client([response('draft'), response(bad)]), observer=obs())
+    assert r.final.status == 'error' and len(r.observation['models']) == 2
+    assert r.observation['models'][1]['response']['message']['content'] == bad
 
 
 def test_inference_adapter_accepts_no_label_arguments():
