@@ -16,8 +16,9 @@ think during tool turns and finalize without thinking, as the product does.
 Every arm receives the same answer-format sentence (short answer on the first
 line). Data: the 144-scenario development set (v2 60, exact-nfcorpus 24,
 recall-nfcorpus 20, recall-fiqa 20, musique 20) plus the optional ten-query
-long-document slice. Runs `aw-9b-think-<ARM>`, `aw-long-9b-think-<ARM>` and
-`aw-4b-nothink-<ARM>` under `evaluation/results/devloop/`;
+long-document slice. Runs `aw-9b-think-<ARM>`, `aw-long-9b-think-<ARM>`,
+`aw-4b-nothink-<ARM>` and the rerun `aw-9b-think-F-H-2req` under
+`evaluation/results/devloop/`;
 comparisons under `evaluation/devloop/comparisons/aw-*.md`.
 
 ## Results by slice and arm
@@ -200,9 +201,54 @@ iterate did not measurably improve evidence acquisition (identical v2
 coverage, slightly lower document recall) and cost about 2.8 times the prompt
 tokens and 3 more model requests per question; it improved the *decisions*
 around the answer (abstaining, not retrieving, citing what was found, listing
-every match). Most of the headline gap against the fixed workflow came from a
-configuration defect of the fixed arm (thinking inside one structured
-generation), not from autonomy.
+every match). Most of the headline gap against the fixed workflow came from
+the fixed arm not finishing (a 9B thinking model does not complete its
+reasoning over 20 packed chunks within 4,096 output tokens; the rerun below
+shows the schema is not the cause), not from autonomy.
+
+## Rerun: fixed arm with two-request finalization (F-H-2req)
+
+The next step proposed below the first version of this report was carried out
+(commit b2b3246, run `aw-9b-think-F-H-2req`): the fixed arm now reasons over
+the packed evidence in one request without a schema and formats the object in
+a second request without thinking, the shape of the agent's reserved
+finalization. It did not remove the overflow and added a defect of its own.
+
+| Slice | metric | n | F-H (one request) | F-H-2req | A-All | A-All minus F-H-2req |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| exact-nfcorpus | completeness_cited | 24 | 0.057 | 0.087 | 0.875 | +0.788 [+0.627, +0.928]* 21/1/2 |
+| musique | support_f1 | 10 | 0.395 | 0.069 | 0.654 | +0.585 [+0.324, +0.830]* 9/0/1 |
+| musique | answerability_correct | 20 | 0.350 | 0.200 | 0.650 | +0.450 [+0.200, +0.700]* 10/9/1 |
+| musique | answer_f1_first_line | 10 | 0.250 | 0.400 | 0.600 | +0.200 [+0.000, +0.500] 2/8/0 |
+| recall-fiqa | positive_recall_delivered | 20 | 0.462 | 0.462 | 0.400 | -0.062 [-0.148, +0.017] 1/15/4 |
+| recall-nfcorpus | positive_recall_delivered | 20 | 0.190 | 0.190 | 0.166 | -0.024 [-0.055, -0.002]* 1/13/6 |
+| v2 | evidence_coverage_delivered | 47 | 0.968 | 0.968 | 0.968 | +0.000 [+0.000, +0.000] 0/47/0 |
+| v2 | source_recall_cited | 52 | 0.567 | 0.471 | 0.894 | +0.423 [+0.288, +0.558]* 26/25/1 |
+| v2 | answered | 60 | 0.383 | 0.333 | 0.700 | +0.367 [+0.217, +0.517]* 25/32/3 |
+| all (stratified) | elapsed_s | 144 | 45.0 | 51.4 | 26.9 | -24.5 [-28.2, -20.7]* 25/0/119 |
+| all (stratified) | model_requests | 144 | 1.0 | 1.6 | 4.1 | +2.5 [+2.3, +2.8]* 138/5/1 |
+| all (stratified) | prompt_tokens | 144 | 6,330 | 8,973 | 17,545 | +8,572 [+6,528, +10,712]* 95/0/49 |
+
+- **The overflow is thinking length, not the schema.** The reasoning request,
+  with no `format` at all, was cut at 4,096 output tokens on 55 of 144
+  questions (one request: 49), after 11k to 17k characters of thinking about
+  the 20 packed chunks; 8 of the 55 had started writing the answer. Only 33
+  questions overflowed in both runs (22 only here, 17 only before), so it is
+  a property of the prompt size, reproduced at temperature 0 only loosely.
+- **Formatting without thinking loses the citations.** On the questions that
+  completed, the reasoning content usually named the right answer and its
+  references (for example "Maria Shriver" with two `ev_` references), and
+  the formatting request returned `{"answer": "Maria Shriver", "status":
+  "insufficient_evidence", "evidence_refs": []}`. Mean citations on answered
+  finals fell from 3.15 to 1.63; v2 cited source recall 0.567 to 0.471,
+  MuSiQue support F1 0.395 to 0.069. In the agent loop the same request shape
+  works (A-All cites 0.894), where evidence arrives as tool messages after
+  the model's own turns; here it is one user message of data, and the
+  nonthinking 9B does not carry its references across.
+- Delivered coverage and recall are identical to the one-request run (same
+  retrieval), cost rose (+6.4 s, +0.6 requests, +2.6k prompt tokens per
+  question). The primary contrast against this arm is therefore larger, not
+  smaller, and the one-request F-H above stays the reference fixed arm.
 
 ## Limits
 
@@ -214,8 +260,8 @@ repeatability study measured two thirds of cells changing their final object
 between identical runs, so single-question wins and losses are noisy; only
 the intervals are meant to be read. Intervals are nominal and uncorrected over
 about fifty metric-by-slice cells. The fixed arms' overflow is a property of
-this configuration (thinking, structured output and 4,096 output tokens in one
-request), not of fixed workflows in general; with it, the primary contrast
+this configuration (a 9B thinking model given 20 packed chunks and 4,096 output
+tokens per request), not of fixed workflows in general; with it, the primary contrast
 measures "agent with thinking turns" against "one thinking generation that
 often does not finish". The run records carry `dirty` because the README and
 the review-sheet script changed in the working tree during the chain; no
@@ -223,8 +269,11 @@ imported module differs from commit 942cdc4. Nothing here is a quality claim.
 
 ## Next step
 
-Give the fixed workflow the same two-request finalization the agent has (one
-thinking request without `format`, one formatting request without thinking)
-and rerun F-H only. That removes the overflow mechanism without changing
-"one retrieval, one answer", and turns the primary contrast into a measurement
-of iteration alone; everything else in this report can be reused as is.
+Give the fixed arm's single request the agent's *total* output allowance
+instead of its per-request one (num_predict 32,768, eight turns of 4,096) and
+rerun F-H once with the one-request design. That is a declared budget
+asymmetry, but it is the only configuration in which a 9B thinking model can
+finish reasoning over 20 packed chunks, and it keeps the citation behaviour
+that the two-request version lost. If overflow persists there too, the fixed
+arm's honest 9B baseline is the nonthinking one, which the 4B reference
+already shows to be competitive on everything except enumeration.
