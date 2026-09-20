@@ -5,8 +5,8 @@ import pytest
 
 from arkb.evaluation.external import write_json
 from evaluation.devloop.build import exact_tasks, term_key
-from evaluation.devloop.run import (PRIMARY, cited_sources, compare, match_limit_hits, score_row, stage_observations,
-                                    summarize, markdown, load_resources)
+from evaluation.devloop.run import (PRIMARY, DevChatClient, cited_sources, compare, first_line, match_limit_hits, score_row,
+                                    stage_observations, summarize, markdown, load_resources)
 
 
 def corpus(tmp_path):
@@ -118,3 +118,39 @@ def test_summary_compare_and_markdown(tmp_path):
     result, text = compare(tmp_path / 'a', tmp_path / 'b', tmp_path / 'cmp.md')
     assert result['exact-nfcorpus:completeness_cited'] == {'a': 0.0, 'b': 1.0, 'delta': 1.0, 'wins': 3, 'ties': 0, 'losses': 0, 'n': 3}
     assert (tmp_path / 'cmp.md').exists() and PRIMARY['exact-nfcorpus'] == 'completeness_cited'
+
+
+def test_first_line_answer_scores_take_the_short_answer_and_keep_full_text_scores():
+    gold = {'id': 'p1', 'answerable': True, 'answer': 'Paris', 'answer_aliases': [], 'support_idxs': [0], 'source_map': {}}
+    row = record([], final={'status': 'answered', 'answer': '\nParis\nThe capital named in the passage is Paris.', 'citations': []})
+    scored = score_row(row, {'id': 'm', 'slice': 'musique', 'pair_id': 'p', 'variant': 'v0'}, {'gold': gold}, {})
+    assert scored['answer_em_first_line'] == 1.0 and scored['answer_f1_first_line'] == 1.0
+    assert scored['answer_em'] == 0.0 and 0 < scored['answer_f1'] < 1
+    assert first_line('  \n\n  Paris  \nmore') == 'Paris' and first_line(None) == ''
+    unanswerable = score_row(row, {'id': 'm', 'slice': 'musique', 'pair_id': 'p', 'variant': 'v1'}, {'gold': {**gold, 'answerable': False}}, {})
+    assert unanswerable['answer_f1_first_line'] is None and unanswerable['answer_em_first_line'] is None
+    failed = {**row, 'result': None, 'error': {'type': 'X', 'message': 'y'}}
+    assert score_row(failed, {'id': 'm', 'slice': 'musique', 'pair_id': 'p', 'variant': 'v0'}, {'gold': gold}, {})['answer_f1_first_line'] == 0.0
+
+
+class FakeHttp:
+    def __init__(self):
+        self.sent = []
+
+    def post(self, path, *, json):
+        self.sent.append(json)
+        body = {'model': json['model'], 'done': True, 'done_reason': 'stop', 'message': {'role': 'assistant', 'content': '{}'}}
+        return type('R', (), {'raise_for_status': lambda self: None, 'json': lambda self: body})()
+
+
+def test_dev_client_keeps_the_callers_think_flag_and_rejects_another_model():
+    client = DevChatClient.__new__(DevChatClient)
+    client.model, client.options, client.think, client.http = 'qwen3.5:9b', {'num_ctx': 32768, 'num_predict': 4096}, True, FakeHttp()
+    client.chat(model='qwen3.5:9b', messages=[], think=False, options={'temperature': 0})
+    client.chat(model='qwen3.5:9b', messages=[])
+    sent = client.http.sent
+    assert [r['think'] for r in sent] == [False, True]
+    assert sent[0]['options'] == {'temperature': 0, 'num_ctx': 32768, 'num_predict': 4096}
+    assert all(r['truncate'] is False and r['shift'] is False for r in sent)
+    with pytest.raises(ValueError, match='differs'):
+        client.chat(model='qwen3.5:4b', messages=[])

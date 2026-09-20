@@ -46,18 +46,19 @@ def response(content='', calls=()):
 
 
 class Client:
-    def __init__(self, actions):
+    def __init__(self, actions, *, options=OPTIONS, think=THINK):
         self.actions, self.requests = iter(actions), []
+        self.options, self.think = options, think
 
     def chat(self, **request):
         self.requests.append(deepcopy(request))
-        assert request['options'] == OPTIONS and request['think'] is THINK
+        assert request['options'] == self.options and request['think'] in (False, self.think)
         action = next(self.actions)
         return action(request) if callable(action) else action
 
 
-def obs(counter=None):
-    return new_observer(counter or (lambda text: len(text.split())), 'fixture-words-v1')
+def obs(counter=None, **configuration):
+    return new_observer(counter or (lambda text: len(text.split())), 'fixture-words-v1', **configuration)
 
 
 @pytest.mark.parametrize('arm', ARMS)
@@ -189,3 +190,49 @@ def test_selection_and_schedule_are_complete_pair_preserving_and_order_independe
         for a, b in zip(mu[::2], mu[1::2]):
             assert a['id'] == b['id'] and a['arm'] == b['arm'] and a['repetition'] == b['repetition']
             assert [a['variant'], b['variant']] == ['v0', 'v1']
+
+
+def final_json(answer='No evidence', status='insufficient_evidence'):
+    return response(json.dumps({'answer': answer, 'status': status, 'evidence_refs': []}))
+
+
+def test_answer_format_sentence_reaches_every_arm():
+    for arm in ARMS:
+        assert 'shortest complete answer on its own first line' in rendered_prompt(arm)
+
+
+def test_agent_adapter_records_supplied_model_and_thinks_only_while_collecting():
+    configuration = dict(model='qwen3.5:9b', think=True, options={'temperature': 0, 'num_ctx': 16384, 'num_predict': 2048})
+    client = Client([response(calls=[('search', {'query': 'q'})]), final_json(), final_json()],
+                    options=configuration['options'], think=True)
+    result = controlled_agent('q', tools=Capabilities(), arm=ARM_BY_ID['A-S'], client=client, observer=obs(**configuration),
+                              **configuration)
+    assert result.final.status == 'insufficient_evidence'
+    models = result.observation['models']
+    assert [m['request']['model'] for m in models] == ['qwen3.5:9b'] * len(models)
+    assert all(m['request']['options'] == configuration['options'] for m in models)
+    assert [m['request']['think'] for m in models] == [True, True, False]
+    assert [m['phase'] for m in models] == ['tools', 'tools', 'finalization']
+    assert [r['think'] for r in client.requests] == [True, True, False]
+
+
+def test_fixed_adapter_thinks_in_its_single_generation_when_asked():
+    configuration = dict(model='qwen3.5:9b', think=True, options={'temperature': 0, 'num_ctx': 16384, 'num_predict': 2048})
+    client = Client([final_json()], options=configuration['options'], think=True)
+    result = fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=client, observer=obs(**configuration), **configuration)
+    assert result.final.status == 'insufficient_evidence'
+    request = result.observation['models'][0]['request']
+    assert request['model'] == 'qwen3.5:9b' and request['think'] is True and request['options'] == configuration['options']
+    assert client.requests[0]['model'] == 'qwen3.5:9b' and client.requests[0]['think'] is True
+
+
+def test_defaults_keep_the_registered_contract_and_mismatched_observer_is_rejected():
+    client = Client([final_json()])
+    result = fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=client, observer=obs())
+    request = result.observation['models'][0]['request']
+    assert request['model'] == 'qwen3.5:4b' and request['think'] is False and request['options'] == OPTIONS
+    with pytest.raises(ValueError, match='Observer configuration'):
+        fixed_rag('q', tools=Capabilities(), arm=ARM_BY_ID['F-S'], client=Client([final_json()]), observer=obs(), think=True)
+    with pytest.raises(ValueError, match='Observer configuration'):
+        controlled_agent('q', tools=Capabilities(), arm=ARM_BY_ID['A-S'], client=Client([final_json()]),
+                         observer=obs(model='qwen3.5:9b'))

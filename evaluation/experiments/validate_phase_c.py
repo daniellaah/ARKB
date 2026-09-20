@@ -25,7 +25,7 @@ from run_p4 import verify_snapshot
 
 def execute(a):
     verify_checksums(a.dataset)
-    out=a.output;data=load_external(a.dataset);mapping=data.source_map();data.verify_materialized(a.dataset/'corpus')
+    out=a.output;data=load_external(a.dataset);data.verify_materialized(a.dataset/'corpus')
     if digest(a.dataset/'checksums.json')!=digest(out/'input-checksums.json'):raise ValueError('Input checksum manifest drift.')
     decision=json.loads((out/'development-decision.json').read_text())
     if decision['selected_policy']!='C0':raise ValueError('This validation run was frozen for selected C0.')

@@ -21,6 +21,7 @@ from arkb.agent.observation import AgentObserver
 from arkb.config import RuntimeConfig
 from arkb.evaluation.deadline import evaluation_deadline
 from arkb.evaluation.external import digest, write_json
+from arkb.evaluation.multihop import _normalize, answer_f1
 from arkb.evaluation.v2 import load_dataset, evidence_scores
 from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.runtime import Runtime
@@ -29,7 +30,7 @@ from evaluation.agentic_tools.contract import (ARM_BY_ID, BUDGET, OPTIONS, contr
                                                new_observer)
 from evaluation.agentic_tools.common import utc
 from evaluation.agentic_tools.scoring import canonical, costs_and_behavior, evidence_coverage, musique_row
-from evaluation.agentic_tools.transport import LocalChatClient, model_identity
+from evaluation.agentic_tools.transport import model_identity
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_OPTIONS = dict(OPTIONS)
@@ -47,7 +48,11 @@ class DevChatClient:
         self.identity = model_identity(self.http, model)
 
     def chat(self, **request):
-        request = dict(request, model=self.model, think=self.think, truncate=False, shift=False,
+        if request.get('model', self.model) != self.model:
+            raise ValueError('Request model differs from the client model.')
+        # A think flag in the request wins: the product loop finalizes without
+        # thinking on purpose, and the recorded trace must be what was sent.
+        request = dict(request, model=self.model, think=request.get('think', self.think), truncate=False, shift=False,
                        options={**(request.get('options') or {}), **self.options})
         response = self.http.post('/api/chat', json=request)
         response.raise_for_status()
@@ -99,6 +104,23 @@ def match_limit_hits(row):
             if len((event.get('raw_result') or {}).get('results', [])) >= limit:
                 hits += 1
     return hits
+
+
+def first_line(text):
+    """The short answer the shared instruction asks for: the first nonblank line."""
+    return next((line.strip() for line in (text or '').splitlines() if line.strip()), '')
+
+
+def first_line_answer_scores(musique, gold):
+    """Answer EM and F1 on the first nonblank line; the full-text scores stay beside them."""
+    if not gold['answerable']:
+        return {'answer_em_first_line': None, 'answer_f1_first_line': None}
+    if not musique['execution_valid']:
+        return {'answer_em_first_line': 0.0, 'answer_f1_first_line': 0.0}
+    line = first_line(musique['prediction']['predicted_answer'])
+    aliases = [gold['answer'], *gold['answer_aliases']]
+    return {'answer_em_first_line': float(any(_normalize(line) == _normalize(a) for a in aliases)),
+            'answer_f1_first_line': answer_f1(line, aliases)}
 
 
 def score_row(row, scenario, labels, resources):
@@ -165,6 +187,7 @@ def score_row(row, scenario, labels, resources):
         m = scored['musique']
         scored['answer_f1'], scored['answer_em'], scored['support_f1'] = m['answer_f1'], m['answer_em'], m['support_f1']
         scored['answerability_correct'] = m['answerability_correct']
+        scored.update(first_line_answer_scores(m, labels['gold']))
     return scored
 
 
@@ -307,10 +330,9 @@ def run(devset, output, *, adapter, model, think, options, slices, limit, label,
         from arkb.knowledge.embeddings import tokenizer_fingerprint
         counter_id = 'reference-text:' + tokenizer_fingerprint(tokenizer)
         counter = lambda s: len(tokenizer.encode(s, add_special_tokens=False).ids)
-        if adapter == 'product':
-            client = DevChatClient(model, options=options, think=think)
-        else:
-            client = LocalChatClient(model_identity(httpx.Client(base_url='http://127.0.0.1:11434', timeout=30), model))
+        # Both adapters use the direct transport: LocalChatClient enforces the
+        # registered 4B nonthinking contract and cannot carry another model.
+        client = DevChatClient(model, options=options, think=think)
         meta['chat_model'] = client.identity
         write_json(output / 'run.json', meta)
         setup_path = output / 'setup-costs.json'
@@ -335,7 +357,7 @@ def run(devset, output, *, adapter, model, think, options, slices, limit, label,
                 active = scope_name
             # The product loop sets temperature only; DevChatClient supplies context/output limits.
             observer = (AgentObserver(budget=BUDGET, counter=counter, counter_identity=counter_id)
-                        if adapter == 'product' else new_observer(counter, counter_id))
+                        if adapter == 'product' else new_observer(counter, counter_id, model=model, think=think, options=options))
             start = perf_counter()
             result, error = None, None
             try:
@@ -346,7 +368,8 @@ def run(devset, output, *, adapter, model, think, options, slices, limit, label,
                     else:
                         arm = ARM_BY_ID[adapter.split(':', 1)[1]]
                         fn = fixed_rag if arm.fixed else controlled_agent
-                        result = fn(scenario['query'], tools=tools, arm=arm, client=client, observer=observer)
+                        result = fn(scenario['query'], tools=tools, arm=arm, client=client, observer=observer,
+                                    model=model, think=think, options=options)
             except Exception as exc:
                 error = {'type': type(exc).__name__, 'message': str(exc)}
             elapsed_ms = (perf_counter() - start) * 1000
@@ -406,7 +429,8 @@ def compare(a, b, destination=None):
         by_slice[rows_a[sid]['scenario']['slice']].append(sid)
     for name, ids in sorted(by_slice.items()):
         metrics = [PRIMARY.get(name, '')] + [m for m in ('evidence_coverage_returned', 'source_recall_cited', 'completeness_returned',
-                                                            'positive_recall_returned', 'answerability_correct', 'support_f1') if m in rows_a[ids[0]]['scores']]
+                                                            'positive_recall_returned', 'answerability_correct', 'support_f1',
+                                                            'answer_f1_first_line', 'answer_em_first_line') if m in rows_a[ids[0]]['scores']]
         for metric in dict.fromkeys(m for m in metrics if m):
             pairs = [(rows_a[i]['scores'].get(metric), rows_b[i]['scores'].get(metric)) for i in ids]
             pairs = [(x, y) for x, y in pairs if x is not None and y is not None]
