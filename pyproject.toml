@@ -23,6 +23,9 @@ arkb = "arkb.interfaces.cli:main"
 claude = [
     "anthropic>=1,<2",
 ]
+mcp = [
+    "mcp>=1.30,<2",
+]
 rerank = [
     "torch>=2.6,<3",
     "transformers>=5,<6",

@@ -96,13 +96,15 @@ def _parser():
         'ask': 'Let the agent retrieve evidence and respond.',
         'index': 'Build or update the knowledge index.',
         'status': 'Show saved knowledge base and index status.',
+        'mcp': 'Serve the read-only knowledge tools to an MCP client over stdio.',
     }
     for name, description in descriptions.items():
         command = commands.add_parser(name, help=description, description=description, allow_abbrev=False)
         command.add_argument('--db', type=Path, default=DEFAULT_DB)
         command.add_argument('--vault-id', type=_nonblank, default='default')
-        command.add_argument('--json', action='store_true', help='Format the same result as JSON.')
-        if name in ('index', 'search', 'ask'):
+        if name != 'mcp':
+            command.add_argument('--json', action='store_true', help='Format the same result as JSON.')
+        if name in ('index', 'search', 'ask', 'mcp'):
             _add_services(command, indexing=name == 'index')
         if name in ('match', 'search'):
             command.add_argument('pattern' if name == 'match' else 'query', type=_nonblank)
@@ -112,10 +114,10 @@ def _parser():
         if name == 'match':
             command.add_argument('--unique-sources', action='store_true',
                                  help='List each matching note once instead of every occurrence.')
-        if name in ('match', 'ask'):
+        if name in ('match', 'ask', 'mcp'):
             command.add_argument('--notes-dir', type=Path,
                                  help='Live notes directory; defaults to the saved scope, then example_notes.')
-        if name in ('match', 'ask', 'index'):
+        if name in ('match', 'ask', 'index', 'mcp'):
             command.add_argument('--exclude', type=_nonblank, action='append', metavar='GLOB',
                                  help='Skip directories matching this name, vault-relative path or glob; '
                                       f'repeatable and added to the defaults {" ".join(DEFAULT_EXCLUDES)}.')
@@ -123,6 +125,9 @@ def _parser():
             _add_index_arguments(command)
         elif name == 'search':
             _add_search_arguments(command)
+        elif name == 'mcp':
+            command.add_argument('--mode', choices=('bm25', 'semantic', 'hybrid'), default=DEFAULT_RETRIEVAL_MODE,
+                                 help='Default search strategy; an MCP client may choose another per call.')
         elif name == 'ask':
             command.add_argument('query', type=_nonblank)
             command.add_argument('--max-turns', type=_positive_int, default=8,
@@ -170,6 +175,14 @@ def _runtime_config(args):
 
 def _execute(runtime, args):
     scope = {'db': args.db, 'vault_id': args.vault_id}
+    if args.command == 'mcp':
+        try:
+            from arkb.interfaces.mcp_server import serve
+        except ImportError as error:
+            raise ValueError('The MCP server needs its optional dependency: '
+                             'uv sync --extra mcp (or pip install "arkb[mcp]").') from error
+        # Serving owns stdout for JSON-RPC and returns when the client disconnects.
+        return serve(runtime, **scope, notes_dir=args.notes_dir, mode=args.mode)
     if args.command == 'match':
         return runtime.match(args.pattern, **scope, notes_dir=args.notes_dir,
                              top_k=args.top_k, source=args.source, unique_sources=args.unique_sources)
@@ -221,6 +234,8 @@ def _print_trace(result):
 
 
 def _print_result(args, result):
+    if args.command == 'mcp':
+        return
     if args.command == 'ask' and args.trace:
         _print_trace(result)
     if args.json:

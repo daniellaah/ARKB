@@ -108,6 +108,26 @@ class Runtime:
                                            rerank=rerank, exact=exact)
             return engine.search(query, mode=mode, top_k=top_k, filters=filters, rerank=rerank)
 
+    @contextmanager
+    def live_tools(self, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
+                   notes_dir: Path | None = None, mode: str = DEFAULT_RETRIEVAL_MODE):
+        """Hold one snapshot open and yield tools over its live knowledge base.
+
+        Match/read/list remain live. Ranked capabilities load only if chosen,
+        so a caller that never searches needs no index or embedding/vector
+        services. The snapshot closes when the context exits, which is why a
+        long-lived server keeps this context for its whole session.
+        """
+        from arkb.retrieval.engine import RetrievalEngine
+
+        with self._snapshot(db, vault_id, required=False) as (storage, manifest):
+            directory, exclude = self._notes_scope(storage, manifest, notes_dir)
+            engine = RetrievalEngine(
+                bm25=_LazySnapshotRetriever(self, storage, manifest, 'bm25'),
+                semantic=_LazySnapshotRetriever(self, storage, manifest, 'semantic'))
+            yield self.agent_tools(engine=engine, directory=directory, vault_id=vault_id,
+                                   mode=mode, exclude=exclude)
+
     def ask(self, query: str, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
             notes_dir: Path | None = None, model: str = DEFAULT_GENERATION_MODEL,
             max_turns: int = 8, think: bool = DEFAULT_AGENT_THINK,
@@ -118,15 +138,8 @@ class Runtime:
         Match/read remain live. Ranked capabilities load only if chosen; direct
         replies and live tools work without an index or embedding/vector services.
         """
-        from arkb.retrieval.engine import RetrievalEngine
-
-        with self._snapshot(db, vault_id, required=False) as (storage, manifest):
-            directory, exclude = self._notes_scope(storage, manifest, notes_dir)
-            engine = RetrievalEngine(
-                bm25=_LazySnapshotRetriever(self, storage, manifest, 'bm25'),
-                semantic=_LazySnapshotRetriever(self, storage, manifest, 'semantic'))
-            tools = self.agent_tools(engine=engine, directory=directory, vault_id=vault_id,
-                                     mode=DEFAULT_RETRIEVAL_MODE, exclude=exclude)
+        with self.live_tools(db=db, vault_id=vault_id, notes_dir=notes_dir,
+                             mode=DEFAULT_RETRIEVAL_MODE) as tools:
             return self.run_agent(query, tools=tools, model=model, max_turns=max_turns,
                                   think=think, client=client,observer=observer,
                                   search_stall_reminder=search_stall_reminder)

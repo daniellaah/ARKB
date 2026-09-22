@@ -49,9 +49,26 @@ def runtime(monkeypatch):
     return runtime, factory
 
 
-def test_only_five_top_level_commands():
+def test_only_six_top_level_commands():
     commands = next(action for action in _parser()._actions if action.dest == 'command')
-    assert set(commands.choices) == {'match', 'search', 'ask', 'index', 'status'}
+    assert set(commands.choices) == {'match', 'search', 'ask', 'index', 'status', 'mcp'}
+    # Serving owns stdout for JSON-RPC, so it takes no result formatting flag.
+    assert '--json' not in commands.choices['mcp'].format_usage()
+
+
+def test_mcp_serves_the_configured_scope_and_prints_nothing(runtime, monkeypatch, capsys):
+    pytest.importorskip('mcp')
+    from arkb.interfaces import mcp_server
+    fake, factory = runtime
+    serve = create_autospec(mcp_server.serve)
+    monkeypatch.setattr(mcp_server, 'serve', serve)
+    assert main(['mcp', '--db', 'kb.sqlite', '--vault-id', 'kb', '--notes-dir', 'vault',
+                 '--mode', 'hybrid', '--qdrant-url', 'http://127.0.0.1:6340', '--offline']) == 0
+    serve.assert_called_once_with(fake, db=Path('kb.sqlite'), vault_id='kb',
+                                  notes_dir=Path('vault'), mode='hybrid')
+    assert factory.call_args.args[0].qdrant_url == 'http://127.0.0.1:6340'
+    assert factory.call_args.args[0].offline is True
+    assert capsys.readouterr().out == ''
 
 
 def test_match_calls_only_runtime_match_and_formats_occurrences(runtime, capsys):
@@ -204,7 +221,7 @@ def test_invalid_arguments_fail_before_constructing_runtime(runtime, capsys, arg
     factory.assert_not_called()
 
 
-@pytest.mark.parametrize('command', ['', 'match', 'search', 'ask', 'index', 'status'])
+@pytest.mark.parametrize('command', ['', 'match', 'search', 'ask', 'index', 'status', 'mcp'])
 def test_help_without_runtime(runtime, capsys, command):
     _, factory = runtime
     with pytest.raises(SystemExit) as error:

@@ -53,6 +53,7 @@ For example:
 - Local Markdown indexing with section-aware chunking and reusable embeddings.
 - Inspectable agent traces and bounded tool-calling loops.
 - CLI with JSON output and reusable Python APIs.
+- A read-only MCP stdio server, so Claude Code or the desktop app can be the agent instead.
 - Retrieval baselines, agent evaluation, and controlled model ablations.
 
 ## Architecture
@@ -163,7 +164,7 @@ When an index already exists, `match` and `ask` use its saved directory. An expl
 
 ## Usage
 
-ARKB exposes five top-level commands:
+ARKB exposes six top-level commands:
 
 ```text
 match
@@ -171,9 +172,10 @@ search
 ask
 index
 status
+mcp
 ```
 
-All commands support `--json`.
+All commands support `--json`, except `mcp`, whose stdout carries the protocol.
 
 Inspect command-specific options with:
 
@@ -267,6 +269,74 @@ mode: "hybrid"
 The actual queries and tool choices depend on the model and evidence collected during the run.
 
 The trace is written to stderr. The final response remains on stdout.
+
+### MCP server
+
+Let Claude Code or the Claude desktop app retrieve from the knowledge base directly. In this
+mode the outer client is the agent and ARKB contributes retrieval only, so no model runs inside
+ARKB and no answer is generated here.
+
+The MCP SDK is an optional dependency:
+
+```sh
+uv sync --locked --extra mcp
+
+uv run --locked --extra mcp arkb mcp \
+  --db .arkb/index.sqlite \
+  --vault-id default \
+  --qdrant-url http://127.0.0.1:6333
+```
+
+The server speaks the Model Context Protocol over stdio and serves until the client
+disconnects. It takes the same scope options as the other commands (`--db`, `--vault-id`,
+`--notes-dir`, `--exclude`, `--qdrant-url`, `--host`, `--offline`); `--mode` sets the default
+search strategy, which a client may override per call. Relative paths resolve against the
+server process's working directory, so prefer absolute paths in a client configuration, and
+keep `rg` on the `PATH` that starts it, which `match` needs.
+
+Register it with Claude Code (adjust the paths, and add `--scope user` to reuse it outside one
+project):
+
+```sh
+claude mcp add arkb -- /abs/path/to/arkb/.venv/bin/arkb mcp \
+  --db /abs/path/to/arkb/.arkb/index.sqlite \
+  --vault-id default \
+  --qdrant-url http://127.0.0.1:6333
+```
+
+For the desktop app, the same command goes into `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "arkb": {
+      "command": "/abs/path/to/arkb/.venv/bin/arkb",
+      "args": ["mcp", "--db", "/abs/path/to/arkb/.arkb/index.sqlite",
+               "--vault-id", "default", "--qdrant-url", "http://127.0.0.1:6333"]
+    }
+  }
+}
+```
+
+Four tools are exposed, with the same names, descriptions and parameter schemas the internal
+agent loop uses:
+
+| Tool | Purpose |
+| --- | --- |
+| `list` | Browse source paths, titles, headings and sizes; not evidence |
+| `match` | Literal occurrences through ripgrep, over live files |
+| `search` | Ranked chunks from the index: `bm25`, `semantic` or `hybrid` |
+| `read` | A whole note by source path, or the section around a returned offset |
+
+The agent loop's `finish` tool is not exposed: the client writes the answer. Neither are its
+`ev_*` evidence references, which bind evidence within one run of that loop. A client here is
+another agent whose calls are independent, so every result instead carries its vault-relative
+source path, the document revision it was read from, and body character offsets, which is
+enough to quote a passage, re-read it and cite it.
+
+The server is read-only by construction: it offers no tool that writes, deletes or rebuilds an
+index, so a connected agent cannot change the knowledge base. Indexing stays with `arkb index`,
+run deliberately by hand.
 
 ## Retrieval Engine
 
@@ -661,7 +731,7 @@ The design keeps deterministic knowledge processing and retrieval independent fr
 
 `evaluation/` and `benchmarks/` contain experiment inputs, configurations, and reports.
 
-MCP support is planned; the repository does not yet expose an MCP server.
+`interfaces/mcp_server.py` serves the read-only tools to an external agent over MCP stdio.
 
 ## Development
 
@@ -706,7 +776,6 @@ directories.
 Potential next steps:
 
 - Recursive Markdown directory ingestion.
-- A complete MCP server exposing the existing runtime capabilities.
 - Final-answer quality evaluation alongside retrieval and agent behavior metrics.
 
 These items are not currently implemented.
