@@ -85,9 +85,10 @@ history style.
   PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
 - GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
   要等就等，**绝不要 kill 别的进程**
-- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
-  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
-- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+- **这些开发任务一律不要调用付费 API**（DeepSeek、Anthropic）。key 在 .env 里，但开发和验收
+  都用本地 Ollama 模型；涉及托管传输层的代码用假 client 做单元测试，不要真的发请求。
+  如果你认为某个结论非跑托管模型不可，先停下来告诉我理由，我来决定
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟。本机没有别的任务占 GPU，可以直接跑。
   动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
@@ -174,9 +175,10 @@ ARKB 是一个 agentic 检索系统：一个有界的 agent 循环（src/arkb/ag
   PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
 - GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
   要等就等，**绝不要 kill 别的进程**
-- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
-  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
-- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+- **这些开发任务一律不要调用付费 API**（DeepSeek、Anthropic）。key 在 .env 里，但开发和验收
+  都用本地 Ollama 模型；涉及托管传输层的代码用假 client 做单元测试，不要真的发请求。
+  如果你认为某个结论非跑托管模型不可，先停下来告诉我理由，我来决定
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟。本机没有别的任务占 GPU，可以直接跑。
   动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
@@ -245,9 +247,10 @@ ARKB 只提供工具，内部不需要任何 LLM。
   PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
 - GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
   要等就等，**绝不要 kill 别的进程**
-- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
-  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
-- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+- **这些开发任务一律不要调用付费 API**（DeepSeek、Anthropic）。key 在 .env 里，但开发和验收
+  都用本地 Ollama 模型；涉及托管传输层的代码用假 client 做单元测试，不要真的发请求。
+  如果你认为某个结论非跑托管模型不可，先停下来告诉我理由，我来决定
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟。本机没有别的任务占 GPU，可以直接跑。
   动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
@@ -313,17 +316,19 @@ B. 多轮会话：
 ## 验收
 1. make test、make lint 全绿；给 transports.make_client 和 chat 的多轮状态各补测试
    （用假 client，不要真的调 API）。
-2. 手动验证并贴给我：
-   - arkb ask "..." --generation-model deepseek-reasoner（用 Task 1 建的 obsidian 索引）
+2. 托管传输层只做离线验证（不要真的调 API）：
+   - 用假 client 断言请求形状：cache_control 断点打在 tools 与 system 上、断点数不超过 4、
+     变动的内容排在最后一个断点之后；多轮时历史边界的断点位置正确
+   - 断言稳定前缀确实逐字节稳定：同一会话连续两轮，最后一个断点之前的内容完全相同
+     （时间戳、未排序的 JSON、变动的工具顺序都会打破它，这正是要测的）
+   - 真实的缓存命中率要等我批准一次付费运行才能验证，在提交信息里写明这一点是待验证的
+3. 手动验证（本地模型）并贴给我：
+   - arkb ask "..." --generation-model qwen3.5:9b（用 Task 1 建的 obsidian 索引）
    - arkb chat 里连问三轮，第三轮用代词指代第一轮的内容，看它是否答对
-   - 两者的 usage / 成本输出
-   - **缓存确实命中**：多轮会话从第二轮起，Claude 的 cache_read_input_tokens 应该大于零，
-     DeepSeek 的 prompt_cache_hit_tokens 应该大于零；把这几行贴给我。
-     如果一直是零，说明前缀被什么东西打破了（时间戳、变动的工具顺序、未排序的 JSON），
-     先找出来再说「做完了」。
-3. 评估不退化：make eval LABEL=t3-9b-think MODEL=qwen3.5:9b THINK=--think，与
+   - 两者的 usage 输出
+4. 评估不退化：make eval LABEL=t3-9b-think MODEL=qwen3.5:9b THINK=--think，与
    evaluation/results/v2-9b-think 对比。
-4. 提交：英文信息，可以分成「transports」和「chat」两次。
+5. 提交：英文信息，可以分成「transports」和「chat」两次。
 
 ## 不要做
 不要实现 MCP、不要碰链接/标签工具、不要改引用验证逻辑。
@@ -347,9 +352,10 @@ B. 多轮会话：
   PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
 - GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
   要等就等，**绝不要 kill 别的进程**
-- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
-  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
-- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+- **这些开发任务一律不要调用付费 API**（DeepSeek、Anthropic）。key 在 .env 里，但开发和验收
+  都用本地 Ollama 模型；涉及托管传输层的代码用假 client 做单元测试，不要真的发请求。
+  如果你认为某个结论非跑托管模型不可，先停下来告诉我理由，我来决定
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟。本机没有别的任务占 GPU，可以直接跑。
   动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
@@ -422,9 +428,10 @@ _load_note 已经解析 frontmatter 并把 tags/aliases 存进了 Note 的 metad
   PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
 - GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
   要等就等，**绝不要 kill 别的进程**
-- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
-  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
-- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+- **这些开发任务一律不要调用付费 API**（DeepSeek、Anthropic）。key 在 .env 里，但开发和验收
+  都用本地 Ollama 模型；涉及托管传输层的代码用假 client 做单元测试，不要真的发请求。
+  如果你认为某个结论非跑托管模型不可，先停下来告诉我理由，我来决定
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟。本机没有别的任务占 GPU，可以直接跑。
   动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
@@ -500,9 +507,10 @@ agent 现在每次都是「冷启动」：不知道库长什么样，不管库�
   PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
 - GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
   要等就等，**绝不要 kill 别的进程**
-- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
-  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
-- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+- **这些开发任务一律不要调用付费 API**（DeepSeek、Anthropic）。key 在 .env 里，但开发和验收
+  都用本地 Ollama 模型；涉及托管传输层的代码用假 client 做单元测试，不要真的发请求。
+  如果你认为某个结论非跑托管模型不可，先停下来告诉我理由，我来决定
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟。本机没有别的任务占 GPU，可以直接跑。
   动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
@@ -550,12 +558,14 @@ B. 评估侧一个小修正：false_premise 这个题型现在的判定是「状
 ## 验收
 1. make test、make lint 全绿；提示改动与验证步各有测试（假 client，检查请求数、剔除逻辑、
    全部剔除时的状态降级）。
-2. 至少四组评估（其中两组用 deepseek，会花钱：一次全量约 2.2M 输入 + 0.17M 输出 token，
-   按当前价目表估一下先告诉我），把对比表贴给我：
-   - 基线：evaluation/results/v2-deepseek-reasoner、v2-9b-think（已存在，rescore 后使用）
-   - 只开提示约束：deepseek 与 9b 各一次
-   - 开验证步：deepseek 与 9b 各一次
-   用 .venv/bin/python -m evaluation.eval compare 两两对比。
+2. 四组评估，全部用本地模型（不要调付费 API），把对比表贴给我：
+   - 基线：evaluation/results/v2-27b-think、v2-9b-think（已存在，rescore 之后直接用）
+   - 只开提示约束：27b 与 9b 各一次
+   - 开验证步：27b 与 9b 各一次
+   用 .venv/bin/python -m evaluation.eval compare 两两对比。27B 是本机能跑的最强模型，
+   它的引用精确率 0.906、browse 0.92，有改进空间；9B 的 0.944 已经很高，主要用来确认没有反向退化。
+   实测最差的 deepseek（0.795）要等我批准付费运行才能验证，在报告里注明这一点。
+   一次 27B 全量约 110 分钟，四组里有两组是 27B，安排好时间。
    判断标准：**精确率上升且召回不下降**才算有效；如果召回掉了，如实说，不要只报精确率。
    同时报告成本变化（model_requests、prompt_tokens、elapsed_s）。
 3. 根据测量结果决定两个功能的默认状态，把理由写进提交信息。
