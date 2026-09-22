@@ -19,7 +19,7 @@ recall-nfcorpus 20, recall-fiqa 20, musique 20) plus the optional ten-query
 long-document slice. Runs `aw-9b-think-<ARM>`, `aw-long-9b-think-<ARM>`,
 `aw-4b-nothink-<ARM>` and the rerun `aw-9b-think-F-H-2req` under
 `evaluation/results/devloop/`;
-comparisons under `evaluation/devloop/comparisons/aw-*.md`.
+comparisons under `archive/comparisons/aw-*.md`.
 
 ## Results by slice and arm
 

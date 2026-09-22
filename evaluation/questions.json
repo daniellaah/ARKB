@@ -1,0 +1,999 @@
+[
+ {
+  "id": "pilot_001",
+  "type": "semantic_discovery",
+  "question": "I want the assistant to decide its next step from information it just obtained instead of executing hard-coded steps. Find a note that explains this distinction.",
+  "question_zh": "我想让助手根据刚获得的信息决定下一步，而不是执行写死的步骤。找一篇能说明这种区别的笔记。",
+  "expected_sources": [
+   "01_workflows_and_agents.md"
+  ],
+  "reference": "模型随新信息选择下一步动作，预定义步骤属于 workflow。"
+ },
+ {
+  "id": "pilot_002",
+  "type": "semantic_discovery",
+  "question": "Tool names are similar and parameters are vague, so the model often picks the wrong operation. Find material discussing how such interfaces should be designed.",
+  "question_zh": "工具名字相近、参数含糊，模型经常选错操作。找讨论接口该如何设计的材料。",
+  "expected_sources": [
+   "02_tool_interface_design.md"
+  ],
+  "reference": "工具职责、命名、参数与输出都应明确。"
+ },
+ {
+  "id": "pilot_003",
+  "type": "semantic_discovery",
+  "question": "At startup the assistant loads descriptions of hundreds of operations, which consumes a lot of context. Find an approach that reduces this usage.",
+  "question_zh": "助手启动时加载数百个操作的说明，占掉很多上下文。找能够减少这类占用的方案。",
+  "expected_sources": [
+   "03_dynamic_tool_discovery.md"
+  ],
+  "reference": "按需发现工具，再加载对应 schema。"
+ },
+ {
+  "id": "pilot_004",
+  "type": "semantic_discovery",
+  "question": "Large amounts of intermediate data only need summing and filtering; it is not worth having the model read them line by line. Where is this kind of handling discussed?",
+  "question_zh": "大量中间数据只需要求和与筛选，不值得让模型逐行阅读。哪里讨论了这种处理方式？",
+  "expected_sources": [
+   "04_code_execution_for_tools.md"
+  ],
+  "reference": "在执行环境中处理数据，只返回摘要和必要证据。"
+ },
+ {
+  "id": "pilot_005",
+  "type": "semantic_discovery",
+  "question": "Which materials describe showing only a brief summary of an operating manual first, expanding the detailed steps only when needed?",
+  "question_zh": "有哪些材料介绍只先展示操作手册的简介，等用到时再展开详细步骤？",
+  "expected_sources": [
+   "05_agent_skills.md"
+  ],
+  "reference": "技能逐层加载入口、详细说明与附加资源。"
+ },
+ {
+  "id": "pilot_006",
+  "type": "semantic_discovery",
+  "question": "A task spans several context windows and unresolved issues are easily forgotten after a restart. Find the note that explains what a summary needs to retain.",
+  "question_zh": "一次任务跨越多个上下文窗口，重启后容易忘记未解决的问题。找说明摘要需要保留什么的笔记。",
+  "expected_sources": [
+   "06_context_compaction.md"
+  ],
+  "reference": "保留决策、未解决问题和依赖。"
+ },
+ {
+  "id": "pilot_007",
+  "type": "semantic_discovery",
+  "question": "The previous assistant turn said the task was done. On what basis should the next turn check that claim? Find the relevant note.",
+  "question_zh": "上一轮助手说任务做完了，下一轮应该凭什么检查这个说法？找相关笔记。",
+  "expected_sources": [
+   "07_long_running_harnesses.md"
+  ],
+  "reference": "用工作应用的实际检查核对完成状态，保留未完成工作。"
+ },
+ {
+  "id": "pilot_008",
+  "type": "semantic_discovery",
+  "question": "I want to schedule a dedicated thinking step after a tool returns its result. Find material discussing the purpose and limits of this kind of design.",
+  "question_zh": "我想在工具返回结果之后安排一个专门的思考步骤。找讨论这类设计作用和边界的资料。",
+  "expected_sources": [
+   "08_think_tool.md"
+  ],
+  "reference": "思考步骤用于复核新信息，本身不获取外部证据或修改环境。"
+ },
+ {
+  "id": "pilot_009",
+  "type": "semantic_discovery",
+  "question": "If I only restrict the assistant from writing files, have I already restricted its access to external services? Find material that distinguishes these boundaries.",
+  "question_zh": "只限制助手写文件，是否已经限制了它访问外部服务？找能区分这些边界的材料。",
+  "expected_sources": [
+   "09_agent_sandboxing.md"
+  ],
+  "reference": "文件系统和网络限制是不同的边界。"
+ },
+ {
+  "id": "pilot_010",
+  "type": "semantic_discovery",
+  "question": "Every AI application has to rewrite connectors for the same data sources. Find the note about an attempt to unify this interface layer.",
+  "question_zh": "每个 AI 应用都要给相同数据源重写连接器。找试图统一这层接口的笔记。",
+  "expected_sources": [
+   "10_mcp_connections.md"
+  ],
+  "reference": "MCP 用客户端与服务端统一能力连接边界。"
+ },
+ {
+  "id": "pilot_011",
+  "type": "semantic_discovery",
+  "question": "Many requests carry the same long instructions and I want to reuse their processing computation. Find the note discussing this optimization and when it applies.",
+  "question_zh": "多次请求都带相同长说明，我想复用其处理计算。找讨论这种优化及其适用条件的笔记。",
+  "expected_sources": [
+   "11_prompt_caching.md"
+  ],
+  "reference": "后续请求共享重复 prompt 内容时，可以复用对应处理计算。"
+ },
+ {
+  "id": "pilot_012",
+  "type": "semantic_discovery",
+  "question": "An entity in one record points to another record and I want to collect evidence by following the relationship. Which notes describe this capability and its risks?",
+  "question_zh": "一条资料中的实体指向另一条资料，希望沿关系收集证据。哪些笔记介绍了这种能力及其风险？",
+  "expected_sources": [
+   "28_graph_retrieval.md"
+  ],
+  "reference": "图关系可连接多个片段，模型抽取的实体和关系仍需质量检查。"
+ },
+ {
+  "id": "pilot_013",
+  "type": "exploratory_retrieval",
+  "question": "Prepare a reading list that separately explains who decides the next action, and how information is re-checked after tool results arrive.",
+  "question_zh": "准备一份阅读清单，分别解释谁来决定下一步动作，以及工具结果到达后如何复核信息。",
+  "expected_sources": [
+   "01_workflows_and_agents.md",
+   "08_think_tool.md"
+  ],
+  "reference": "分别覆盖控制流自主性与工具调用间的复核。"
+ },
+ {
+  "id": "pilot_014",
+  "type": "exploratory_retrieval",
+  "question": "I am designing an integration of external capabilities. Collect the division of responsibilities in the connection protocol and the design points for model tool interfaces.",
+  "question_zh": "我要设计外部能力集成，收集连接协议的职责划分和模型工具接口的设计要点。",
+  "expected_sources": [
+   "02_tool_interface_design.md",
+   "10_mcp_connections.md"
+  ],
+  "reference": "覆盖客户端/服务端边界和工具名称参数输出设计。"
+ },
+ {
+  "id": "pilot_015",
+  "type": "exploratory_retrieval",
+  "question": "Compare how a large tool catalog and task manuals are loaded on demand, giving the relevant notes for each.",
+  "question_zh": "比较大工具目录和任务手册怎样按需加载，分别给出相关笔记。",
+  "expected_sources": [
+   "03_dynamic_tool_discovery.md",
+   "05_agent_skills.md"
+  ],
+  "reference": "区分工具发现/schema 加载与技能说明分层加载。"
+ },
+ {
+  "id": "pilot_016",
+  "type": "exploratory_retrieval",
+  "question": "I need to reduce the cost of handling repeated content and intermediate data. Find material on computation caching and on code-based aggregation separately.",
+  "question_zh": "我需要降低处理重复内容和中间数据的费用，分别找计算缓存与代码聚合的资料。",
+  "expected_sources": [
+   "04_code_execution_for_tools.md",
+   "11_prompt_caching.md"
+  ],
+  "reference": "缓存重复 prompt 计算；代码处理工具返回的数据。"
+ },
+ {
+  "id": "pilot_017",
+  "type": "exploratory_retrieval",
+  "question": "Prepare a handover guide for tasks that cross sessions: collect what a summary should retain and the checking procedure for the next round of work.",
+  "question_zh": "准备一份跨会话任务交接指南，收集摘要保留内容与下一轮工作检查流程。",
+  "expected_sources": [
+   "06_context_compaction.md",
+   "07_long_running_harnesses.md"
+  ],
+  "reference": "摘要保存约束与未完成事项；新会话检查交接产物并验证工作。"
+ },
+ {
+  "id": "pilot_018",
+  "type": "exploratory_retrieval",
+  "question": "To assess whether an assistant is reliable, find two kinds of material: checking actual completion, and statistics over repeated attempts.",
+  "question_zh": "评估一个助手是否可靠，找关于实际完成检查与重复尝试统计的两类资料。",
+  "expected_sources": [
+   "07_long_running_harnesses.md",
+   "27_agent_trial_reliability.md"
+  ],
+  "reference": "不能只信完成声明；重复尝试中的失败应保留。"
+ },
+ {
+  "id": "pilot_019",
+  "type": "exploratory_retrieval",
+  "question": "I want to compare two ways of compressing vectors. Collect material on reducing the number of coordinates and on lowering the precision of each coordinate, separately.",
+  "question_zh": "我想比较两种压缩向量的方法，请收集分别减少坐标数和降低每个坐标精度的材料。",
+  "expected_sources": [
+   "16_matryoshka_embeddings.md",
+   "17_embedding_quantization.md"
+  ],
+  "reference": "截短维度与量化数值精度是不同操作。"
+ },
+ {
+  "id": "pilot_020",
+  "type": "exploratory_retrieval",
+  "question": "For model selection I need to distinguish the evaluation boundaries of embedding task coverage from short factual question answering. Find both kinds of material.",
+  "question_zh": "做模型选型时，我需要区分 embedding 任务覆盖与短事实问答的评测边界，请找两类材料。",
+  "expected_sources": [
+   "18_embedding_benchmarks.md",
+   "26_simpleqa_factuality.md"
+  ],
+  "reference": "embedding 多任务成绩与短事实问答不能替代目标应用测量。"
+ },
+ {
+  "id": "pilot_021",
+  "type": "exploratory_retrieval",
+  "question": "Prepare model adaptation material: explain separately how small parameter deltas are deployed, and how preference examples affect learning.",
+  "question_zh": "准备模型适配资料，分别说明小参数增量如何部署，以及偏好样本如何影响学习。",
+  "expected_sources": [
+   "19_parameter_efficient_tuning.md",
+   "20_direct_preference_optimization.md"
+  ],
+  "reference": "adapter 依赖基座；DPO 的偏好对质量决定学习信号。"
+ },
+ {
+  "id": "pilot_022",
+  "type": "exploratory_retrieval",
+  "question": "Build a reading list on optimizing a generation service, distinguishing reuse of repeated input computation from draft-token verification.",
+  "question_zh": "做生成服务优化阅读清单，区分重复输入计算复用和草稿 token 验证两种办法。",
+  "expected_sources": [
+   "11_prompt_caching.md",
+   "21_speculative_decoding.md"
+  ],
+  "reference": "prompt 缓存与 speculative decoding 优化不同阶段。"
+ },
+ {
+  "id": "pilot_023",
+  "type": "exploratory_retrieval",
+  "question": "Compare two research settings where the supervision signal comes from intermediate reasoning steps versus from a weaker model. Find the corresponding material and state the limits of extrapolation.",
+  "question_zh": "比较监督信号来自中间推理步骤还是较弱模型的两种研究设定，请找对应材料并说明外推限制。",
+  "expected_sources": [
+   "22_process_supervision.md",
+   "23_weak_to_strong_generalization.md"
+  ],
+  "reference": "区分过程反馈和弱监督，不能直接外推到所有领域或未来超强模型。"
+ },
+ {
+  "id": "pilot_024",
+  "type": "exploratory_retrieval",
+  "question": "Collect two methods for keeping passages from losing their context: changing split boundaries, and adding local background to each passage.",
+  "question_zh": "收集两种避免片段脱离语境的方法：改切分边界和为片段补局部背景。",
+  "expected_sources": [
+   "12_contextual_retrieval.md",
+   "15_chunk_boundaries.md"
+  ],
+  "reference": "边界保留完整含义；补充片段特定背景应对照原文。"
+ },
+ {
+  "id": "pilot_025",
+  "type": "knowledge_qa",
+  "question": "Does adding the same document summary to every retrieved passage follow the notes' advice on supplying background?",
+  "question_zh": "给每个检索片段都加相同的文档摘要，是否符合笔记对补充背景的建议？",
+  "expected_sources": [
+   "12_contextual_retrieval.md"
+  ],
+  "reference": "应补片段特定的背景，而不是统一通用摘要。"
+ },
+ {
+  "id": "pilot_026",
+  "type": "knowledge_qa",
+  "question": "When fusing lexical and vector retrieval, why can the fused score not be treated as a cosine similarity?",
+  "question_zh": "融合词法和向量检索时，为什么不能把融合后的分数当成余弦相似度？",
+  "expected_sources": [
+   "13_hybrid_rank_fusion.md"
+  ],
+  "reference": "RRF 以排名位置融合，结果是新的排序分数。"
+ },
+ {
+  "id": "pilot_027",
+  "type": "knowledge_qa",
+  "question": "The reranking candidates already include material beyond the relevant passages. Can reranking produce evidence that was never recalled at all?",
+  "question_zh": "重排候选已经包含了相关片段之外的材料，它能否把完全没召回的证据变出来？",
+  "expected_sources": [
+   "14_cross_encoder_reranking.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "重排只能重排候选集，不能恢复不在候选中的证据。"
+ },
+ {
+  "id": "pilot_028",
+  "type": "knowledge_qa",
+  "question": "A chunk stays within the length limit but separates a definition from the conditions that follow it. Why does it still need adjusting?",
+  "question_zh": "一个切片符合长度上限，却把定义与后续条件分开，为什么仍需调整？",
+  "expected_sources": [
+   "15_chunk_boundaries.md"
+  ],
+  "reference": "长度约束不保证语义完整，应保留限定条件的邻近上下文。"
+ },
+ {
+  "id": "pilot_029",
+  "type": "knowledge_qa",
+  "question": "For a similarity computation that needs unit vectors, what must still be done after truncating vectors that were already normalized?",
+  "question_zh": "对于需要单位向量的相似度计算，把已经归一化的向量截短后还要做什么？",
+  "expected_sources": [
+   "16_matryoshka_embeddings.md"
+  ],
+  "reference": "在相似度要求单位长度时，截短后重新归一化。"
+ },
+ {
+  "id": "pilot_030",
+  "type": "knowledge_qa",
+  "question": "What affects the bucket boundaries of scalar quantization, and how does it differ from keeping only one bit per coordinate?",
+  "question_zh": "标量量化的桶边界受什么影响？它与每坐标只保留一位的方式有何区别？",
+  "expected_sources": [
+   "17_embedding_quantization.md"
+  ],
+  "reference": "标量桶受校准数据影响；二值量化每坐标一位。"
+ },
+ {
+  "id": "pilot_031",
+  "type": "knowledge_qa",
+  "question": "If I only have a very small LoRA adapter, can I deploy it without depending on the original model?",
+  "question_zh": "只拿到一个很小的 LoRA adapter，就能不依赖原模型部署吗？",
+  "expected_sources": [
+   "19_parameter_efficient_tuning.md"
+  ],
+  "reference": "不能，部署还需要基座模型。"
+ },
+ {
+  "id": "pilot_032",
+  "type": "knowledge_qa",
+  "question": "In preference training, what problems arise when the chosen and rejected labels contradict each other?",
+  "question_zh": "偏好训练中的 chosen/rejected 标签互相矛盾，会带来什么问题？",
+  "expected_sources": [
+   "20_direct_preference_optimization.md"
+  ],
+  "reference": "偏好对决定学习信号，矛盾或缺乏依据的偏好会教出不良行为。"
+ },
+ {
+  "id": "pilot_033",
+  "type": "knowledge_qa",
+  "question": "Using a cheaper small model to draft tokens: is that training the target model on new knowledge?",
+  "question_zh": "使用较便宜的小模型起草 token，是在给目标模型训练新知识吗？",
+  "expected_sources": [
+   "21_speculative_decoding.md"
+  ],
+  "reference": "不是；目标模型检查草稿，旨在减少顺序执行的目标模型步骤。"
+ },
+ {
+  "id": "pilot_034",
+  "type": "knowledge_qa",
+  "question": "When evaluating safety behavior, why should one not simply pursue a higher refusal rate?",
+  "question_zh": "评估安全行为时，为什么不能只追求更高的拒绝率？",
+  "expected_sources": [
+   "24_deliberative_alignment.md"
+  ],
+  "reference": "需要同时评估有害服从和对正常请求的误拒。"
+ },
+ {
+  "id": "pilot_035",
+  "type": "knowledge_qa",
+  "question": "If a wrong answer and abstaining both score zero, what behavior might the evaluation rule encourage?",
+  "question_zh": "如果错误答案与放弃回答都得零分，评测规则可能鼓励什么行为？",
+  "expected_sources": [
+   "25_hallucination_incentives.md"
+  ],
+  "reference": "不确定时猜测，因此应区分正确、无支持错误和适当不确定。"
+ },
+ {
+  "id": "pilot_036",
+  "type": "knowledge_qa",
+  "question": "A high score on short factual question answering: does it show that long multi-claim answers are also reliable?",
+  "question_zh": "短事实问答得分很高，是否就能说明长篇多论断回答也可靠？",
+  "expected_sources": [
+   "26_simpleqa_factuality.md"
+  ],
+  "reference": "不能，短问题的事实性评测不直接证明长篇可靠性。"
+ },
+ {
+  "id": "pilot_037",
+  "type": "multi_hop_qa",
+  "question": "For the fictional service F1, how long are ordinary records and event records currently retained? Follow the service description to the current policy and exclude old versions.",
+  "question_zh": "虚构服务 F1 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+  "expected_sources": [
+   "pilot_policy_1.md",
+   "pilot_service_1.md"
+  ],
+  "reference": "先确认服务所引用的现行规范：普通记录 21 天，事件记录 3 天；旧的 81 天不适用。"
+ },
+ {
+  "id": "pilot_038",
+  "type": "multi_hop_qa",
+  "question": "For the fictional service F2, how long are ordinary records and event records currently retained? Follow the service description to the current policy and exclude old versions.",
+  "question_zh": "虚构服务 F2 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+  "expected_sources": [
+   "pilot_policy_2.md",
+   "pilot_service_2.md"
+  ],
+  "reference": "先确认服务所引用的现行规范：普通记录 22 天，事件记录 4 天；旧的 82 天不适用。"
+ },
+ {
+  "id": "pilot_039",
+  "type": "multi_hop_qa",
+  "question": "For the fictional service F3, how long are ordinary records and event records currently retained? Follow the service description to the current policy and exclude old versions.",
+  "question_zh": "虚构服务 F3 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+  "expected_sources": [
+   "pilot_policy_3.md",
+   "pilot_service_3.md"
+  ],
+  "reference": "先确认服务所引用的现行规范：普通记录 23 天，事件记录 5 天；旧的 83 天不适用。"
+ },
+ {
+  "id": "pilot_040",
+  "type": "multi_hop_qa",
+  "question": "For the fictional service F4, how long are ordinary records and event records currently retained? Follow the service description to the current policy and exclude old versions.",
+  "question_zh": "虚构服务 F4 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+  "expected_sources": [
+   "pilot_policy_4.md",
+   "pilot_service_4.md"
+  ],
+  "reference": "先确认服务所引用的现行规范：普通记录 24 天，事件记录 6 天；旧的 84 天不适用。"
+ },
+ {
+  "id": "pilot_041",
+  "type": "multi_hop_qa",
+  "question": "For the fictional service F5, how long are ordinary records and event records currently retained? Follow the service description to the current policy and exclude old versions.",
+  "question_zh": "虚构服务 F5 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+  "expected_sources": [
+   "pilot_policy_5.md",
+   "pilot_service_5.md"
+  ],
+  "reference": "先确认服务所引用的现行规范：普通记录 25 天，事件记录 7 天；旧的 85 天不适用。"
+ },
+ {
+  "id": "pilot_042",
+  "type": "multi_hop_qa",
+  "question": "For the fictional service F6, how long are ordinary records and event records currently retained? Follow the service description to the current policy and exclude old versions.",
+  "question_zh": "虚构服务 F6 当前普通记录与事件记录分别保留多久？沿服务说明查找现行规范，并排除旧版本。",
+  "expected_sources": [
+   "pilot_policy_6.md",
+   "pilot_service_6.md"
+  ],
+  "reference": "先确认服务所引用的现行规范：普通记录 26 天，事件记录 8 天；旧的 86 天不适用。"
+ },
+ {
+  "id": "pilot_043",
+  "type": "exact_lookup",
+  "question": "List all notes whose body matches 'MCP'; use literal substring matching, case-sensitive. If nothing matches, say so explicitly.",
+  "question_zh": "列出正文中匹配 'MCP' 的所有笔记；使用字面子串匹配，区分大小写。没有匹配请明确说明。",
+  "expected_sources": [
+   "04_code_execution_for_tools.md"
+  ],
+  "reference": "列出的文件集合必须与实际匹配完全一致。"
+ },
+ {
+  "id": "pilot_044",
+  "type": "exact_lookup",
+  "question": "List all notes whose body matches 'LoRA'; use literal substring matching, case-sensitive. If nothing matches, say so explicitly.",
+  "question_zh": "列出正文中匹配 'LoRA' 的所有笔记；使用字面子串匹配，区分大小写。没有匹配请明确说明。",
+  "expected_sources": [
+   "19_parameter_efficient_tuning.md"
+  ],
+  "reference": "列出的文件集合必须与实际匹配完全一致。"
+ },
+ {
+  "id": "pilot_045",
+  "type": "exact_lookup",
+  "question": "List all notes whose body matches 'prefixes'; use literal substring matching, case-sensitive. If nothing matches, say so explicitly.",
+  "question_zh": "列出正文中匹配 'prefixes' 的所有笔记；使用字面子串匹配，区分大小写。没有匹配请明确说明。",
+  "expected_sources": [
+   "16_matryoshka_embeddings.md"
+  ],
+  "reference": "列出的文件集合必须与实际匹配完全一致。"
+ },
+ {
+  "id": "pilot_046",
+  "type": "exact_lookup",
+  "question": "List all notes whose filename matches '^1[67]_'; use regular-expression matching, case-sensitive. If nothing matches, say so explicitly.",
+  "question_zh": "列出文件名中匹配 '^1[67]_' 的所有笔记；使用正则匹配，区分大小写。没有匹配请明确说明。",
+  "expected_sources": [
+   "16_matryoshka_embeddings.md",
+   "17_embedding_quantization.md"
+  ],
+  "reference": "列出的文件集合必须与实际匹配完全一致。"
+ },
+ {
+  "id": "pilot_047",
+  "type": "exact_lookup",
+  "question": "List all notes whose body matches 'ARKB-PILOT-NO-SUCH-TOKEN-20260910'; use literal substring matching, case-sensitive. If nothing matches, say so explicitly.",
+  "question_zh": "列出正文中匹配 'ARKB-PILOT-NO-SUCH-TOKEN-20260910' 的所有笔记；使用字面子串匹配，区分大小写。没有匹配请明确说明。",
+  "expected_sources": [],
+  "reference": "列出的文件集合必须与实际匹配完全一致。"
+ },
+ {
+  "id": "pilot_048",
+  "type": "exact_lookup",
+  "question": "List all notes whose body matches 'scalar quantization'; use literal substring matching, case-insensitive. If nothing matches, say so explicitly.",
+  "question_zh": "列出正文中匹配 'scalar quantization' 的所有笔记；使用字面子串匹配，不区分大小写。没有匹配请明确说明。",
+  "expected_sources": [
+   "17_embedding_quantization.md"
+  ],
+  "reference": "列出的文件集合必须与实际匹配完全一致。"
+ },
+ {
+  "id": "pilot_049",
+  "type": "direct_read",
+  "question": "Read only 10_mcp_connections.md and explain the division of work between client and server. Do not search.",
+  "question_zh": "只读取 10_mcp_connections.md，说明客户端与服务端的分工。 不要搜索。",
+  "expected_sources": [
+   "10_mcp_connections.md"
+  ],
+  "reference": "服务端暴露集成；AI 应用内客户端连接它。"
+ },
+ {
+  "id": "pilot_050",
+  "type": "direct_read",
+  "question": "Read only 19_parameter_efficient_tuning.md and explain whether the base model is still needed when deploying a small adapter. Do not search.",
+  "question_zh": "只读取 19_parameter_efficient_tuning.md，说明部署小 adapter 时是否还需要基座模型。 不要搜索。",
+  "expected_sources": [
+   "19_parameter_efficient_tuning.md"
+  ],
+  "reference": "小 adapter 是增量，部署仍需基座。"
+ },
+ {
+  "id": "pilot_051",
+  "type": "direct_read",
+  "question": "Read only 25_hallucination_incentives.md and explain how an evaluation should distinguish guessing from appropriate uncertainty. Do not search.",
+  "question_zh": "只读取 25_hallucination_incentives.md，说明评测应如何区分猜测与适当的不确定。 不要搜索。",
+  "expected_sources": [
+   "25_hallucination_incentives.md"
+  ],
+  "reference": "区分正确、无支持错误和适当不确定。"
+ },
+ {
+  "id": "pilot_052",
+  "type": "direct_read",
+  "question": "Read only 17_embedding_quantization.md and explain whether quantization and reducing dimensions are the same thing. Do not search.",
+  "question_zh": "只读取 17_embedding_quantization.md，说明量化与减少维度是不是同一件事。 不要搜索。",
+  "expected_sources": [
+   "17_embedding_quantization.md"
+  ],
+  "reference": "降低精度与减少维度不同。"
+ },
+ {
+  "id": "pilot_053",
+  "type": "evidence_gap",
+  "question": "According to the knowledge base, what was the average retrieval latency this local system measured yesterday, to the millisecond?",
+  "question_zh": "根据知识库，给出这个本地系统昨天测得的平均检索延迟，精确到毫秒。",
+  "expected_sources": [],
+  "reference": "笔记没有提供本系统昨天的延迟测量，不能用一般性说明推算。"
+ },
+ {
+  "id": "pilot_054",
+  "type": "evidence_gap",
+  "question": "What is the acceptance passphrase of the fictional project ZX-NOT-RECORDED recorded in the knowledge base?",
+  "question_zh": "知识库记录的虚构项目 ZX-NOT-RECORDED 的验收口令是什么？",
+  "expected_sources": [],
+  "reference": "知识库没有这个项目或口令，明确无法确定。"
+ },
+ {
+  "id": "pilot_055",
+  "type": "evidence_gap",
+  "question": "Explain the normalization requirement after truncating embedding dimensions, and report what percentage of latency this system actually saved after truncation.",
+  "question_zh": "解释截短 embedding 维度后的归一化要求，并报告本系统截短后实际节省了百分之多少延迟。",
+  "expected_sources": [
+   "16_matryoshka_embeddings.md"
+  ],
+  "reference": "可以说明必要时重新归一化；本系统实测延迟节省比例未知，分开回答。"
+ },
+ {
+  "id": "pilot_056",
+  "type": "evidence_gap",
+  "question": "Tell me the new retention period for that service.",
+  "question_zh": "请告诉我那个服务的新版保留期限。",
+  "expected_sources": [],
+  "reference": "缺少服务身份，应询问具体服务，而不是任选 F1 到 F6。"
+ },
+ {
+  "id": "pilot_057",
+  "type": "no_retrieval",
+  "question": "Compute only from the given numbers: what is 4 plus 9?",
+  "question_zh": "只按给出的数字计算：4 加 9 等于多少？",
+  "expected_sources": [],
+  "reference": "13"
+ },
+ {
+  "id": "pilot_058",
+  "type": "no_retrieval",
+  "question": "Process only the given list and sort it alphabetically: delta, alpha, gamma.",
+  "question_zh": "只处理给定列表，按字母排序：delta, alpha, gamma。",
+  "expected_sources": [],
+  "reference": "alpha, delta, gamma"
+ },
+ {
+  "id": "pilot_059",
+  "type": "no_retrieval",
+  "question": "Without looking anything up, translate \"the latency was reduced\" into English.",
+  "question_zh": "不查资料，把“延迟降低了”翻译成英文。",
+  "expected_sources": [],
+  "reference": "Latency decreased."
+ },
+ {
+  "id": "pilot_060",
+  "type": "no_retrieval",
+  "question": "Answer only from this passage: plan A takes 2 seconds and plan B takes 5 seconds. Which is faster?",
+  "question_zh": "只按这段话回答：方案甲用 2 秒，方案乙用 5 秒。哪个更快？",
+  "expected_sources": [],
+  "reference": "方案甲"
+ },
+ {
+  "id": "exact-v2-00694c3b27fb",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'higher' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "17_embedding_quantization.md",
+   "33_graph_search_strategies.md",
+   "35_llm_serving_and_kv_cache.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'higher', no others."
+ },
+ {
+  "id": "exact-v2-0074e0bcee5d",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'dimensions' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "09_agent_sandboxing.md",
+   "16_matryoshka_embeddings.md",
+   "17_embedding_quantization.md",
+   "34_agent_memory_lifecycle.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'dimensions', no others."
+ },
+ {
+  "id": "exact-v2-00e4629b42af",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'manageable' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "07_long_running_harnesses.md",
+   "26_simpleqa_factuality.md"
+  ],
+  "reference": "Every note containing the substring 'manageable', no others."
+ },
+ {
+  "id": "exact-v2-0154b21331a8",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'resulting' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "19_parameter_efficient_tuning.md",
+   "33_graph_search_strategies.md",
+   "38_agent_evaluation_and_observability.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'resulting', no others."
+ },
+ {
+  "id": "exact-v2-02af2bd9d8bb",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'selective' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "33_graph_search_strategies.md",
+   "34_agent_memory_lifecycle.md",
+   "36_prompt_injection_and_monitors.md"
+  ],
+  "reference": "Every note containing the substring 'selective', no others."
+ },
+ {
+  "id": "exact-v2-02bcf9ceab3a",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'attention' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "35_llm_serving_and_kv_cache.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'attention', no others."
+ },
+ {
+  "id": "exact-v2-02dd673baedd",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'Contextual' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "12_contextual_retrieval.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "Every note containing the substring 'Contextual', no others."
+ },
+ {
+  "id": "exact-v2-03261f8ebc66",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'discard' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "33_graph_search_strategies.md",
+   "34_agent_memory_lifecycle.md",
+   "37_multimodal_evidence_retrieval.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "Every note containing the substring 'discard', no others."
+ },
+ {
+  "id": "exact-v2-0026bcb3b924",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'across' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "07_long_running_harnesses.md",
+   "11_prompt_caching.md",
+   "14_cross_encoder_reranking.md",
+   "18_embedding_benchmarks.md",
+   "27_agent_trial_reliability.md",
+   "28_graph_retrieval.md",
+   "33_graph_search_strategies.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "37_multimodal_evidence_retrieval.md",
+   "38_agent_evaluation_and_observability.md"
+  ],
+  "reference": "Every note containing the substring 'across', no others."
+ },
+ {
+  "id": "exact-v2-075a99f25063",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'describes' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "25_hallucination_incentives.md",
+   "29_learned_sparse_retrieval.md",
+   "31_multi_agent_coordination.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "37_multimodal_evidence_retrieval.md",
+   "38_agent_evaluation_and_observability.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "Every note containing the substring 'describes', no others."
+ },
+ {
+  "id": "exact-v2-0877aed09c7e",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'process' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "04_code_execution_for_tools.md",
+   "09_agent_sandboxing.md",
+   "11_prompt_caching.md",
+   "14_cross_encoder_reranking.md",
+   "22_process_supervision.md",
+   "32_document_ingestion_and_structure.md",
+   "33_graph_search_strategies.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "37_multimodal_evidence_retrieval.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'process', no others."
+ },
+ {
+  "id": "exact-v2-097ab5719a34",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'service' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "02_tool_interface_design.md",
+   "04_code_execution_for_tools.md",
+   "09_agent_sandboxing.md",
+   "35_llm_serving_and_kv_cache.md",
+   "40_query_planning_and_compression.md",
+   "pilot_policy_1.md",
+   "pilot_policy_2.md",
+   "pilot_policy_3.md",
+   "pilot_policy_4.md",
+   "pilot_policy_5.md",
+   "pilot_policy_6.md"
+  ],
+  "reference": "Every note containing the substring 'service', no others."
+ },
+ {
+  "id": "exact-v2-0bf64d2b74e4",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'reasoning' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "08_think_tool.md",
+   "22_process_supervision.md",
+   "24_deliberative_alignment.md",
+   "28_graph_retrieval.md",
+   "31_multi_agent_coordination.md",
+   "33_graph_search_strategies.md",
+   "37_multimodal_evidence_retrieval.md",
+   "38_agent_evaluation_and_observability.md"
+  ],
+  "reference": "Every note containing the substring 'reasoning', no others."
+ },
+ {
+  "id": "exact-v2-0d7f2721173e",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'assistant' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "31_multi_agent_coordination.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "36_prompt_injection_and_monitors.md",
+   "38_agent_evaluation_and_observability.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'assistant', no others."
+ },
+ {
+  "id": "exact-v2-109456b6f038",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'sources' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "05_agent_skills.md",
+   "09_agent_sandboxing.md",
+   "31_multi_agent_coordination.md",
+   "32_document_ingestion_and_structure.md",
+   "33_graph_search_strategies.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "36_prompt_injection_and_monitors.md",
+   "37_multimodal_evidence_retrieval.md",
+   "38_agent_evaluation_and_observability.md",
+   "39_synthetic_data_quality.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "Every note containing the substring 'sources', no others."
+ },
+ {
+  "id": "exact-v2-13c87f46c965",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'models' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "16_matryoshka_embeddings.md",
+   "22_process_supervision.md",
+   "23_weak_to_strong_generalization.md",
+   "24_deliberative_alignment.md",
+   "25_hallucination_incentives.md",
+   "28_graph_retrieval.md",
+   "36_prompt_injection_and_monitors.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'models', no others."
+ },
+ {
+  "id": "exact-v2-25394958ad6d",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'Anthropic' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "01_workflows_and_agents.md",
+   "02_tool_interface_design.md",
+   "03_dynamic_tool_discovery.md",
+   "04_code_execution_for_tools.md",
+   "05_agent_skills.md",
+   "06_context_compaction.md",
+   "07_long_running_harnesses.md",
+   "08_think_tool.md",
+   "09_agent_sandboxing.md",
+   "10_mcp_connections.md",
+   "11_prompt_caching.md",
+   "12_contextual_retrieval.md",
+   "27_agent_trial_reliability.md",
+   "31_multi_agent_coordination.md",
+   "36_prompt_injection_and_monitors.md",
+   "38_agent_evaluation_and_observability.md"
+  ],
+  "reference": "Every note containing the substring 'Anthropic', no others."
+ },
+ {
+  "id": "exact-v2-25fe1ff02539",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'useful' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "02_tool_interface_design.md",
+   "12_contextual_retrieval.md",
+   "14_cross_encoder_reranking.md",
+   "15_chunk_boundaries.md",
+   "16_matryoshka_embeddings.md",
+   "23_weak_to_strong_generalization.md",
+   "28_graph_retrieval.md",
+   "31_multi_agent_coordination.md",
+   "32_document_ingestion_and_structure.md",
+   "33_graph_search_strategies.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "36_prompt_injection_and_monitors.md",
+   "37_multimodal_evidence_retrieval.md",
+   "38_agent_evaluation_and_observability.md",
+   "39_synthetic_data_quality.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "Every note containing the substring 'useful', no others."
+ },
+ {
+  "id": "exact-v2-2b5f8c3205fd",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'current' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "03_dynamic_tool_discovery.md",
+   "31_multi_agent_coordination.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "38_agent_evaluation_and_observability.md",
+   "39_synthetic_data_quality.md",
+   "40_query_planning_and_compression.md",
+   "pilot_archive_1.md",
+   "pilot_archive_2.md",
+   "pilot_archive_3.md",
+   "pilot_archive_4.md",
+   "pilot_archive_5.md",
+   "pilot_archive_6.md",
+   "pilot_policy_1.md",
+   "pilot_policy_2.md",
+   "pilot_policy_3.md",
+   "pilot_policy_4.md",
+   "pilot_policy_5.md",
+   "pilot_policy_6.md",
+   "pilot_service_1.md",
+   "pilot_service_2.md",
+   "pilot_service_3.md",
+   "pilot_service_4.md",
+   "pilot_service_5.md",
+   "pilot_service_6.md"
+  ],
+  "reference": "Every note containing the substring 'current', no others."
+ },
+ {
+  "id": "exact-v2-3e1fe70680df",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'implication' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "01_workflows_and_agents.md",
+   "02_tool_interface_design.md",
+   "03_dynamic_tool_discovery.md",
+   "04_code_execution_for_tools.md",
+   "05_agent_skills.md",
+   "06_context_compaction.md",
+   "07_long_running_harnesses.md",
+   "08_think_tool.md",
+   "09_agent_sandboxing.md",
+   "10_mcp_connections.md",
+   "11_prompt_caching.md",
+   "12_contextual_retrieval.md",
+   "13_hybrid_rank_fusion.md",
+   "14_cross_encoder_reranking.md",
+   "15_chunk_boundaries.md",
+   "16_matryoshka_embeddings.md",
+   "17_embedding_quantization.md",
+   "18_embedding_benchmarks.md",
+   "19_parameter_efficient_tuning.md",
+   "20_direct_preference_optimization.md",
+   "21_speculative_decoding.md",
+   "22_process_supervision.md",
+   "23_weak_to_strong_generalization.md",
+   "24_deliberative_alignment.md",
+   "25_hallucination_incentives.md",
+   "26_simpleqa_factuality.md",
+   "27_agent_trial_reliability.md",
+   "28_graph_retrieval.md",
+   "29_learned_sparse_retrieval.md",
+   "30_retrieval_and_fine_tuning.md"
+  ],
+  "reference": "Every note containing the substring 'implication', no others."
+ },
+ {
+  "id": "exact-v2-02266e5e0705",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'output length' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "35_llm_serving_and_kv_cache.md",
+   "39_synthetic_data_quality.md"
+  ],
+  "reference": "Every note containing the substring 'output length', no others."
+ },
+ {
+  "id": "exact-v2-058a5da92fd4",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'particular passage' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "12_contextual_retrieval.md",
+   "32_document_ingestion_and_structure.md"
+  ],
+  "reference": "Every note containing the substring 'particular passage', no others."
+ },
+ {
+  "id": "exact-v2-0859f061a293",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'original design' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "32_document_ingestion_and_structure.md",
+   "37_multimodal_evidence_retrieval.md"
+  ],
+  "reference": "Every note containing the substring 'original design', no others."
+ },
+ {
+  "id": "exact-v2-0964b253a0d8",
+  "type": "exact_lookup",
+  "question": "List every note whose body contains the exact text 'current retention' as a case-sensitive substring. Return the filename of every matching note. If nothing matches, say so explicitly.",
+  "expected_sources": [
+   "pilot_policy_1.md",
+   "pilot_policy_2.md",
+   "pilot_policy_3.md",
+   "pilot_policy_4.md",
+   "pilot_policy_5.md",
+   "pilot_policy_6.md"
+  ],
+  "reference": "Every note containing the substring 'current retention', no others."
+ }
+]

@@ -27,8 +27,8 @@ quality is measured, not assumed.
 | Path | Role |
 | --- | --- |
 | `src/arkb/{agent,retrieval,knowledge,generation,interfaces}`, `runtime.py`, `config.py` | Product code |
-| `evaluation/` (package) | Development evaluation: devset (84 core + 94 optional scenarios), runner, scorer, paired comparison, blinded review, engine-only recall; see [docs/eval-design.md](eval-design.md) |
-| `archive/` | Frozen artifacts of completed studies (phase A to C bundles, review sheets, registered-run protocols and accounting); evidence for the archived reports, never edited |
+| `evaluation/` | Development evaluation: 58 notes, 84 questions, one script (run, rescore, compare); see [evaluation/README.md](../evaluation/README.md) |
+| `archive/` | Frozen artifacts of completed studies (phase A to C bundles, review sheets, registered-run protocols and accounting, comparison tables); evidence for the archived reports, never edited |
 | `evaluation/results/` (ignored) | Local run outputs |
 | `/Volumes/ARKBPhaseC/` | External volume: corpora, indexes, frozen study runs with their source snapshots |
 | `tests/` | Deterministic suite (no services); `integration`-marked tests need Ollama and Qdrant |
@@ -38,7 +38,7 @@ quality is measured, not assumed.
 
 Current:
 
-- [eval-design.md](eval-design.md) and [evaluation/README.md](../evaluation/README.md): the development evaluation, its design and how to run, compare and review runs.
+- [evaluation/README.md](../evaluation/README.md): the development evaluation (questions, metrics, commands).
 - [devloop-fix-log.md](devloop-fix-log.md): the fix-first development log with baseline and after measurements, the model-capacity axis and the transport correction.
 - [agile-vs-workflow-v1.md](agile-vs-workflow-v1.md): fully agentic against fixed-workflow retrieval on the development set (four arms, 9B with thinking, paired intervals; human review pending).
 - [arkb-current-system-review.md](arkb-current-system-review.md): the long-form architecture review.
@@ -60,5 +60,5 @@ documents live under `docs/archive/` and their artifacts under `archive/`.
 
 ## Everyday commands
 
-`make test`, `make lint`, `make devset`, `make eval LABEL=<name>`, `make rescore LABEL=<name>`,
+`make test`, `make lint`, `make eval LABEL=<name>`, `make rescore LABEL=<name>`,
 `make compare A=<run> B=<run>`; see `make help`.

@@ -14,6 +14,16 @@ Restore any removed module with, for example:
 git checkout f70ae8e -- evaluation/agentic_tools src/arkb/evaluation
 ```
 
+## Evaluation package v2 (2026-09-21, superseded the same day)
+
+[eval-design-v2.md](archive/eval-design-v2.md) designed a seven-slice
+development evaluation (v2 + exact-v2 in repo, five optional slices on the
+external volume, span-level scorer, bootstrap comparison, blinded review
+tooling); it was built at `f70ae8e`..`d83ef6b` and then collapsed into the
+single-script evaluation that stands now. Comparison tables of the
+agentic-versus-workflow runs and the fix-first log are under
+`archive/comparisons/`.
+
 ## Agentic evaluation studies (2026-09-12 to 2026-09-20)
 
 Code: `evaluation/agentic_tools` (library), `evaluation/studies` (pipelines),
@@ -35,9 +45,8 @@ Code: `evaluation/agentic_tools` (library), `evaluation/studies` (pipelines),
 
 The agentic-versus-workflow comparison that followed stays current:
 [agile-vs-workflow-v1.md](agile-vs-workflow-v1.md) (its arm adapters,
-`evaluation/agentic_tools/contract.py`, were removed with the library; the
-run records under `evaluation/results/devloop/aw-*` still rescore with the
-current scorer).
+`evaluation/agentic_tools/contract.py`, were removed with the library; its
+run records stay under `evaluation/results/devloop/aw-*`, local only).
 
 ## Retrieval-layer phases A to C (2026-09-11 to 2026-09-13)
 

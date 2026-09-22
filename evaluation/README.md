@@ -1,90 +1,91 @@
-# Development evaluation
+# Evaluation
 
-One purpose: tell whether a change to the agent (tools, prompts, model,
-budgets) made it better or worse, in minutes, with paired comparisons. It
-evaluates the product agent as it ships; an ablation is a product
-configuration, not an evaluation adapter. Design and rationale:
-[docs/eval-design.md](../docs/eval-design.md).
+One question file, one corpus, one script. It answers one question: did a
+change to the agent (tools, prompt, model, budget) make it better or worse on
+the same 84 questions?
 
-## Devset
+```
+evaluation/
+  notes/           58 Markdown notes, the corpus (40 authored notes, 18 fixtures)
+  questions.json   84 questions with the notes they should cite
+  eval.py          run, rescore, compare
+  test_eval.py
+  results/         run outputs (gitignored)
+```
 
-| Slice | n | Inputs | Primary metric | Core |
-| --- | ---: | --- | --- | --- |
-| v2 | 60 | in repo (`devset/v2-pilot`, 58 notes) | span evidence coverage (delivered); cited source recall; behaviour by task | yes |
-| exact-v2 | 24 | in repo (terms from the v2 corpus; substring truth) | completeness of cited sources | yes |
-| exact-nfcorpus | 24 | `/Volumes/ARKBPhaseC` (3,633 documents) | completeness of cited sources | optional |
-| recall-nfcorpus, recall-fiqa | 20 + 20 | volume | positive-document recall (delivered) | optional |
-| musique | 20 | volume (prepared contexts) | first-line answer F1; answerability; support F1 | optional |
-| long-browsecomp | 10 | volume | positive-document recall (delivered) | optional |
+## Questions
 
-Every ID is exposed development material chosen by hash, never by outcome;
-the v2 labels are provisional (assistant-authored, unreviewed) until the
-review pass marks them. `devset/scenarios.json`, `labels.json`, `scopes.json`
-and `manifest.json` are committed; the scoring source maps under
-`devset/scoring/` are derived (13 MB) and rebuilt by the build command.
-Labels are read by `score.py` after inference and by nothing else.
+```json
+{"id": "pilot_001", "type": "semantic_discovery",
+ "question": "I want the assistant to decide its next step from information it just obtained ...",
+ "question_zh": "我想让助手根据刚获得的信息决定下一步 ...",
+ "expected_sources": ["01_workflows_and_agents.md"],
+ "reference": "模型随新信息选择下一步动作，预定义步骤属于 workflow。"}
+```
+
+| type | n | expects |
+| --- | ---: | --- |
+| semantic_discovery, exploratory_retrieval, knowledge_qa, multi_hop_qa | 12, 12, 12, 6 | an answer citing the expected notes |
+| exact_lookup | 30 | exactly the notes containing the literal term (24 of them generated from corpus term frequencies, truth by substring) |
+| direct_read | 4 | read the named note only, no search |
+| evidence_gap | 4 | `insufficient_evidence` when nothing is expected; `partial` when part of the question is answerable |
+| no_retrieval | 4 | an answer without any retrieval tool |
+
+`expected_sources` is read only by the scorer, after a run. `reference` is
+for a human reading the results; it is not scored. Every question was written
+during development and the labels have not been independently reviewed:
+this set catches regressions and large effects, it does not certify quality.
+Add questions by editing the file; `test_eval.py` checks that every expected
+note exists.
 
 ## Commands
 
 ```bash
-.venv/bin/python -m evaluation.devset.build --index
+.venv/bin/python -m evaluation.eval run --label my-change --model qwen3.5:9b --think
 ```
 
-Rebuilds the devset and the v2 corpus index. Without the volume the optional
-slices are carried over from the committed devset unchanged.
+Builds (or reuses) the index of `notes/`, runs the product agent on every
+question (temperature 0, 32,768 context, 4,096 output tokens, 8 turns,
+budgets 12/10/6 tool, query and read calls, 8,000 evidence tokens, 300 s) and
+writes `results/<label>/{run.json,results.jsonl,summary.json,summary.md}`.
+About ten minutes at 9B. `--limit N` takes N questions per type for a quick
+check; `--resume` continues an interrupted run; `--max-evidence-tokens`,
+`--max-turns`, `--num-ctx`, `--num-predict` override the defaults. A finished
+run is not rerun under the same label.
 
 ```bash
-.venv/bin/python -m evaluation.run run --label <label> --model qwen3.5:9b --think
+.venv/bin/python -m evaluation.eval compare evaluation/results/baseline evaluation/results/my-change
 ```
 
-Runs the product agent (temperature 0, 32,768 context, 4,096 output tokens;
-budgets 12/10/6 tool, query and read calls, 8,000 evidence tokens, 300 s;
-8 turns) and writes `results/<label>/{run.json,results.jsonl,summary.json,summary.md}`.
-`--slices core` (default) is v2 + exact-v2, about ten minutes at 9B;
-`--slices all` adds every optional slice whose inputs are present and lists
-the skipped ones in `run.json`; a comma-separated list selects slices
-explicitly. `--limit N` takes N scenarios per slice for a quick check;
-`--resume` continues an interrupted run; the budget flags override the
-defaults. Completed runs are immutable: rerun under a new label.
+Per-question differences (B minus A) on the shared questions: means, the
+difference and wins/ties/losses, overall and per type.
 
 ```bash
-.venv/bin/python -m evaluation.run rescore results/<label>
+.venv/bin/python -m evaluation.eval rescore evaluation/results/my-change
 ```
 
-Recomputes scores and summary from the saved records with the current scorer.
+Recomputes the scores of a saved run after the scorer or the question file changed.
 
-```bash
-.venv/bin/python -m evaluation.compare --run base=results/<a> --run change=results/<b> --output comparisons/<name>.md
-```
+## Metrics
 
-Per-scenario paired differences with slice-stratified percentile bootstrap
-intervals (seed 20260912, 20,000 resamples, nominal, uncorrected) and
-wins/ties/losses, per slice and metric, plus pooled cost differences; writes
-Markdown and JSON. Any number of runs; `--contrast LEFT:RIGHT` picks the
-contrasts (default: every later run minus the first).
+| metric | meaning |
+| --- | --- |
+| answered | final status `answered` or `partial` |
+| source_recall / source_precision | expected notes among the cited notes, and cited notes that were expected |
+| delivered_recall | expected notes among the notes whose evidence reached the model (what retrieval found, before the answer) |
+| complete | exact_lookup: cited set equals the expected set |
+| gap_respected, no_retrieval, read_only | behaviour on evidence_gap, no_retrieval and direct_read questions |
+| elapsed_s, model_requests, tool_calls, prompt/eval tokens, evidence_tokens, responses_cut | cost; `responses_cut` counts model responses stopped at `num_predict` |
 
-```bash
-.venv/bin/python -m evaluation.review export --run a=results/<a> --run b=results/<b> --salt <name> --output devset/review/<name>
-.venv/bin/python -m evaluation.review import devset/review/<name>/sheet.md --mapping devset/review/<name>/mapping.json --output devset/review/<name>-verdicts.json --reviewer <you>
-.venv/bin/python -m evaluation.review agreement devset/review/<name>-verdicts.json --run a --results results/<a>/results.jsonl
-```
-
-Blinded human review: a hash-chosen sample (default 20 v2 + 10 MuSiQue), the
-runs' answers shuffled per question, the mapping in a separate file. Mark one
-box each for *correct* and *grounded* in the sheet, import it, and read the
-agreement between a run's automatic outcome and the human verdicts.
-
-`engine_recall.py` measures the retrieval engine alone (no model) on the
-recall scenarios at 5, 10 and 20 results per mode.
+An error (harness exception or error final) counts as not answered with zero
+recall. `results.jsonl` keeps the full trace of every question (requests,
+tool calls, delivered evidence, the final object), so any number can be
+traced back to what the agent did.
 
 ## Reading the numbers
 
-- Delivered coverage and recall count evidence that entered the conversation;
-  cited, answered and answer metrics score the final object. An error final
-  scores 0 on the latter; `errors` in a summary counts error finals, and
-  `responses_cut` counts model responses stopped at `num_predict`.
-- Single runs are noisy (the repeatability study measured two thirds of cells
-  changing their final object between identical runs): read the intervals
-  from `compare`, not single wins.
-- Nothing here is a quality claim; use it for before/after checks,
-  regressions and cost drift.
+Single runs are noisy: an earlier repeatability study found two thirds of
+questions change their final object between identical runs of a small
+model. Trust differences that are large and consistent across types; treat
+a few wins against a few losses as noise. For anything that needs intervals
+or a held-out set, start from git history (`docs/archive.md`).
