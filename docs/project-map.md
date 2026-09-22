@@ -12,7 +12,8 @@ quality is measured, not assumed.
 2. `src/arkb/agent/tools.py` (tool contract), `session.py` (validated boundary,
    evidence references), `observation.py` (budgets and accounting),
    `loop.py` (the bounded tool-calling loop), `context.py` (what a run opens
-   with and what a long trajectory forgets).
+   with, when it reads a small scope whole instead of searching it, and what a
+   long trajectory forgets).
 3. `src/arkb/retrieval/`: `exact.py` (literal matching with a disposable text
    cache), `bm25.py`, `semantic.py`, `hybrid.py` (reciprocal rank fusion),
    `engine.py` (explicit mode dispatch).

@@ -111,8 +111,9 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
     references remain the session's, so a caller that wants earlier references
     to stay citable supplies the session that issued them.
 
-    policy decides what the conversation opens with and when old observations
-    lose their bodies; context.OFF restores the cold start.
+    policy decides what the conversation opens with, whether a small scope is
+    delivered instead of searched, and when old observations lose their bodies;
+    context.OFF restores the cold start.
     """
     if not isinstance(query, str) or not query.strip():
         raise ValueError('query must be a nonblank string.')
@@ -178,21 +179,66 @@ class _AgentRun:
     # Context ------------------------------------------------------------------
 
     def prepare_context(self):
-        """Open the conversation with orientation when the knowledge base describes itself.
+        """Open the conversation with orientation, and with the scope itself when it is small.
 
-        The message is placed before any carried history, so a multi-turn
+        Both messages are placed before any carried history, so a multi-turn
         session replays a stable prefix: what changes between turns is the
-        history and the question, which follow it. It is a system message and
-        therefore not carried over by a session that trims history; each run
+        history and the question, which follow them. Both are system messages
+        and therefore not carried over by a session that trims history; each run
         decides again, against the knowledge base as it is now.
         """
         self.stage = 'context'
+        position = 1
         note = context.map_note(self.tools, self.policy.map_notes)
         if note is not None:
-            self.state.messages.insert(1, {'role': 'system', 'content': context.map_message(note)})
+            self.state.messages.insert(position, {'role': 'system', 'content': context.map_message(note)})
             self.observer.context['map_note'] = note['source']
+            position += 1
+        delivered = self.deliver_small_scope()
+        if delivered is not None:
+            self.state.messages.insert(position, {'role': 'system', 'content': context.scope_message(delivered)})
         self.turn_start = len(self.state.messages)
         self.stage = 'setup'
+
+    def deliver_small_scope(self):
+        """Hand the whole scope over instead of searching it, when it is small enough.
+
+        The delivery is metered exactly like a tool observation: requested,
+        permitted and charged through the observer, and presented by the session,
+        so every note delivered is citable and the evidence allowance decides how
+        much arrives. If nothing fits the allowance the run simply keeps
+        retrieval: nothing is charged and no message is added.
+        """
+        observer, policy = self.observer, self.policy
+        if not policy.small_scope_tokens:
+            return None
+        sources, estimate = context.scope_estimate(self.tools, policy.scope_prefix)
+        observer.context['scope_tokens_estimate'] = estimate
+        if not sources or estimate > policy.small_scope_tokens:
+            return None
+        call = SimpleNamespace(function=SimpleNamespace(name=context.SCOPE_TOOL, arguments={
+            'scope': policy.scope_prefix or '', 'notes': len(sources), 'estimated_tokens': estimate}))
+        event = self.event = observer.request_tools(self.state.turn, [call])[0]
+        if not observer.permit_tool(event):
+            return None
+        observer.start_tool(event)
+        self.stage = 'tool_execution'
+        result = self.session.corpus(sources)
+        self.stage = 'measurement'
+        if not observer.end_tool(event, result, references=self.session.references):
+            event.update(status='skipped', skip_reason='evidence_too_large')
+            return None
+        if event.get('delivered_refs') is not None:
+            kept = set(event['delivered_refs'])
+            result = {**result, 'results': [hit for hit in result['results'] if hit['ref'] in kept],
+                      'withheld_notes': event['withheld_hits']}
+        self.session.deliver(result)
+        result = {'scope': policy.scope_prefix or '', 'notes': len(result['results']), **result}
+        event['conversation_result'] = deepcopy(result)
+        observer.context['small_scope_bypass'] = {'notes': len(result['results']),
+                                                  'withheld_notes': result.get('withheld_notes', 0)}
+        self.event = None
+        return result
 
     # Turns --------------------------------------------------------------------
 

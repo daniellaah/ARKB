@@ -1,8 +1,8 @@
-"""Context engineering around the real loop: a vault map and a long trajectory.
+"""Context engineering around the real loop: a vault map, a small scope, a long trajectory.
 
 Every run here uses scripted responses and a temporary vault: no model, no
-index, no services. What is asserted is what the model is given and what finish
-still accepts.
+index, no services. What is asserted is what the model is given, what the
+observer is charged, and what finish still accepts.
 """
 
 import json
@@ -11,7 +11,7 @@ import pytest
 
 from arkb.agent import AgentBudget, AgentObserver, AgentTools, run_agent
 from arkb.agent.context import (OFF, ContextPolicy, compact, estimate_tokens, is_compacted,
-                                map_note, parse_map_notes, summarize_observation)
+                                map_note, parse_map_notes, scope_estimate, summarize_observation)
 from arkb.agent.loop import SYSTEM_INSTRUCTION
 from arkb.knowledge.documents import DocumentAccess
 from arkb.retrieval import ExactRetriever
@@ -34,10 +34,27 @@ def cite(answer, refs, status='answered'):
     return reply(calls=[tool_call('finish', answer=answer, status=status, evidence_refs=list(refs))])
 
 
+def system_messages(result):
+    return [m['content'] for m in result.state.messages if m['role'] == 'system']
+
+
+def delivered(result):
+    """The evidence the small-scope delivery put in the conversation, as the model sees it."""
+    for content in system_messages(result):
+        _, _, payload = content.partition('\n\n')
+        try:
+            value = json.loads(payload)
+        except ValueError:
+            continue
+        if isinstance(value, dict) and 'results' in value:
+            return value
+    return None
+
+
 # --- the vault map ----------------------------------------------------------
 
 def test_a_layout_note_opens_the_conversation_as_orientation_and_is_not_evidence(vault_tools, engine):
-    policy = ContextPolicy(map_notes=('index.md',))
+    policy = ContextPolicy(map_notes=('index.md',), small_scope_tokens=0)
     model = ScriptedModel(cite('Nothing was retrieved.', [], status='insufficient_evidence'))
     result = run_agent('where do concepts live?', client=model, tools=vault_tools, model='fake',
                        policy=policy, observer=(watch := observer()))
@@ -63,7 +80,7 @@ def test_a_missing_layout_note_is_skipped_without_failing_the_run(vault_tools, c
     assert map_note(vault_tools, candidates) is None
     model = ScriptedModel(cite('No knowledge needed.', [], status='insufficient_evidence'))
     result = run_agent('hello', client=model, tools=vault_tools, model='fake',
-                       policy=ContextPolicy(map_notes=candidates))
+                       policy=ContextPolicy(map_notes=candidates, small_scope_tokens=0))
     assert result.stop_reason == 'final'
     assert [m['role'] for m in model.requests[0]['messages']] == ['system', 'user']
     assert result.observation['context'] == {}
@@ -72,6 +89,89 @@ def test_a_missing_layout_note_is_skipped_without_failing_the_run(vault_tools, c
 def test_repeated_and_comma_separated_candidates_become_one_ordered_list():
     assert parse_map_notes(['a.md, b.md', ' c.md ', 'a.md']) == ('a.md', 'b.md', 'c.md')
     assert parse_map_notes(None) == () and parse_map_notes(['  ']) == ()
+
+
+# --- the small scope --------------------------------------------------------
+
+def test_a_small_scope_is_delivered_whole_instead_of_being_searched(vault_tools, engine):
+    sources, estimate = scope_estimate(vault_tools)
+    assert len(sources) == 6 and 0 < estimate < 1000
+    model = ScriptedModel(lambda messages: cite('All six notes were read.',
+                                                [hit['ref'] for hit in delivered_hits(messages)]))
+    result = run_agent('what is in this vault?', client=model, tools=vault_tools, model='fake',
+                       policy=ContextPolicy(small_scope_tokens=1000), observer=observer())
+    # No search ran, and every note arrived as citable evidence in one system message.
+    assert engine.search.call_count == 0
+    payload = delivered(result)
+    assert payload['notes'] == 6 and [hit['source'] for hit in payload['results']] == sources
+    assert result.final.status == 'answered'
+    assert sorted(c['source'] for c in result.final.citations) == sorted(sources)
+    assert all(c['document_revision'] for c in result.final.citations)
+    # The run says in its trajectory that it took the bypass, before the first model request.
+    assert result.observation['context']['small_scope_bypass'] == {'notes': 6, 'withheld_notes': 0}
+    assert [(e['turn'], e['name']) for e in result.observation['tools']] == [(0, 'corpus'), (1, 'finish')]
+
+
+def delivered_hits(messages):
+    payload = None
+    for message in messages:
+        if message['role'] != 'system':
+            continue
+        _, _, text = message['content'].partition('\n\n')
+        try:
+            value = json.loads(text)
+        except ValueError:
+            continue
+        if isinstance(value, dict) and 'results' in value:
+            payload = value
+    return payload['results'] if payload else []
+
+
+def test_a_scope_above_the_threshold_keeps_retrieval(vault_tools, engine):
+    model = ScriptedModel(reply(calls=[tool_call('search', query='attention')]),
+                          cite('Nothing was found.', [], status='insufficient_evidence'))
+    result = run_agent('what is attention?', client=model, tools=vault_tools, model='fake',
+                       policy=ContextPolicy(small_scope_tokens=10), observer=observer())
+    assert engine.search.call_count == 1 and delivered(result) is None
+    assert [e['name'] for e in result.observation['tools']] == ['search', 'finish']
+    assert result.observation['context']['scope_tokens_estimate'] > 10
+    assert 'small_scope_bypass' not in result.observation['context']
+
+
+def test_the_delivery_is_charged_to_the_evidence_allowance_like_any_observation(vault_tools):
+    watch = observer(max_evidence_tokens=60)
+    model = ScriptedModel(lambda messages: cite('Partly read.', [h['ref'] for h in delivered_hits(messages)]))
+    result = run_agent('what is here?', client=model, tools=vault_tools, model='fake',
+                       policy=ContextPolicy(small_scope_tokens=1000), observer=watch)
+    payload = delivered(result)
+    # A prefix of the scope fits; the rest is withheld and the model is told so.
+    assert 0 < payload['notes'] < 6 and payload['withheld_notes'] == 6 - payload['notes']
+    assert 'nearly exhausted' in [m for m in system_messages(result) if '"results"' in m][0]
+    assert watch.remaining_evidence() >= 0
+    assert result.observation['evidence']['delivered_tokens'] <= 60
+    # Only what was delivered is citable, and it is.
+    assert len(result.final.citations) == payload['notes']
+
+
+def test_a_scope_that_does_not_fit_at_all_falls_back_to_retrieval_without_charging_anything(vault_tools):
+    watch = observer(max_evidence_tokens=5)
+    model = ScriptedModel(cite('Nothing was retrieved.', [], status='insufficient_evidence'))
+    result = run_agent('what is here?', client=model, tools=vault_tools, model='fake',
+                       policy=ContextPolicy(small_scope_tokens=1000), observer=watch)
+    assert delivered(result) is None
+    assert result.observation['evidence']['delivered_tokens'] == 0
+    assert watch.remaining_evidence() == 5 and watch.reason is None
+    event = result.observation['tools'][0]
+    assert event['name'] == 'corpus' and event['status'] == 'skipped'
+    assert event['skip_reason'] == 'evidence_too_large'
+
+
+def test_a_scope_prefix_delivers_one_folder(vault_tools):
+    model = ScriptedModel(lambda messages: cite('Two notes.', [h['ref'] for h in delivered_hits(messages)]))
+    result = run_agent('what is in Concepts?', client=model, tools=vault_tools, model='fake',
+                       policy=ContextPolicy(small_scope_tokens=1000, scope_prefix='Concepts'),
+                       observer=observer())
+    assert [hit['source'] for hit in delivered(result)['results']] == ['Concepts/Attention.md', 'Concepts/KV Cache.md']
 
 
 # --- the long trajectory ----------------------------------------------------
@@ -159,13 +259,15 @@ def test_a_summary_keeps_valid_json_even_for_an_observation_it_cannot_parse():
     assert json.loads(summarize_observation(json.dumps({'status': 'recoverable_error'})))['status'] == 'recoverable_error'
 
 
-@pytest.mark.parametrize('settings', [{'history_tokens': -1}, {'history_tokens': 'many'},
-                                      {'map_notes': 'index.md'}, {'map_notes': (' ',)}])
+@pytest.mark.parametrize('settings', [{'small_scope_tokens': -1}, {'history_tokens': 'many'},
+                                      {'map_notes': 'index.md'}, {'map_notes': (' ',)},
+                                      {'scope_prefix': '../outside'}, {'scope_prefix': '/tmp'}])
 def test_a_policy_refuses_settings_it_cannot_honour(settings):
     with pytest.raises(ValueError):
         ContextPolicy(**settings)
 
 
 def test_the_default_policy_only_bounds_the_conversation():
-    assert ContextPolicy().map_notes == () and ContextPolicy().history_tokens == 24000
-    assert OFF.history_tokens == 0 and OFF.map_notes == ()
+    policy = ContextPolicy()
+    assert policy.small_scope_tokens == 0 and policy.map_notes == () and policy.history_tokens == 24000
+    assert OFF.history_tokens == 0

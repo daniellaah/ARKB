@@ -171,17 +171,18 @@ def test_context_engineering_flags_build_one_policy_and_default_to_a_bounded_con
     assert main(['ask', 'Question']) == 0
     assert fake.ask.call_args.kwargs['policy'] == ContextPolicy()
     assert main(['ask', 'Question', '--map-note', 'a.md,00-Sys/b.md', '--map-note', 'c.md',
-                 '--history-tokens', '0']) == 0
+                 '--small-scope-tokens', '5000', '--history-tokens', '0', '--scope', '04-Areas/Career']) == 0
     assert fake.ask.call_args.kwargs['policy'] == ContextPolicy(
-        map_notes=('a.md', '00-Sys/b.md', 'c.md'), history_tokens=0)
+        map_notes=('a.md', '00-Sys/b.md', 'c.md'), small_scope_tokens=5000, history_tokens=0,
+        scope_prefix='04-Areas/Career')
 
 
 def test_a_chat_session_bounds_its_turns_and_its_conversation_with_the_same_setting(runtime, monkeypatch):
     fake, _ = runtime
     monkeypatch.setattr('arkb.interfaces.cli._prompt_lines', lambda prompt='> ': iter(['Question', '']))
-    assert main(['chat', '--history-tokens', '900', '--map-note', 'map.md']) == 0
+    assert main(['chat', '--history-tokens', '900', '--small-scope-tokens', '400']) == 0
     policy = fake.run_agent.call_args.kwargs['policy']
-    assert policy == ContextPolicy(history_tokens=900, map_notes=('map.md',))
+    assert policy == ContextPolicy(history_tokens=900, small_scope_tokens=400)
 
 
 @pytest.mark.parametrize('json_output', [False, True])

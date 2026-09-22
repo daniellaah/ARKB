@@ -14,7 +14,7 @@ from httpx import HTTPError
 from ollama import ResponseError
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
-from arkb.agent.context import DEFAULT_HISTORY_TOKENS, ContextPolicy, parse_map_notes
+from arkb.agent.context import DEFAULT_HISTORY_TOKENS, FOLDER_SCOPE_TOKENS, ContextPolicy, parse_map_notes
 from arkb.agent.transports import ChatUsage, format_usage
 from arkb.config import (
     DEFAULT_DB, DEFAULT_NOTES_DIR, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL,
@@ -158,6 +158,14 @@ def _parser():
                                  help='Layout note describing how the knowledge base is organised, added to '
                                       'the conversation as orientation; repeatable or comma-separated, first '
                                       'one found wins, missing notes are skipped.')
+            command.add_argument('--small-scope-tokens', type=_nonnegative_int,
+                                 default=ContextPolicy.small_scope_tokens,
+                                 help='Deliver every note in scope as evidence instead of searching when the '
+                                      f'scope is estimated at or below this many tokens ({FOLDER_SCOPE_TOKENS} '
+                                      'suits a folder-sized scope); 0, the default, always searches.')
+            command.add_argument('--scope', type=_nonblank, metavar='PREFIX',
+                                 help='Vault-relative folder the small-scope delivery covers; the tools keep '
+                                      'the whole knowledge base.')
     return parser
 
 
@@ -197,7 +205,8 @@ def _runtime_config(args):
 
 def _context_policy(args):
     """The run's context engineering, as the ask and chat commands expose it."""
-    return ContextPolicy(map_notes=parse_map_notes(args.map_note), history_tokens=args.history_tokens)
+    return ContextPolicy(map_notes=parse_map_notes(args.map_note), history_tokens=args.history_tokens,
+                         small_scope_tokens=args.small_scope_tokens, scope_prefix=args.scope)
 
 
 def _load_api_keys(start=None):

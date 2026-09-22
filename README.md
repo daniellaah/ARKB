@@ -322,9 +322,43 @@ uv run --locked arkb chat \
 
 A blank line ends the session, `/reset` clears the conversation (and with it the evidence
 references, which belong to the session that issued them), and `/trace` toggles the trajectory and
-the per-turn usage summary. Above `--history-tokens` the earliest tool observations lose their
-bodies and keep a summary of the sources they delivered, so the context stops growing instead of
-overflowing silently.
+the per-turn usage summary.
+
+### What a run is given
+
+`ask` and `chat` share three settings that decide what the conversation opens with and how large
+it may grow. None of them changes the tool contract or the budgets; each is off at zero or empty.
+
+```sh
+uv run --locked arkb ask "..." \
+  --map-note "00-ObsSys/Vault Layout.md" \
+  --small-scope-tokens 20000 --scope "04-Areas/Career Development" \
+  --history-tokens 24000
+```
+
+`--map-note` names a note that describes how the knowledge base is organised, repeatable or
+comma-separated, first one found wins. Its body opens the conversation as orientation: the model
+is told it is a layout description, not evidence, so it has no evidence reference and cannot be
+cited. A bare filename is matched against the filenames in scope, and a candidate that does not
+exist is skipped. Default: empty, because the note is vault-specific.
+
+`--small-scope-tokens` hands the model every note in scope instead of searching, when the scope
+is estimated at or below that size; `--scope` restricts the delivery to one folder. The notes are
+delivered as evidence with citable references and charged to the evidence allowance like any tool
+result, and the run records the delivery in its trajectory as a `corpus` call. Default: 0, off —
+this replaces retrieval rather than tuning it, so it is worth turning on when you know the scope
+is small, and 20,000 suits a folder-sized one.
+
+`--history-tokens` bounds the conversation: above it, the earliest tool observations lose their
+bodies and keep a summary of the sources they delivered, within a run and, in `chat`, between
+turns. The evidence references they issued remain citable, because those live in the tool session
+and not in the messages. Default: 24,000, which the development set never reaches.
+
+With `--trace`, a run that used any of them says so before the trajectory:
+
+```text
+[context] {"compacted_observations": 16, "map_note": "00-ObsSys/Vault Layout.md"}
+```
 
 ### MCP server
 

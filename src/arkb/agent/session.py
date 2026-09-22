@@ -140,6 +140,24 @@ class ToolSession:
             raise ToolInputError('source_unavailable', 'Source does not exist in this live knowledge base.') from error
         return self._present(current)
 
+    def corpus(self, sources):
+        """Present whole notes as evidence without a model-selected tool call.
+
+        The loop's small-scope bypass hands the scope over instead of searching
+        it. Each note is presented exactly as read(source=...) would present it,
+        so its reference binds the same source and revision, resolves the same
+        way, and is accepted by finish. A note that disappeared between the
+        scan and the read is left out rather than failing the delivery.
+        """
+        self.retrieval_attempted = True
+        results = []
+        for source in sources:
+            try:
+                results.append(self._read(source=source, expand='document'))
+            except ToolInputError:
+                continue
+        return {'status': 'success', 'results': results}
+
     def _finish(self, arguments):
         refs = arguments['evidence_refs']
         if len(set(refs)) != len(refs):
