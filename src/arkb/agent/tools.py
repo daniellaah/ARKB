@@ -70,6 +70,7 @@ def tool_definitions(modes: tuple[str, ...], *, default_mode: str) -> tuple[dict
 DEFAULT_MATCH_LIMIT = 5
 UNIQUE_SOURCES_LIMIT = 50
 DEFAULT_SEARCH_LIMIT = 10
+DEFAULT_LIST_LIMIT = 50
 
 
 class AgentTools:
@@ -142,6 +143,10 @@ class AgentTools:
                                                 rerank=self._rerank,
                                                 filters=filters, top_k=limit))
 
+    def list(self, pattern: str | None = None, *, limit: int = DEFAULT_LIST_LIMIT) -> dict:
+        """Browse the knowledge base: filenames, titles, headings and sizes, no evidence."""
+        return self._documents.list(pattern, limit=limit)
+
     def read(self, document_id: str | None = None, *, source: str | None = None,
              section_id: str | None = None,
              start_char: int | None = None, end_char: int | None = None) -> ReadResult:
@@ -202,6 +207,23 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
                            'description': 'Restrict to this exact knowledge-relative source path.'},
                 'limit': {'type': 'integer', 'minimum': 1, 'default': 10,
                           'description': 'Number of ranked chunks; use up to 20 for broad questions.'},
+            },
+        },
+    },
+    {
+        'name': 'list',
+        'description': 'Browse the knowledge base: filenames, titles, headings and sizes of notes, in filename '
+                       'order. Use it to see what exists before searching, or to find a note by name; pattern '
+                       'filters filenames (case-insensitive substring, or a glob such as *embedding*). Listings '
+                       'are not evidence: read or search a note before citing it. truncated=true means more notes '
+                       'matched than limit.',
+        'parameters': {
+            'type': 'object', 'additionalProperties': False,
+            'properties': {
+                'pattern': {'type': ['string', 'null'], 'minLength': 1,
+                            'description': 'Filename filter: a substring, or a glob with * and ?.'},
+                'limit': {'type': 'integer', 'minimum': 1, 'maximum': 200, 'default': 50,
+                          'description': 'Maximum notes returned.'},
             },
         },
     },

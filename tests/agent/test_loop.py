@@ -37,7 +37,7 @@ def test_model_selected_tool_receives_arguments_and_returns_observation(bm25_too
     for request in model.requests:
         assert request['model'] == 'fake' and request['stream'] is False and request['think'] is True
         assert request['messages'][0] == {'role': 'system', 'content': SYSTEM_INSTRUCTION}
-        assert [d['function']['name'] for d in request['tools']] == ['match', 'search', 'read', 'finish']
+        assert [d['function']['name'] for d in request['tools']] == ['match', 'search', 'list', 'read', 'finish']
 
 
 def test_ordinary_input_can_finish_without_tools(tools, engine):

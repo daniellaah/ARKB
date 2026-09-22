@@ -160,7 +160,7 @@ def score(row, question):
         'complete': set(cited) == expected if kind == 'exact_lookup' else None,
         # A gap with nothing expected wants an abstention; a gap beside answerable parts wants a partial answer.
         'gap_respected': status == ('partial' if expected else 'insufficient_evidence') if kind == 'evidence_gap' else None,
-        'no_retrieval': not any(t in ('search', 'match', 'read') for t in tools) if kind == 'no_retrieval' else None,
+        'no_retrieval': not any(t in ('list', 'search', 'match', 'read') for t in tools) if kind == 'no_retrieval' else None,
         'read_only': all(t in ('read', 'finish') for t in tools) if kind == 'direct_read' else None,
         'elapsed_s': row['elapsed_ms'] / 1000, 'model_requests': len(report.get('models') or []), 'tool_calls': len(tools),
         'prompt_tokens': (usage.get('prompt_eval_count') or {}).get('known_total'),

@@ -23,7 +23,7 @@ def test_ollama_serializes_tool_calls_and_all_observations(tools, think):
         assert body['think'] is think
         requests.append(body)
         definitions = {t['function']['name']: t['function'] for t in body['tools']}
-        assert set(definitions) == {'match', 'search', 'read', 'finish'}
+        assert set(definitions) == {'match', 'search', 'list', 'read', 'finish'}
         assert set(definitions['search']['parameters']['properties']) == {'query', 'source', 'limit', 'mode'}
         assert {'ref', 'source'} <= definitions['read']['parameters']['properties'].keys()
         if len(requests) == 1:

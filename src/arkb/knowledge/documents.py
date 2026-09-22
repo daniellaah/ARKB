@@ -2,10 +2,11 @@
 
 from collections.abc import Iterator
 from dataclasses import dataclass
+from fnmatch import fnmatchcase
 import os
 from pathlib import Path
 
-from arkb.knowledge.chunking import _sections, whole_note_chunks
+from arkb.knowledge.chunking import _markdown_blocks, _sections, whole_note_chunks
 from arkb.knowledge.models import ChunkRecord, Note, _document_id, _require_digest, _require_text
 
 
@@ -100,6 +101,36 @@ class DocumentAccess:
                 path = Path(entry.path)
                 if not path.is_symlink() or path.resolve().is_relative_to(self.directory):
                     yield path
+
+    def list(self, pattern: str | None = None, *, limit: int = 50, max_headings: int = 12) -> dict:
+        """Summarize notes in filename order: source, title, headings and body size.
+
+        pattern filters filenames case-insensitively; a pattern without glob
+        characters matches as a substring. Nothing here is evidence: the
+        listing lets a caller decide what to search or read, and reports
+        `truncated` when more notes matched than limit.
+        """
+        if pattern is not None:
+            _require_text(pattern, 'pattern')
+            pattern = pattern.lower()
+            if not any(c in pattern for c in '*?['):
+                pattern = f'*{pattern}*'
+        if type(limit) is not int or limit < 1:
+            raise ValueError('limit must be a positive integer.')
+        notes, total = [], 0
+        for path in self._paths():
+            if pattern is not None and not fnmatchcase(path.name.lower(), pattern):
+                continue
+            total += 1
+            if len(notes) >= limit:
+                continue
+            note = _load_note(path)
+            headings = ['#' * block.level + ' ' + block.heading
+                        for block in _markdown_blocks(note.content) if block.kind == 'heading']
+            notes.append({'source': note.source, 'title': note.title, 'chars': len(note.content),
+                          'headings': headings[:max_headings],
+                          **({'more_headings': len(headings) - max_headings} if len(headings) > max_headings else {})})
+        return {'notes': notes, 'total': total, 'truncated': total > len(notes)}
 
     def records(self, *, source: str | None = None) -> Iterator[ChunkRecord]:
         """Yield current complete bodies in filename order, filtering before I/O.

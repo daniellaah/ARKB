@@ -16,6 +16,7 @@ from arkb.config import DEFAULT_AGENT_THINK
 
 
 SYSTEM_INSTRUCTION = """Answer the user's query, using knowledge tools when useful.
+Use list to see which notes exist (filenames, titles, headings) or to find a note by name; listings are not evidence.
 Use match when exact lexical occurrence matters, including which notes mention a literal term.
 Use search when conceptual relevance matters, including notes related to a topic.
 Choose only among the search modes available in the tool definition; omit mode to use its default.

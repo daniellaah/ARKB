@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from arkb.retrieval.exact import ExactPatternError, ExactTimeout, ExactCancelled
 from arkb.knowledge.documents import DocumentNotFound
-from arkb.agent.tools import DEFAULT_SEARCH_LIMIT
+from arkb.agent.tools import DEFAULT_LIST_LIMIT, DEFAULT_SEARCH_LIMIT
 
 
 class ToolInputError(ValueError):
@@ -153,11 +153,13 @@ class ToolSession:
     def invoke(self, name, arguments, *, exact_timeout=30):
         """Expected mistakes return observations; unexpected backend errors propagate."""
         try:
-            if name in ('match', 'search', 'read'):
+            if name in ('match', 'search', 'read', 'list'):
                 self.retrieval_attempted = True
             if name not in self._schemas:
-                raise ToolInputError('unknown_tool', 'Use match, search, read or finish.')
+                raise ToolInputError('unknown_tool', 'Use list, match, search, read or finish.')
             validate_arguments(arguments, self._schemas[name])
+            if name == 'list':
+                return {'status': 'success', **self.tools.list(arguments.get('pattern'), limit=arguments.get('limit', DEFAULT_LIST_LIMIT))}
             if name == 'read':
                 return {'status': 'success', 'result': self._read(**arguments)}
             if name == 'finish':
