@@ -88,37 +88,6 @@ def test_citation_python_api_uses_cli_built_snapshot(tmp_path, server_index):
     assert 'results' in retrieved and 'answer' not in retrieved
 
 
-def test_citation_evaluation_cli_records_results_without_modifying_index(tmp_path, server_index):
-    notes = tmp_path / 'notes'
-    notes.mkdir()
-    (notes / 'project.md').write_text('# Project\nThe project code is ORCHID-42.\n')
-    db, url, vault = server_index
-    cases = tmp_path / 'cases.jsonl'
-    cases.write_text(json.dumps({'id': 'code', 'question': 'What is the project code?',
-                                 'required_source_groups': [['project.md']]}) + '\n')
-    out = tmp_path / 'evaluation'
-    repo = Path(__file__).resolve().parents[3]
-    built = subprocess.run([sys.executable, '-B', '-m', 'arkb.interfaces.cli', 'index',
-                            '--db', str(db), '--vault-id', vault, '--qdrant-url', url, '--notes-dir', str(notes), '--offline'],
-                           cwd=repo, capture_output=True, text=True, timeout=180)
-    assert built.returncode == 0, built.stderr
-    before = db.read_bytes()
-    command = [sys.executable, '-B', '-m', 'arkb.evaluation.retrieval', 'ann', '--db', str(db), '--vault-id', vault,
-               '--cases', str(cases), '--output', str(out), '--offline', '--context', '--citations']
-    process = subprocess.run(command, cwd=repo, capture_output=True, text=True, timeout=180)
-    assert process.returncode == 0, process.stderr
-    report = json.loads((out / 'metrics.json').read_text())
-    assert report['citations']['summary']['success_count'] == 1
-    assert report['citations']['summary']['supported_claim_rate'] is None
-    row = json.loads((out / 'citation_results.jsonl').read_text())
-    assert row['raw_response'] and row['context']['citation_sources']
-    assert db.read_bytes() == before
-    preserved = (out / 'citation_results.jsonl').read_bytes()
-    repeated = subprocess.run(command, cwd=repo, capture_output=True, text=True, timeout=30)
-    assert repeated.returncode == 2
-    assert (out / 'citation_results.jsonl').read_bytes() == preserved
-
-
 def test_real_quoted_generation_preserves_unicode_and_computes_offsets():
     body = 'Prefix. The code is ORCHID-42. Unicode: e\u0301 🧠.'
     with Client(host='http://127.0.0.1:11434', timeout=120, trust_env=False) as client:

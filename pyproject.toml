@@ -20,10 +20,6 @@ dependencies = [
 arkb = "arkb.interfaces.cli:main"
 
 [project.optional-dependencies]
-evaluation = [
-    "pyarrow==21.0.0",
-    "pytrec-eval-terrier==0.5.10",
-]
 rerank = [
     "torch>=2.6,<3",
     "transformers>=5,<6",
@@ -45,13 +41,13 @@ cache-dir = ".uv-cache"
 [tool.pytest.ini_options]
 markers = ["integration: requires explicitly enabled model or external-service checks"]
 testpaths = ["tests", "evaluation"]
-norecursedirs = [".*", "*.egg", "build", "dist", "node_modules", "evaluation/results", "evaluation/data", "evaluation/agentic-tools", "evaluation/phase-a", "evaluation/phase-b", "evaluation/phase-c", "evaluation/reviews"]
+norecursedirs = [".*", "*.egg", "build", "dist", "node_modules", "evaluation/results", "archive"]
 
 [tool.ruff]
 line-length = 120
 target-version = "py313"
 # Frozen measured-source copies and result archives are evidence, never reformatted.
-exclude = ["evaluation/phase-a", "evaluation/phase-b", "evaluation/phase-c", "evaluation/results", "evaluation/agentic-tools", "evaluation/data", "evaluation/reviews", ".venv", ".uv-cache"]
+exclude = ["archive", "evaluation/results", ".venv", ".uv-cache"]
 
 [tool.ruff.format]
 quote-style = "single"

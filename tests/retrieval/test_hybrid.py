@@ -66,34 +66,18 @@ def test_hybrid_rejects_snapshot_mismatch_and_keeps_semantic_only_matches():
         hybrid.search('rare')
 
 
-def test_three_baselines_share_one_evaluation_dataset():
-    from arkb.retrieval.hybrid import HybridRetriever
-    from arkb.evaluation.retrieval import evaluate_retrievers
-    lexical, semantic = components()
-    report = evaluate_retrievers({'bm25': lexical, 'semantic': semantic,
-                                 'hybrid': HybridRetriever(lexical, semantic)},
-                                [{'id': 'q', 'question': 'rare', 'relevance': {'a.md': 1}}], top_k=2)
-    assert report['summary']['bm25']['mrr'] == report['summary']['hybrid']['mrr'] == 1
-    assert report['summary']['semantic']['mrr'] == .5
-
-
 def test_optional_reranking_scores_full_hybrid_pool_before_final_top_k():
     from arkb.retrieval.hybrid import HybridRetriever
     from arkb.retrieval.rerank import Reranker, RerankedRetriever
-    from arkb.evaluation.retrieval import evaluate_retrievers
     lexical, semantic = components()
     hybrid = HybridRetriever(lexical, semantic, candidate_k=2)
     scorer = SimpleNamespace(identity='frozen-relevance', score_type='logit',
                              score=Mock(return_value=[-1., 3.]))
     reranked = RerankedRetriever(hybrid, Reranker(scorer), candidate_k=2)
-    report = evaluate_retrievers({'semantic': semantic, 'bm25': lexical, 'hybrid': hybrid,
-                                 'hybrid_reranked': reranked},
-                                [{'id': 'q', 'question': 'rare', 'relevance': {'b.md': 1}}], top_k=1)
-    assert report['summary']['hybrid']['mrr'] == 0
-    assert report['summary']['hybrid_reranked']['mrr'] == 1
-    pool = scorer.score.call_args.args[1]
-    assert [hit.source for hit in pool] == ['a.md', 'b.md']
+    assert hybrid.search('rare', top_k=1).results[0].source == 'a.md'
     hit = reranked.search('rare', top_k=1).results[0]
+    pool = scorer.score.call_args.args[1]
+    assert [h.source for h in pool] == ['a.md', 'b.md'] and hit.source == 'b.md'
     assert hit.metadata['rerank']['input_rank'] == 2
     assert hit.metadata['fusion']['contributions'][0]['method'] == 'semantic'
     assert hit.score_type == 'logit'

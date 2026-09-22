@@ -11,7 +11,6 @@ from time import perf_counter
 import pytest
 
 from arkb.config import RetrievalConfig, RuntimeConfig
-from arkb.evaluation.retrieval import evaluate_reranker
 from arkb.retrieval import SearchResult
 from arkb.retrieval.qwen_rerank import QWEN_MODEL, QWEN_REVISION, QwenRerankerScorer
 from arkb.retrieval.rerank import Reranker
@@ -38,8 +37,6 @@ def test_real_qwen_promotes_evidence_and_handles_padding_truncation_and_batches(
         for i, text in enumerate(['Dogs bark and cats meow. ' * 600, 'Paris is the capital of France.']))
     query = 'What is the capital of France?'
     reranker = Reranker(scorer)
-    report = evaluate_reranker(reranker, query, candidates, {'1.md': 1}, top_k=1)
-    assert report['before']['mrr'] == 0 and report['after']['mrr'] == 1
     inputs = scorer._inputs(query, candidates)
     assert inputs['input_ids'].shape[1] == scorer.max_length == 512
     assert inputs['attention_mask'][1, 0].item() == 0  # left padding
@@ -52,7 +49,7 @@ def test_real_qwen_promotes_evidence_and_handles_padding_truncation_and_batches(
     singles = [scorer.score(query, [hit])[0] for hit in candidates]
     assert batched == pytest.approx(singles, abs=1e-4)
     assert scorer.score(query, []) == []
-    (tmp_path / 'frozen.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+    (tmp_path / 'frozen.json').write_text(json.dumps([asdict(h) for h in first], ensure_ascii=False, indent=2) + '\n')
 
 
 @pytest.fixture(scope='module')

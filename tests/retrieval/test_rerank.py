@@ -49,18 +49,6 @@ def test_reranker_empty_ties_invalid_scores_and_duplicate_identity():
         reranker.rerank(' ', [])
 
 
-def test_frozen_candidate_evaluation_isolates_ranking_changes_and_latency():
-    from arkb.retrieval.rerank import Reranker
-    from arkb.evaluation.retrieval import evaluate_reranker
-    scorer = SimpleNamespace(identity='frozen', score_type='logit', score=Mock(return_value=[-2., 5.]))
-    row = evaluate_reranker(Reranker(scorer), 'Paris?', candidates(), {'b.md': 1}, top_k=1)
-    assert row['before']['recall_at_k'] == 0
-    assert row['after']['recall_at_k'] == 1
-    assert row['rank_changes'][0] == {'identity': ['b', 'chunk', 'b'], 'before': 2, 'after': 1}
-    assert row['latency_ms'] >= 0
-    assert len(row['candidates']) == 2 and len(row['results']) == 1
-
-
 @pytest.mark.parametrize('scores, expected', [
     ([2., 1., 2., 1.], ['z', 'b', 'y', 'a']),
     ([3., 3., 3., 3.], ['z', 'y', 'b', 'a']),

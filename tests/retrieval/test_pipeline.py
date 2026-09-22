@@ -10,7 +10,6 @@ from arkb.knowledge.indexing import build_index
 from arkb.retrieval import BM25Retriever, HybridRetriever, RerankedRetriever, Reranker, SemanticRetriever
 from arkb.knowledge.embeddings import OllamaQueryEmbedder
 from arkb.retrieval.semantic import QdrantSnapshotIndex
-from arkb.evaluation.retrieval import evaluate_retrievers
 from arkb.knowledge.models import EmbeddingSpec, Note
 from arkb.knowledge.sqlite import SQLiteStorage
 
@@ -40,11 +39,8 @@ def test_all_four_configurations_share_snapshot_identity_and_apply_filters_befor
             score=lambda query, candidates: [3. if 'France' in h.content else -1. for h in candidates])
         reranked = RerankedRetriever(hybrid, Reranker(scorer), candidate_k=2)
         modes = {'semantic': semantic, 'bm25': bm25, 'hybrid': hybrid, 'hybrid_reranked': reranked}
-        report = evaluate_retrievers(modes, [{'id': 'q', 'question': 'Paris France',
-                                            'relevance': {'paris.md': 3}}], top_k=1)
-        assert all(value['mrr'] == value['recall_at_k'] == value['ndcg_at_k'] == 1
-                   for value in report['summary'].values())
         hits = [retriever.search('Paris France', top_k=1).results[0] for retriever in modes.values()]
+        assert [h.source for h in hits] == ['paris.md'] * 4
         assert len({h.identity for h in hits}) == len({h.metadata['index_version'] for h in hits}) == 1
         assert [h.score_type for h in hits] == ['cosine_similarity', 'bm25', 'rrf', 'fixture-relevance']
         for retriever in modes.values():

@@ -447,28 +447,3 @@ def test_invalid_retrieval_depths_fail_before_model_calls(options, client_factor
         main(['search', 'question'] + options)
     assert error.value.code == 2
     client_factory.assert_not_called()
-
-
-@pytest.mark.filterwarnings('ignore:Local mode performs exact.*')
-def test_four_way_benchmark_runner_uses_saved_adapters_and_preserves_artifacts(indexed_client, tmp_path,
-                                                                            monkeypatch, qwen_scorer, capsys):
-    from qdrant_client import QdrantClient
-    from arkb.evaluation.retrieval import baseline_main as compare
-    capsys.readouterr()
-    monkeypatch.setattr('ollama.Client', lambda **kw: indexed_client)
-    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', lambda *a: QdrantClient(path=str(tmp_path / 'qdrant')))
-    cases, output = tmp_path / 'cases.jsonl', tmp_path / 'results.json'
-    cases.write_text(json.dumps({'id': 'habit', 'question': 'habit', 'relevance': {'habits.md': 3}}))
-    args = ['--cases', str(cases), '--output', str(output), '--offline', '--top-k', '2',
-            '--modes', 'semantic', 'bm25', 'hybrid', 'hybrid_reranked']
-    assert compare(args) == 0
-    report = json.loads(output.read_text())
-    assert set(report['summary']) == {'semantic', 'bm25', 'hybrid', 'hybrid_reranked'}
-    assert report['summary']['hybrid_reranked']['mrr'] == 1
-    row = report['results'][0]['modes']['hybrid_reranked']
-    assert row['response']['results'][0]['metadata']['rerank']['candidate_count'] == 3
-    assert report['run']['cases'][0]['id'] == 'habit' and report['run']['source_hashes']
-    before = output.read_bytes()
-    with pytest.raises(SystemExit):
-        compare(args)
-    assert output.read_bytes() == before

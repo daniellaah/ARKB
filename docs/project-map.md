@@ -27,13 +27,8 @@ quality is measured, not assumed.
 | Path | Role |
 | --- | --- |
 | `src/arkb/{agent,retrieval,knowledge,generation,interfaces}`, `runtime.py`, `config.py` | Product code |
-| `src/arkb/evaluation/` | Evaluation library that ships with the package: datasets, metrics, baselines, replay, external benchmark adapters. Candidate to move out of the product package. |
-| `evaluation/agentic_tools/` | Reusable library for registered agent studies: capability arms, transport, readiness gates, stop controller, selection, records, scoring, statistics, judge, analysis, runner, registration |
-| `evaluation/studies/<study>/` | One-off preparation and pipeline scripts of each registered study, frozen history with a README each |
 | `evaluation/` (package) | Development evaluation: devset (84 core + 94 optional scenarios), runner, scorer, paired comparison, blinded review, engine-only recall; see [docs/eval-design.md](eval-design.md) |
-| `evaluation/audits/` | Independent replay audits of completed runs |
-| `evaluation/experiments/` | Historical experiment scripts (P0 to P4, Phase A to C) |
-| `evaluation/agentic-tools/<run>/` | Small public copies of registered run artifacts (protocols, accounting, audits) |
+| `archive/` | Frozen artifacts of completed studies (phase A to C bundles, review sheets, registered-run protocols and accounting); evidence for the archived reports, never edited |
 | `evaluation/results/` (ignored) | Local run outputs |
 | `/Volumes/ARKBPhaseC/` | External volume: corpora, indexes, frozen study runs with their source snapshots |
 | `tests/` | Deterministic suite (no services); `integration`-marked tests need Ollama and Qdrant |
