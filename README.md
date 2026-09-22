@@ -53,6 +53,7 @@ For example:
 - Local Markdown indexing with section-aware chunking and reusable embeddings.
 - Inspectable agent traces and bounded tool-calling loops.
 - Local Ollama or hosted Claude/DeepSeek models, with prompt caching and per-run cost accounting.
+- Multi-turn sessions where follow-up questions reuse the evidence already collected.
 - CLI with JSON output and reusable Python APIs.
 - A read-only MCP stdio server, so Claude Code or the desktop app can be the agent instead.
 - Retrieval baselines, agent evaluation, and controlled model ablations.
@@ -165,18 +166,20 @@ When an index already exists, `match` and `ask` use its saved directory. An expl
 
 ## Usage
 
-ARKB exposes six top-level commands:
+ARKB exposes seven top-level commands:
 
 ```text
 match
 search
 ask
+chat
 index
 status
 mcp
 ```
 
-All commands support `--json`, except `mcp`, whose stdout carries the protocol.
+All commands support `--json`, except `mcp`, whose stdout carries the protocol, and `chat`,
+whose stdout carries the conversation.
 
 Inspect command-specific options with:
 
@@ -301,6 +304,24 @@ transport marks three stable prefixes with `cache_control` — the tool definiti
 instruction, and the end of any conversation carried in from earlier turns — and never marks
 content the current turn is still producing. DeepSeek caches prefixes server-side with no request
 -side marking; its hits and misses are reported in the same summary. Ollama has no such notion.
+
+### Follow-up questions
+
+`arkb chat` keeps one conversation, one snapshot and one tool session open across questions, so a
+follow-up can refer to the earlier answer and cite evidence the earlier turn already collected.
+Each question still runs a complete agent loop with its own turn allowance and budget.
+
+```sh
+uv run --locked arkb chat \
+  --db .arkb/index.sqlite --vault-id default \
+  --generation-model qwen3.5:9b --trace
+```
+
+A blank line ends the session, `/reset` clears the conversation (and with it the evidence
+references, which belong to the session that issued them), and `/trace` toggles the trajectory and
+the per-turn usage summary. Above `--history-tokens` the earliest tool observations lose their
+bodies and keep a summary of the sources they delivered, so the context stops growing instead of
+overflowing silently.
 
 ### MCP server
 
@@ -765,8 +786,9 @@ The design keeps deterministic knowledge processing and retrieval independent fr
 
 `interfaces/mcp_server.py` serves the read-only tools to an external agent over MCP stdio.
 
-`agent/transports.py` holds the one selection rule the CLI and the evaluation harness share,
-and the recorded list prices.
+`interfaces/chat.py` holds the multi-turn session as a function over an iterator of input lines,
+so the REPL's behavior is testable without a terminal. `agent/transports.py` holds the one
+selection rule the CLI and the evaluation harness share, and the recorded list prices.
 
 ## Development
 

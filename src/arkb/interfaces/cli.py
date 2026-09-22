@@ -19,6 +19,7 @@ from arkb.config import (
     DEFAULT_DB, DEFAULT_NOTES_DIR, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL,
     DEFAULT_AGENT_THINK, DEFAULT_RETRIEVAL_MODE, RuntimeConfig, RetrievalConfig, load_env_file,
 )
+from arkb.interfaces.chat import DEFAULT_HISTORY_TOKENS, EXIT_HINT, converse, trace_lines
 from arkb.knowledge.documents import DEFAULT_EXCLUDES
 from arkb.knowledge.embeddings import DEFAULT_QUERY_INSTRUCTION
 from arkb.knowledge.models import QdrantConfig
@@ -42,6 +43,13 @@ def _positive_float(value):
     number = float(value)
     if not math.isfinite(number) or number <= 0:
         raise argparse.ArgumentTypeError('must be positive and finite')
+    return number
+
+
+def _nonnegative_int(value):
+    number = int(value)
+    if number < 0:
+        raise argparse.ArgumentTypeError('must be zero or a positive integer')
     return number
 
 
@@ -95,6 +103,7 @@ def _parser():
         'match': 'Find exact lexical occurrences in live notes; no LLM.',
         'search': 'Return ranked results from the index; no answers or agent loop.',
         'ask': 'Let the agent retrieve evidence and respond.',
+        'chat': 'Ask follow-up questions in one session that keeps its conversation.',
         'index': 'Build or update the knowledge index.',
         'status': 'Show saved knowledge base and index status.',
         'mcp': 'Serve the read-only knowledge tools to an MCP client over stdio.',
@@ -103,9 +112,9 @@ def _parser():
         command = commands.add_parser(name, help=description, description=description, allow_abbrev=False)
         command.add_argument('--db', type=Path, default=DEFAULT_DB)
         command.add_argument('--vault-id', type=_nonblank, default='default')
-        if name != 'mcp':
+        if name not in ('mcp', 'chat'):
             command.add_argument('--json', action='store_true', help='Format the same result as JSON.')
-        if name in ('index', 'search', 'ask', 'mcp'):
+        if name in ('index', 'search', 'ask', 'chat', 'mcp'):
             _add_services(command, indexing=name == 'index')
         if name in ('match', 'search'):
             command.add_argument('pattern' if name == 'match' else 'query', type=_nonblank)
@@ -115,10 +124,10 @@ def _parser():
         if name == 'match':
             command.add_argument('--unique-sources', action='store_true',
                                  help='List each matching note once instead of every occurrence.')
-        if name in ('match', 'ask', 'mcp'):
+        if name in ('match', 'ask', 'chat', 'mcp'):
             command.add_argument('--notes-dir', type=Path,
                                  help='Live notes directory; defaults to the saved scope, then example_notes.')
-        if name in ('match', 'ask', 'index', 'mcp'):
+        if name in ('match', 'ask', 'chat', 'index', 'mcp'):
             command.add_argument('--exclude', type=_nonblank, action='append', metavar='GLOB',
                                  help='Skip directories matching this name, vault-relative path or glob; '
                                       f'repeatable and added to the defaults {" ".join(DEFAULT_EXCLUDES)}.')
@@ -129,10 +138,11 @@ def _parser():
         elif name == 'mcp':
             command.add_argument('--mode', choices=('bm25', 'semantic', 'hybrid'), default=DEFAULT_RETRIEVAL_MODE,
                                  help='Default search strategy; an MCP client may choose another per call.')
-        elif name == 'ask':
-            command.add_argument('query', type=_nonblank)
+        elif name in ('ask', 'chat'):
+            if name == 'ask':
+                command.add_argument('query', type=_nonblank)
             command.add_argument('--max-turns', type=_positive_int, default=8,
-                                 help='Maximum model turns, including the final response.')
+                                 help='Maximum model turns per question, including the final response.')
             command.add_argument('--trace', action='store_true',
                                  help='Print the available agent trajectory and the usage summary.')
             command.add_argument('--think', action=argparse.BooleanOptionalAction, default=DEFAULT_AGENT_THINK,
@@ -140,6 +150,10 @@ def _parser():
             command.add_argument('--generation-model', type=_nonblank, default=DEFAULT_GENERATION_MODEL,
                                  help='Local Ollama model, or a hosted claude-* or deepseek-* model whose '
                                       'API key is in the environment or the nearest .env.')
+            if name == 'chat':
+                command.add_argument('--history-tokens', type=_nonnegative_int, default=DEFAULT_HISTORY_TOKENS,
+                                     help='Compact the earliest tool observations above this estimated size; '
+                                          '0 lets the conversation grow unbounded.')
     return parser
 
 
@@ -190,6 +204,43 @@ def _load_api_keys(start=None):
     return {}
 
 
+def _prompt_lines(prompt='> '):
+    """The terminal around the session function; EOF and interrupt end the session."""
+    while True:
+        try:
+            yield input(prompt)
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return
+
+
+def _chat(runtime, args):
+    """Hold one snapshot, one transport and one tool session open for the whole conversation."""
+    from arkb.agent.observation import AgentObserver
+    from arkb.agent.session import ToolSession
+    client = ChatUsage(runtime.chat_client(args.generation_model, think=args.think), args.generation_model)
+    with runtime.live_tools(db=args.db, vault_id=args.vault_id, notes_dir=args.notes_dir) as tools:
+        state = {'session': ToolSession(tools), 'mark': 0}
+        print(EXIT_HINT)
+
+        def run(query, history):
+            # A fresh observer per turn: the trajectory and the allowances describe this
+            # question, not the whole session, even though the conversation carries over.
+            state['mark'] = len(client.records)
+            return runtime.run_agent(query, tools=tools, model=args.generation_model, max_turns=args.max_turns,
+                                     think=args.think, client=client, history=history, session=state['session'],
+                                     observer=AgentObserver())
+
+        for line in converse(_prompt_lines(), run=run,
+                             reset=lambda: state.update(session=ToolSession(tools)),
+                             usage=lambda: format_usage(client.totals(state['mark']), label='turn usage'),
+                             trace=args.trace, history_tokens=args.history_tokens):
+            print(line, flush=True)
+    if args.trace:
+        for line in format_usage(client.totals(), label='session usage'):
+            print(line)
+
+
 def _execute(runtime, args, usage=None):
     scope = {'db': args.db, 'vault_id': args.vault_id}
     if args.command == 'mcp':
@@ -200,6 +251,9 @@ def _execute(runtime, args, usage=None):
                              'uv sync --extra mcp (or pip install "arkb[mcp]").') from error
         # Serving owns stdout for JSON-RPC and returns when the client disconnects.
         return serve(runtime, **scope, notes_dir=args.notes_dir, mode=args.mode)
+    if args.command == 'chat':
+        # The REPL owns stdout for the conversation and returns when it ends.
+        return _chat(runtime, args)
     if args.command == 'match':
         return runtime.match(args.pattern, **scope, notes_dir=args.notes_dir,
                              top_k=args.top_k, source=args.source, unique_sources=args.unique_sources)
@@ -245,17 +299,12 @@ def _print_retrieval(result):
 
 
 def _print_trace(result):
-    trace = result.trace
-    for step, call in enumerate(trace.tool_calls, 1):
-        print(f'[{step}] {call.name}', file=sys.stderr)
-        for name, value in call.arguments.items():
-            print(f'{name}: {json.dumps(value, ensure_ascii=False)}', file=sys.stderr)
-        print(file=sys.stderr)
-    print(f'[{len(trace.tool_calls) + 1}] {trace.stop_reason}', file=sys.stderr)
+    for line in trace_lines(result):
+        print(line, file=sys.stderr)
 
 
 def _print_result(args, result):
-    if args.command == 'mcp':
+    if args.command in ('mcp', 'chat'):
         return
     if args.command == 'ask' and args.trace:
         _print_trace(result)
@@ -290,7 +339,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
     _validate_arguments(parser, args)
-    if args.command == 'ask':
+    if args.command in ('ask', 'chat'):
         _load_api_keys()
     usage = []
     try:

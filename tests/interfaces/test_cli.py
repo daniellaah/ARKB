@@ -35,6 +35,7 @@ def runtime(monkeypatch):
                          {'role': 'tool', 'tool_name': call['function']['name'], 'content': '{}'}])
     messages.append({'role': 'assistant', 'content': 'Relevant material found.'})
     runtime.ask.return_value = AgentResult('Relevant material found.', 'final', AgentState(messages, 4))
+    runtime.run_agent.return_value = runtime.ask.return_value
     hit = SearchResult(source_id='document-id', source='rag.md', content='RAG', method='exact',
                        start_char=4, end_char=7, metadata={'title': 'Retrieval'})
     runtime.match.return_value = SearchResponse(query='RAG', method='exact', results=(hit,))
@@ -54,11 +55,12 @@ def without_client(call):
     return call.args, {key: value for key, value in call.kwargs.items() if key != 'client'}
 
 
-def test_only_six_top_level_commands():
+def test_only_seven_top_level_commands():
     commands = next(action for action in _parser()._actions if action.dest == 'command')
-    assert set(commands.choices) == {'match', 'search', 'ask', 'index', 'status', 'mcp'}
-    # Serving owns stdout for JSON-RPC, so it takes no result formatting flag.
+    assert set(commands.choices) == {'match', 'search', 'ask', 'chat', 'index', 'status', 'mcp'}
+    # Serving and the REPL own stdout, so neither takes a result formatting flag.
     assert '--json' not in commands.choices['mcp'].format_usage()
+    assert '--json' not in commands.choices['chat'].format_usage()
 
 
 def test_mcp_serves_the_configured_scope_and_prints_nothing(runtime, monkeypatch, capsys):
@@ -211,7 +213,8 @@ def test_index_preserves_build_options_and_status_scope(runtime):
 
 
 @pytest.mark.parametrize('arguments', [
-    [], ['query', 'Q'], ['answer', 'Q'], ['chat'], ['read', 'a.md'], ['match'], ['search'], ['ask'],
+    [], ['query', 'Q'], ['answer', 'Q'], ['chat', 'Q'], ['read', 'a.md'], ['match'], ['search'], ['ask'],
+    ['chat', '--history-tokens', '-1'], ['chat', '--json'], ['chat', '--max-turns', '0'],
     ['match', ' '], ['search', ' '], ['ask', ' '], ['status', '--vault-id', ' '],
     ['match', 'RAG', '--top-k', '0'], ['search', 'Q', '--top-k', '-1'], ['search', 'Q', '--source', ' '],
     ['search', 'Q', '--mode', 'bad'], ['search', 'Q', '--top-k', '1.5'],
@@ -233,7 +236,7 @@ def test_invalid_arguments_fail_before_constructing_runtime(runtime, capsys, arg
     factory.assert_not_called()
 
 
-@pytest.mark.parametrize('command', ['', 'match', 'search', 'ask', 'index', 'status', 'mcp'])
+@pytest.mark.parametrize('command', ['', 'match', 'search', 'ask', 'chat', 'index', 'status', 'mcp'])
 def test_help_without_runtime(runtime, capsys, command):
     _, factory = runtime
     with pytest.raises(SystemExit) as error:
@@ -285,3 +288,37 @@ def test_index_reports_skipped_files_and_unparsed_frontmatter(runtime, capsys):
     assert 'Skipped: 1 | Unparsed frontmatter: 1' in output.out
     assert '01-Journal/broken.md: UnicodeDecodeError' in output.err
     assert '04-Areas/odd.md: Nested mappings' in output.err
+
+
+def test_chat_runs_one_session_over_the_lines_it_reads(runtime, monkeypatch, capsys):
+    fake, _ = runtime
+    monkeypatch.setattr('arkb.interfaces.cli._prompt_lines',
+                        lambda prompt='> ': iter(['first?', 'and then?', '/reset', 'fresh?', '']))
+    assert main(['chat', '--db', 'kb.sqlite', '--vault-id', 'kb', '--generation-model', 'fake-agent',
+                 '--max-turns', '5', '--history-tokens', '0']) == 0
+    fake.chat_client.assert_called_once_with('fake-agent', think=True)
+    fake.live_tools.assert_called_once_with(db=Path('kb.sqlite'), vault_id='kb', notes_dir=None)
+    assert fake.run_agent.call_count == 3
+    calls = fake.run_agent.call_args_list
+    assert [call.args[0] for call in calls] == ['first?', 'and then?', 'fresh?']
+    # The conversation carries into the follow-up, without its instruction, and /reset clears it.
+    assert [len(call.kwargs['history']) for call in calls] == [0, 7, 0]
+    assert all(message['role'] != 'system' for message in calls[1].kwargs['history'])
+    assert calls[0].kwargs['session'] is calls[1].kwargs['session'] is not calls[2].kwargs['session']
+    assert all(call.kwargs['model'] == 'fake-agent' and call.kwargs['max_turns'] == 5 for call in calls)
+    output = capsys.readouterr()
+    assert output.out.splitlines()[0].startswith('Ask a question.')
+    assert output.out.count('Relevant material found.') == 3
+    assert 'Session cleared' in output.out and 'usage:' not in output.out
+    assert output.err == ''
+    fake.ask.assert_not_called()
+
+
+def test_chat_trace_prints_the_trajectory_and_both_usage_summaries(runtime, monkeypatch, capsys):
+    fake, _ = runtime
+    monkeypatch.setattr('arkb.interfaces.cli._prompt_lines', lambda prompt='> ': iter(['q?', '']))
+    assert main(['chat', '--trace', '--no-think']) == 0
+    assert fake.chat_client.call_args.kwargs == {'think': False}
+    out = capsys.readouterr().out
+    assert '[1] search' in out and '[4] final' in out
+    assert 'turn usage: 0 request(s)' in out and 'session usage: 0 request(s)' in out

@@ -16,6 +16,7 @@ from arkb.retrieval.models import SearchResponse, validate_request
 from arkb.retrieval.semantic import QdrantSnapshotIndex, SemanticRetriever
 if TYPE_CHECKING:
     from arkb.agent.observation import AgentBudget, AgentObserver
+    from arkb.agent.session import ToolSession
     from arkb.agent.state import AgentResult
     from arkb.agent.tools import AgentTools
     from arkb.retrieval.engine import RetrievalEngine
@@ -304,11 +305,14 @@ class Runtime:
                   model: str = DEFAULT_GENERATION_MODEL, max_turns: int = 8,
                   think: bool = DEFAULT_AGENT_THINK,
                   client: 'Client | None' = None, observer: 'AgentObserver | None' = None,
-                  search_stall_reminder: bool = True) -> 'AgentResult':
+                  search_stall_reminder: bool = True, history: Sequence[dict] = (),
+                  session: 'ToolSession | None' = None) -> 'AgentResult':
         """Run with prepared tools and a reused model client, or a caller-owned one.
 
         Compose tools with agent_tools and keep their directory/vault aligned
-        with the prepared engine. Each query gets an independent conversation.
+        with the prepared engine. Each query gets an independent conversation
+        unless history replays an earlier one; passing the session that issued
+        earlier evidence references keeps them citable across turns.
         """
         self._require_open()
         if type(think) is not bool:
@@ -316,7 +320,8 @@ class Runtime:
         from arkb.agent.loop import run_agent
         return run_agent(query, client=self.chat_client(model, think=think) if client is None else client,
                          tools=tools, model=model, max_turns=max_turns, think=think,observer=observer,
-                         search_stall_reminder=search_stall_reminder)
+                         search_stall_reminder=search_stall_reminder, history=history,
+                         **({'session_factory': lambda _tools: session} if session is not None else {}))
 
     def agent_observer(self, *, budget: 'AgentBudget | None' = None) -> 'AgentObserver':
         """Use the pinned embedding tokenizer as a common evidence-text ruler.

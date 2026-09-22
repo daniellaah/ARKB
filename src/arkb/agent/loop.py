@@ -1,5 +1,6 @@
 """A bounded Ollama tool-calling loop; retrieval policy belongs to the tools."""
 
+from collections.abc import Sequence
 import json
 
 from ollama import Client
@@ -84,7 +85,8 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
               observer: AgentObserver | None = None,
               search_stall_reminder: bool = True,
               system_instruction: str = SYSTEM_INSTRUCTION,
-              session_factory: type[ToolSession] = ToolSession) -> AgentResult:
+              session_factory: type[ToolSession] = ToolSession,
+              history: Sequence[dict] = ()) -> AgentResult:
     """Run the bounded protocol; reserve one model request for finalization.
 
     Expected model misuse is delivered as a recoverable observation. Unexpected
@@ -95,6 +97,12 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
 
     system_instruction and session_factory let an evaluation harness substitute
     its own instructions and tool boundary without touching product globals.
+
+    history replays an earlier conversation between the instruction and this
+    query, for a multi-turn session. It changes nothing else: turns, budgets
+    and the reserved finalization are counted for this run alone, and evidence
+    references remain the session's, so a caller that wants earlier references
+    to stay citable supplies the session that issued them.
     """
     if not isinstance(query, str) or not query.strip():
         raise ValueError('query must be a nonblank string.')
@@ -106,9 +114,11 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
         raise ValueError('think and search_stall_reminder must be booleans.')
     if observer is not None and not isinstance(observer, AgentObserver):
         raise ValueError('observer must be an AgentObserver.')
+    if any(not isinstance(m, dict) or m.get('role') not in ('system', 'user', 'assistant', 'tool') for m in history):
+        raise ValueError('history must contain conversation messages with a known role.')
     run = _AgentRun(query, client=client, tools=tools, model=model, max_turns=max_turns, think=think,
                     observer=observer or AgentObserver(), search_stall_reminder=search_stall_reminder,
-                    system_instruction=system_instruction, session_factory=session_factory)
+                    system_instruction=system_instruction, session_factory=session_factory, history=history)
     return run.run()
 
 
@@ -116,11 +126,12 @@ class _AgentRun:
     """One bounded run: conversation state, the tool session and the failure boundary."""
 
     def __init__(self, query, *, client, tools, model, max_turns, think, observer, search_stall_reminder,
-                 system_instruction, session_factory):
+                 system_instruction, session_factory, history=()):
         self.client, self.tools, self.model, self.max_turns, self.think = client, tools, model, max_turns, think
         self.observer, self.search_stall_reminder = observer, search_stall_reminder
         self.session_factory = session_factory
         self.state = AgentState(messages=[{'role': 'system', 'content': system_instruction},
+                                          *deepcopy(list(history)),
                                           {'role': 'user', 'content': query}])
         self.session = None
         self.definitions = None

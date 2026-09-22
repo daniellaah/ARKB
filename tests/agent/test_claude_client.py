@@ -7,7 +7,9 @@ import pytest
 from arkb.agent import run_agent
 from arkb.agent.claude_client import (MAX_BREAKPOINTS, ClaudeClient, cache_breakpoints, convert_tools,
                                       output_schema)
+from arkb.agent.session import ToolSession
 from arkb.agent.tools import FINAL_SCHEMA
+from arkb.interfaces.chat import carry_history
 
 
 class ScriptedMessages:
@@ -183,6 +185,40 @@ def test_a_carried_conversation_gets_one_more_breakpoint_at_its_boundary():
     assert request['messages'][1]['content'][-1]['cache_control'] == {'type': 'ephemeral'}
     assert request['messages'][1]['content'][-1]['text'] == 'first answer'
     assert 'cache_control' not in request['messages'][2]['content'][-1]
+
+
+def turn(client, tools, query, history, session):
+    """One complete agent run through the Claude transport, sharing one tool session."""
+    return run_agent(query, client=client, tools=tools, model='claude-opus-5', think=True,
+                     history=history, session_factory=lambda _tools: session)
+
+
+def test_the_prefix_a_breakpoint_covers_is_byte_identical_on_the_next_turn(tools):
+    def answer(text):
+        def create(**kwargs):
+            api.requests.append(kwargs)
+            blocks = [tool_use('finish', 'toolu_' + text, answer=text, status='insufficient_evidence', evidence_refs=[])]
+            return SimpleNamespace(content=blocks, stop_reason='tool_use', model='claude-opus-5', stop_details=None,
+                                   usage=SimpleNamespace(input_tokens=10, output_tokens=2, cache_read_input_tokens=0,
+                                                         cache_creation_input_tokens=0))
+        return create
+    api = SimpleNamespace(requests=[])
+    replies = iter(['one', 'two', 'three'])
+    api.messages = SimpleNamespace(create=lambda **kwargs: answer(next(replies))(**kwargs))
+    client = ClaudeClient('claude-opus-5', client=api)
+    session, history, prefixes = ToolSession(tools), [], []
+    for query in ('what is alpha?', 'and beta?', 'what did I ask first?'):
+        result = turn(client, tools, query, history, session)
+        history = carry_history(result.state.messages)
+        prefixes.append(cached_prefix(api.requests[-1]))
+    # Every later turn replays the earlier one's covered bytes unchanged: no timestamp, no
+    # reordered schema and no shifting tool list breaks the prefix the cache is keyed on.
+    assert prefixes[0] == prefixes[1][:len(prefixes[0])] == prefixes[2][:len(prefixes[0])]
+    assert prefixes[1] == prefixes[2][:len(prefixes[1])]
+    assert len(prefixes[0]) < len(prefixes[1]) < len(prefixes[2])
+    assert all(cache_breakpoints(request) <= MAX_BREAKPOINTS for request in api.requests)
+    # The third turn can still see the first question, which is what a pronoun resolves against.
+    assert 'what is alpha?' in json.dumps(api.requests[-1]['messages'], ensure_ascii=False)
 
 
 def test_caching_can_be_switched_off_entirely():
