@@ -43,7 +43,7 @@ Local run labels for regression comparisons (gitignored, on this machine):
 | ---: | --- | --- |
 | 1 | **Only a flat directory is supported.** `note_paths` iterates one directory; `source` is a bare filename; `DocumentAccess._paths` rejects any path with a separator; the exact-match text cache keys files by `path.name`. No frontmatter handling. | The author's vault has 1,603 `.md` files and **none** at the top level. The product indexes nothing there. Everything else is blocked on this. |
 | 2 | **Nothing exposes the vault to an outer agent.** No MCP server. | The shortest path to daily use: Claude Code and the desktop app become the agent, ARKB stays the retrieval layer. No LLM needed inside ARKB for this mode. |
-| 3 | **`ask` is one-shot and Ollama-only.** No session, no follow-ups, no hosted-model selection in the product. | Measurement says a hosted model is better and faster; a search agent people use has follow-up turns. |
+| 3 | **`ask` is one-shot and Ollama-only.** No session, no follow-ups, no hosted-model selection in the product, and no prompt caching on the hosted transports. | Measurement says a hosted model is better and faster; a search agent people use has follow-up turns, and every turn resends the whole history — uncached that is the dominant cost. |
 | 4 | **No Obsidian-native navigation.** No wikilink/backlink traversal, no tag or folder filters, no date filters. `list` filters by filename only. | Links and tags are the strongest structural signal in a real vault, and they are free to index. |
 | 5 | **No context engineering.** No vault map at startup, no whole-corpus bypass for small scopes, no compaction of old observations in long runs. | A 1,603-note vault needs orientation; a 20-note folder does not need retrieval at all. |
 | 6 | **Citation precision and no verification step.** The final object is the model's own claim; nothing checks that each cited note supports the answer. | Measured: 0.795 precision on the strongest model, 0.58 on single-note discovery questions. |
@@ -233,6 +233,17 @@ A. 把传输层选择搬进产品：
       --generation-model 支持 claude-* 和 deepseek-* 名字；缺 key 时报一句清楚的错。
    3. 每次运行把 usage（prompt/output token、请求数）汇总出来，--trace 时打印；
       托管模型另外打印一行估算成本（用你查到的官方价格，写进常量并注明查询日期）。
+   4. **prompt caching**：agent 循环每一轮都把整段历史重发一次，多轮会话更是如此，不缓存的话
+      输入 token 是主要成本（实测 114 题一次跑掉 2,245k prompt token）。
+      - Claude（claude_client.py）：请求的前缀顺序是 tools → system → messages，给稳定前缀打
+        cache_control 断点（system 和 tools 各一个；多轮时在历史的边界再打一个），
+        最多 4 个断点。变动的内容必须排在最后一个断点之后。
+        ClaudeClient 的 usage 已经记录了 cache_read_input_tokens / cache_creation_input_tokens，
+        直接报告它们。动手前先读一下 Anthropic 的 prompt caching 文档确认断点语义，不要凭记忆写。
+      - DeepSeek（chat_completions_client.py）：服务端自动做硬盘缓存，不需要显式标记；
+        它的 usage 里有 prompt_cache_hit_tokens / prompt_cache_miss_tokens，
+        现在是整体透传的，把它们纳入成本估算即可。
+      - Ollama 没有这个概念，跳过。
 
 B. 多轮会话：
    1. 新增 arkb chat 子命令：一个 REPL，保留跨轮的 AgentState.messages，
@@ -256,6 +267,10 @@ B. 多轮会话：
    - arkb ask "..." --generation-model deepseek-reasoner（用 Task 1 建的 obsidian 索引）
    - arkb chat 里连问三轮，第三轮用代词指代第一轮的内容，看它是否答对
    - 两者的 usage / 成本输出
+   - **缓存确实命中**：多轮会话从第二轮起，Claude 的 cache_read_input_tokens 应该大于零，
+     DeepSeek 的 prompt_cache_hit_tokens 应该大于零；把这几行贴给我。
+     如果一直是零，说明前缀被什么东西打破了（时间戳、变动的工具顺序、未排序的 JSON），
+     先找出来再说「做完了」。
 3. 评估不退化：make eval LABEL=t3-9b-think MODEL=qwen3.5:9b THINK=--think，与
    evaluation/results/v2-9b-think 对比。
 4. 提交：英文信息，可以分成「transports」和「chat」两次。
@@ -464,5 +479,10 @@ B. 评估侧一个小修正：false_premise 这个题型现在的判定是「状
   on is a one-line experiment once something else is stable.
 - Writing to the vault. The knowledge base stays read-only until the read path
   is good enough to be used daily.
+- **Cross-session memory** (remembering preferences, or what was asked before).
+  An earlier version of this list put it beside multi-turn conversation. That
+  was wrong: without daily use on the real vault there is no evidence about
+  what is worth remembering, and a memory layer built on guesses is harder to
+  remove than to add. Revisit after Tasks 1 to 3 have produced real usage.
 - Any new registered study, benchmark or statistics machinery. The 114-question
   set plus per-question wins and losses is the instrument.
