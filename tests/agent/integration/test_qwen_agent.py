@@ -15,11 +15,16 @@ pytestmark = [pytest.mark.integration, pytest.mark.skipif(
     reason='Set ARKB_RUN_MODEL_TESTS=1 with a tool-capable model cached and Ollama running.')]
 
 
+# Browsing tools may open any retrieval question: the model is free to orient
+# itself with list or links before the tool this query is really about.
+BROWSE = ('list', 'links')
+
+
 @pytest.mark.parametrize('query,allowed_first_tools', [
-    ('Which notes mention RAG', ('match',)),
-    ('Which notes relate to RAG', ('search',)),
-    ('Read rag.md', ('read',)),
-    ('Find material about Agent Memory', ('match', 'search', 'read')),
+    ('Which notes mention RAG', ('match', *BROWSE)),
+    ('Which notes relate to RAG', ('search', *BROWSE)),
+    ('Read rag.md', ('read', *BROWSE)),
+    ('Find material about Agent Memory', ('match', 'search', 'read', *BROWSE)),
     ('Hello', ()),
 ])
 def test_real_model_selects_tools_and_finishes(tmp_path, query, allowed_first_tools):
@@ -43,4 +48,4 @@ def test_real_model_selects_tools_and_finishes(tmp_path, query, allowed_first_to
         assert names == []
     else:
         assert names and names[0] in allowed_first_tools
-        assert all(name in {'match', 'search', 'read'} for name in names)
+        assert all(name in {'match', 'search', 'read', *BROWSE} for name in names)
