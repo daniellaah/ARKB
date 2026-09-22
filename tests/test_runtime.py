@@ -335,3 +335,24 @@ def test_notes_scope_prefers_configuration_then_the_indexed_exclusions(tmp_path)
         assert runtime._notes_scope(storage, None, tmp_path) == (tmp_path, DEFAULT_EXCLUDES)
     with Runtime(RuntimeConfig(exclude=('Attachments',))) as runtime:
         assert runtime._notes_scope(storage, manifest, None) == (tmp_path, ('Attachments',))
+
+
+def test_chat_client_keeps_local_models_on_ollama_and_owns_a_hosted_transport(monkeypatch):
+    from arkb.config import RuntimeConfig
+    from arkb.runtime import Runtime
+
+    local = MagicMock()
+    local.__enter__.return_value = local
+    monkeypatch.setattr('ollama.Client', Mock(return_value=local))
+    hosted = Mock()
+    build = Mock(return_value=hosted)
+    monkeypatch.setattr('arkb.agent.transports.hosted_client',
+                        lambda model, **kwargs: build(model, **kwargs) if model.startswith('claude') else None)
+    with Runtime(RuntimeConfig()) as runtime:
+        assert runtime.chat_client('qwen3.5:9b', think=True) is local
+        assert runtime.chat_client('claude-opus-5', think=True) is hosted
+        # A hosted transport also carries the assistant blocks it must replay, so it is reused.
+        assert runtime.chat_client('claude-opus-5', think=True) is hosted
+        build.assert_called_once_with('claude-opus-5', options=None, think=True, effort='high')
+        hosted.close.assert_not_called()
+    hosted.close.assert_called_once()

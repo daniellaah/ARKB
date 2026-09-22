@@ -13,6 +13,21 @@ not carry, so the client keeps them by turn and restores them in order. And the
 loop's `think=False` (its finalization) is not "thinking off": on Claude it is
 adaptive thinking at low effort, which avoids the failure modes of disabled
 thinking and still keeps the request cheap.
+
+Prompt caching. Every turn resends the whole conversation, so uncached input is
+the dominant cost. Caching is a prefix match over the rendered request, whose
+order is tools, then system, then messages, with at most four `cache_control`
+breakpoints; a byte change anywhere before a breakpoint invalidates it. This
+client marks three stable prefixes and nothing else: the last tool definition,
+the system block, and — in a multi-turn session — the end of the conversation
+carried over from earlier turns. Everything the current turn produces comes
+after the last breakpoint, so no marker ever sits on content that changes
+within a run. The deliberate omission is a breakpoint that moves with each
+tool observation: it would cache more inside one run, at the price of a prefix
+that is no longer stable across turns, which is the property tests can check
+offline. One invalidation is inherent to the loop and is not worked around
+here: the reserved finalization both drops `tools` and lowers the effort, so
+that request starts from a cold prefix.
 """
 from copy import deepcopy
 import json
@@ -23,6 +38,10 @@ from ollama import ChatResponse
 DEFAULT_MODEL = 'claude-opus-5'
 DEFAULT_MAX_TOKENS = 16000
 EFFORTS = ('low', 'medium', 'high', 'xhigh', 'max')
+CACHE_CONTROL = {'type': 'ephemeral'}
+# Content-block types that accept cache_control; a thinking block does not.
+CACHEABLE_BLOCKS = ('text', 'tool_use', 'tool_result', 'image', 'document')
+MAX_BREAKPOINTS = 4
 # Keywords the structured-output grammar does not accept; the session validates the full schema afterwards.
 _UNSUPPORTED_FORMAT_KEYWORDS = {'minLength', 'maxLength', 'uniqueItems', 'minItems', 'maxItems', 'minimum', 'maximum',
                                 'pattern', 'default'}
@@ -42,20 +61,47 @@ def output_schema(schema):
     return schema
 
 
-def convert_tools(tools):
-    return [{'name': t['function']['name'], 'description': t['function']['description'],
-             'input_schema': deepcopy(t['function']['parameters'])} for t in tools or []]
+def convert_tools(tools, *, cache=False):
+    """Translate the loop's function definitions; cache marks the last one as a read point.
+
+    The order is the session's, which is fixed for a run, and each schema is
+    copied verbatim, so the rendered tool block is byte-identical every turn.
+    """
+    converted = [{'name': t['function']['name'], 'description': t['function']['description'],
+                  'input_schema': deepcopy(t['function']['parameters'])} for t in tools or []]
+    if cache and converted:
+        converted[-1]['cache_control'] = dict(CACHE_CONTROL)
+    return converted
+
+
+def mark_cacheable(blocks):
+    """Put a breakpoint on the last block that accepts one; False when none does."""
+    for block in reversed(blocks):
+        if block.get('type') in CACHEABLE_BLOCKS:
+            block['cache_control'] = dict(CACHE_CONTROL)
+            return True
+    return False
+
+
+def cache_breakpoints(request):
+    """Count the breakpoints in a rendered request, in the order the API renders them."""
+    blocks = list(request.get('tools') or []) + list(request.get('system') or [])
+    for message in request.get('messages') or []:
+        content = message.get('content')
+        blocks += content if isinstance(content, list) else []
+    return sum('cache_control' in block for block in blocks)
 
 
 class ClaudeClient:
     def __init__(self, model=DEFAULT_MODEL, *, effort='high', low_effort='low', max_tokens=DEFAULT_MAX_TOKENS,
-                 client=None, api_key=None):
+                 client=None, api_key=None, cache=True):
         if effort not in EFFORTS or low_effort not in EFFORTS:
             raise ValueError('effort must be one of ' + ', '.join(EFFORTS))
         if client is None:
             import anthropic
             client = anthropic.Anthropic(api_key=api_key) if api_key else anthropic.Anthropic()
         self.model, self.effort, self.low_effort, self.max_tokens, self.client = model, effort, low_effort, max_tokens, client
+        self.cache = cache
         self.identity = {'name': model, 'provider': 'anthropic'}
         self._turns = {}   # turn key -> list of original assistant content blocks, consumed in replay order
         self.usage = []    # per-request usage records for accounting
@@ -80,9 +126,20 @@ class ClaudeClient:
         return blocks or [{'type': 'text', 'text': '(no content)'}]
 
     def convert_messages(self, messages):
-        """Top-level system text and Messages-API turns; tool results follow their tool_use ids in order."""
+        """Top-level system text, Messages-API turns, and where the carried history ends.
+
+        Tool results follow their tool_use ids in order. The boundary is the
+        index of the last converted message that precedes this turn's query:
+        everything up to it was fixed before the turn began, which makes it the
+        one position in `messages` worth a cache breakpoint. It is None for a
+        single-turn run, where nothing precedes the query.
+        """
         system, converted, consumed, pending_ids = [], [], {}, []
+        users = [i for i, m in enumerate(messages) if m['role'] == 'user']
+        carried, boundary = users[-1] if users else len(messages), None
         for index, message in enumerate(messages):
+            if index == carried and converted:
+                boundary = len(converted) - 1
             role = message['role']
             if role == 'system':
                 if not converted:
@@ -107,7 +164,7 @@ class ClaudeClient:
                     converted.append({'role': 'user', 'content': [block]})
             else:
                 raise ValueError('Unknown message role: ' + role)
-        return '\n\n'.join(system), converted
+        return '\n\n'.join(system), converted, boundary
 
     # --- Messages API -> Ollama form ----------------------------------------
 
@@ -140,20 +197,37 @@ class ClaudeClient:
         client's, sampling parameters do not exist on current Claude models,
         and the context is the model's own.
         """
-        system, converted = self.convert_messages(messages)
+        system, converted, boundary = self.convert_messages(messages)
         kwargs = {'model': self.model, 'max_tokens': self.max_tokens, 'messages': converted,
                   'thinking': {'type': 'adaptive'},
                   'output_config': {'effort': self.effort if think else self.low_effort}}
         if system:
-            kwargs['system'] = system
+            kwargs['system'] = [{'type': 'text', 'text': system}]
+            if self.cache:
+                kwargs['system'][0]['cache_control'] = dict(CACHE_CONTROL)
         if tools:
-            kwargs['tools'] = convert_tools(tools)
+            kwargs['tools'] = convert_tools(tools, cache=self.cache)
+        if self.cache and boundary is not None:
+            mark_cacheable(converted[boundary]['content'])
         if format:
             kwargs['output_config']['format'] = {'type': 'json_schema', 'schema': output_schema(format)}
+        if cache_breakpoints(kwargs) > MAX_BREAKPOINTS:
+            raise ValueError('A request may carry at most four cache_control breakpoints.')
         response = self.client.messages.create(**kwargs)
         if response.stop_reason == 'refusal':
             raise ValueError('The model declined the request: ' + str(getattr(response, 'stop_details', None)))
         return self._to_chat_response(response)
+
+    def last_usage(self):
+        """The most recent request in the accounting vocabulary shared by every transport.
+
+        input_tokens is already the uncached remainder on this API; the whole
+        prompt is that plus the cache read and the cache write.
+        """
+        record = self.usage[-1]
+        return {'input_tokens': record['input_tokens'] or 0, 'output_tokens': record['output_tokens'] or 0,
+                'cache_read_tokens': record['cache_read_input_tokens'] or 0,
+                'cache_write_tokens': record['cache_creation_input_tokens'] or 0}
 
     def close(self):
         close = getattr(self.client, 'close', None)

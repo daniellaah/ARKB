@@ -19,10 +19,8 @@ import subprocess
 from threading import current_thread, main_thread
 from time import perf_counter, strftime
 
-import httpx
-from ollama import ChatResponse
-
 from arkb.agent.observation import AgentBudget, AgentObserver
+from arkb.agent.transports import make_client
 from arkb.config import RuntimeConfig, load_env_file
 from arkb.knowledge.embeddings import tokenizer_fingerprint
 from arkb.knowledge.models import QdrantConfig
@@ -35,7 +33,6 @@ NOTES = ROOT / 'evaluation/notes'
 RESULTS = ROOT / 'evaluation/results'
 INDEX = ROOT / '.arkb/eval/index.sqlite'
 VAULT_ID = 'eval-notes'
-OLLAMA_URL = 'http://127.0.0.1:11434'
 QDRANT_URL = 'http://127.0.0.1:6340'
 OPTIONS = {'temperature': 0, 'num_ctx': 32768, 'num_predict': 4096}
 BUDGET = AgentBudget(max_tool_calls=12, max_query_calls=10, max_read_calls=6, max_evidence_tokens=8000, max_elapsed_ms=300000)
@@ -64,42 +61,7 @@ def load_questions(path=QUESTIONS, notes=NOTES):
 
 
 # --- transport ------------------------------------------------------------------
-
-class OllamaClient:
-    """Sends exactly what the loop asks (its think flag wins) plus the context and output limits."""
-
-    def __init__(self, model, *, options=OPTIONS, think=False):
-        self.model, self.options, self.think = model, dict(options), think
-        self.http = httpx.Client(base_url=OLLAMA_URL, timeout=httpx.Timeout(330, connect=10))
-        tags = self.http.get('/api/tags').raise_for_status().json()['models']
-        match = [m for m in tags if m['name'] == model]
-        if len(match) != 1:
-            raise ValueError('Model unavailable in Ollama: ' + model)
-        self.identity = {'name': model, 'digest': match[0]['digest']}
-
-    def chat(self, **request):
-        if request.get('model', self.model) != self.model:
-            raise ValueError('Request model differs from the client model.')
-        request = dict(request, model=self.model, think=request.get('think', self.think), truncate=False, shift=False,
-                       options={**(request.get('options') or {}), **self.options})
-        value = self.http.post('/api/chat', json=request).raise_for_status().json()
-        if 'error' in value:
-            raise ValueError('Ollama response error: ' + value['error'])
-        return ChatResponse.model_validate(value)
-
-    def close(self):
-        self.http.close()
-
-
-def make_client(model, *, options, think, effort='high'):
-    """Ollama for local models; Claude for claude-* (think selects the effort); DeepSeek for deepseek-* (DEEPSEEK_API_KEY)."""
-    if model.startswith('claude'):
-        from arkb.agent.claude_client import ClaudeClient
-        return ClaudeClient(model, effort=effort if think else 'low')
-    if model.startswith('deepseek'):
-        from arkb.agent.chat_completions_client import ChatCompletionsClient
-        return ChatCompletionsClient(model, temperature=options.get('temperature', 0))
-    return OllamaClient(model, options=options, think=think)
+# Transport selection and the Ollama client live in arkb.agent.transports, shared with the product.
 
 
 class DeadlineExceeded(RuntimeError):

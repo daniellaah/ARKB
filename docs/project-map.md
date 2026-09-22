@@ -18,8 +18,9 @@ quality is measured, not assumed.
 4. `src/arkb/knowledge/`: documents, chunking, embeddings, SQLite snapshots,
    Qdrant collections, the index builder.
 5. `src/arkb/runtime.py`: composition of services, engines and tools;
-   `interfaces/cli.py`: the six commands; `interfaces/mcp_server.py`: the same
-   tools without `finish`, served read-only to an outer agent over MCP stdio.
+   `agent/transports.py`: which chat transport a model name selects, and what a
+   run cost; `interfaces/cli.py`: the six commands; `interfaces/mcp_server.py`: the
+   same tools without `finish`, served read-only to an outer agent over MCP stdio.
 6. [docs/arkb-current-system-review.md](arkb-current-system-review.md): the
    long-form architecture review and the evidence behind each design choice.
 

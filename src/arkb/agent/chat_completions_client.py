@@ -121,5 +121,20 @@ class ChatCompletionsClient:
             raise ValueError(f'Chat completions error {response.status_code}: {response.text[:500]}')
         return self._to_chat_response(response.json())
 
+    def last_usage(self):
+        """The most recent request in the accounting vocabulary shared by every transport.
+
+        DeepSeek caches prefixes on its own disk with no request-side marking
+        and no separate write charge, so a hit is a cache read, a miss is
+        ordinary input, and cache writes are always zero. `prompt_tokens`
+        counts both, which is why the miss field is preferred when present.
+        """
+        record = self.usage[-1]
+        hit = record.get('prompt_cache_hit_tokens') or 0
+        miss = record.get('prompt_cache_miss_tokens')
+        return {'input_tokens': miss if miss is not None else max(0, (record.get('prompt_tokens') or 0) - hit),
+                'output_tokens': record.get('completion_tokens') or 0,
+                'cache_read_tokens': hit, 'cache_write_tokens': 0}
+
     def close(self):
         self.http.close()

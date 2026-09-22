@@ -49,6 +49,11 @@ def runtime(monkeypatch):
     return runtime, factory
 
 
+def without_client(call):
+    """Compare invocations ignoring the metered transport, which is built fresh each time."""
+    return call.args, {key: value for key, value in call.kwargs.items() if key != 'client'}
+
+
 def test_only_six_top_level_commands():
     commands = next(action for action in _parser()._actions if action.dest == 'command')
     assert set(commands.choices) == {'match', 'search', 'ask', 'index', 'status', 'mcp'}
@@ -122,7 +127,7 @@ def test_json_changes_only_format_for_every_command(runtime, capsys, command, ar
     fake.reset_mock()
     assert main([command, *arguments, '--json']) == 0
     output = capsys.readouterr()
-    assert getattr(fake, command).call_args_list == [first_call]
+    assert [without_client(c) for c in getattr(fake, command).call_args_list] == [without_client(first_call)]
     assert factory.call_args == config
     assert all(not getattr(fake, other).called for other in ('match', 'search', 'ask', 'index', 'status')
                if other != command)
@@ -136,8 +141,14 @@ def test_json_changes_only_format_for_every_command(runtime, capsys, command, ar
 def test_ask_calls_agent_entry_point_with_model_and_turn_limit(runtime, capsys):
     fake, _ = runtime
     assert main(['ask', 'Which notes mention RAG?', '--max-turns', '6', '--generation-model', 'fake-agent']) == 0
-    fake.ask.assert_called_once_with('Which notes mention RAG?', db=DEFAULT_DB, vault_id='default',
-                                     notes_dir=None, model='fake-agent', max_turns=6, think=True)
+    call = fake.ask.call_args
+    assert call.args == ('Which notes mention RAG?',)
+    assert {k: v for k, v in call.kwargs.items() if k != 'client'} == {
+        'db': DEFAULT_DB, 'vault_id': 'default', 'notes_dir': None, 'model': 'fake-agent',
+        'max_turns': 6, 'think': True}
+    # The agent talks to a metered transport chosen from the model name, not to a raw client.
+    fake.chat_client.assert_called_once_with('fake-agent', think=True)
+    assert call.kwargs['client'].client is fake.chat_client.return_value
     assert capsys.readouterr().out == 'Relevant material found.\n'
     fake.match.assert_not_called()
     fake.search.assert_not_called()
@@ -162,11 +173,12 @@ def test_ask_trace_is_stderr_and_does_not_change_execution(runtime, capsys, json
     first_call = fake.ask.call_args
     assert main([*args, '--trace']) == 0
     output = capsys.readouterr()
-    assert fake.ask.call_args == first_call
+    assert without_client(fake.ask.call_args) == without_client(first_call)
     assert original.out == output.out and original.err == ''
     assert output.err == ('[1] search\nquery: "agent memory"\nmode: "bm25"\n\n'
         '[2] read\nsource: "34_agent_memory_lifecycle.md"\n\n'
-        '[3] search\nquery: "episodic memory agents"\nmode: "hybrid"\n\n[4] final\n')
+        '[3] search\nquery: "episodic memory agents"\nmode: "hybrid"\n\n[4] final\n'
+        'usage: 0 request(s) | prompt 0 (uncached 0, cache read 0, cache write 0) | output 0\n')
     assert 'internal instructions' not in output.err
     assert 'internal model reasoning' not in output.err
 

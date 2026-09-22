@@ -5,7 +5,8 @@ from types import SimpleNamespace
 import pytest
 
 from arkb.agent import run_agent
-from arkb.agent.claude_client import ClaudeClient, convert_tools, output_schema
+from arkb.agent.claude_client import (MAX_BREAKPOINTS, ClaudeClient, cache_breakpoints, convert_tools,
+                                      output_schema)
 from arkb.agent.tools import FINAL_SCHEMA
 
 
@@ -42,9 +43,11 @@ def test_request_translation_and_effort_follow_the_think_flag():
     response = client.chat(model='ignored', messages=[{'role': 'system', 'content': 'S'}, {'role': 'user', 'content': 'q'}],
                            think=True, tools=tools, options={'temperature': 0}, stream=False)
     request = api.requests[0]
-    assert request['system'] == 'S' and request['messages'] == [{'role': 'user', 'content': [{'type': 'text', 'text': 'q'}]}]
+    assert request['system'] == [{'type': 'text', 'text': 'S', 'cache_control': {'type': 'ephemeral'}}]
+    assert request['messages'] == [{'role': 'user', 'content': [{'type': 'text', 'text': 'q'}]}]
     assert request['thinking'] == {'type': 'adaptive'} and request['output_config'] == {'effort': 'high'}
-    assert request['tools'] == convert_tools(tools) and 'temperature' not in request and request['model'] == 'claude-opus-5'
+    assert request['tools'] == convert_tools(tools, cache=True) and 'temperature' not in request
+    assert request['model'] == 'claude-opus-5'
     assert response.message.content == 'hello' and response.message.thinking == 'reasoning' and response.done_reason == 'stop'
     assert response.prompt_eval_count == 100 and response.eval_count == 20
     client, api = scripted(([{'type': 'text', 'text': '{}'}], 'end_turn'))
@@ -122,3 +125,70 @@ def test_the_product_loop_runs_end_to_end_through_the_claude_transport(tools):
     assert [len(r['messages']) for r in scripted_api.requests] == [1, 3]
     assert scripted_api.requests[1]['messages'][1]['content'][0] == thinking()
     assert len(client.usage) == 2
+
+
+# --- prompt caching ---------------------------------------------------------------
+# Real hit rates need a paid run; what can be checked offline is the request shape and,
+# more importantly, that the bytes a breakpoint covers do not move between turns.
+
+
+def rendered_blocks(request):
+    """The request in the order the API renders it: tools, then system, then messages."""
+    blocks = list(request.get('tools') or []) + list(request.get('system') or [])
+    for message in request['messages']:
+        blocks += message['content']
+    return blocks
+
+
+def cached_prefix(request):
+    """Everything the last breakpoint covers, with the markers themselves removed.
+
+    A moving marker legitimately differs between adjacent requests; the bytes
+    it covers must not.
+    """
+    blocks = rendered_blocks(request)
+    last = max(index for index, block in enumerate(blocks) if 'cache_control' in block)
+    return [{k: v for k, v in block.items() if k != 'cache_control'} for block in blocks[:last + 1]]
+
+
+def test_breakpoints_mark_tools_and_system_and_nothing_the_turn_still_changes():
+    client, api = scripted(([tool_use('match', 'toolu_1', query='foo')], 'tool_use'),
+                           ([{'type': 'text', 'text': 'done'}], 'end_turn'))
+    tools = [{'type': 'function', 'function': {'name': n, 'description': 'd', 'parameters': {'type': 'object', 'properties': {}}}}
+             for n in ('match', 'finish')]
+    messages = [{'role': 'system', 'content': 'S'}, {'role': 'user', 'content': 'q'}]
+    first = client.chat(messages=messages, think=True, tools=tools).message.model_dump(exclude_none=True)
+    request = api.requests[0]
+    assert [t.get('cache_control') for t in request['tools']] == [None, {'type': 'ephemeral'}]
+    assert request['system'][0]['cache_control'] == {'type': 'ephemeral'}
+    # A single-turn run has no carried history, so the two stable prefixes are the only breakpoints.
+    assert cache_breakpoints(request) == 2 <= MAX_BREAKPOINTS
+    assert not any('cache_control' in block for m in request['messages'] for block in m['content'])
+    # The observation this turn produced arrives after the last breakpoint, never inside it.
+    messages += [{k: v for k, v in first.items() if k != 'thinking'},
+                 {'role': 'tool', 'tool_name': 'match', 'content': '{"results": []}'}]
+    client.chat(messages=messages, think=True, tools=tools)
+    covered = json.dumps(cached_prefix(api.requests[1]), ensure_ascii=False)
+    assert 'results' not in covered and cache_breakpoints(api.requests[1]) == 2
+
+
+def test_a_carried_conversation_gets_one_more_breakpoint_at_its_boundary():
+    client, api = scripted(([{'type': 'text', 'text': 'second'}], 'end_turn'))
+    history = [{'role': 'assistant', 'content': 'first answer', 'tool_calls': None}]
+    client.chat(messages=[{'role': 'system', 'content': 'S'}, {'role': 'user', 'content': 'q1'},
+                          *history, {'role': 'user', 'content': 'q2'}], think=True)
+    request = api.requests[0]
+    assert cache_breakpoints(request) == 2 <= MAX_BREAKPOINTS   # system and the history boundary; no tools here
+    # The boundary sits on the last message before this turn's query, not on the query.
+    assert request['messages'][1]['content'][-1]['cache_control'] == {'type': 'ephemeral'}
+    assert request['messages'][1]['content'][-1]['text'] == 'first answer'
+    assert 'cache_control' not in request['messages'][2]['content'][-1]
+
+
+def test_caching_can_be_switched_off_entirely():
+    client, api = scripted(([{'type': 'text', 'text': 'x'}], 'end_turn'))
+    client.cache = False
+    client.chat(messages=[{'role': 'system', 'content': 'S'}, {'role': 'user', 'content': 'q'}],
+                think=True, tools=[{'type': 'function', 'function': {'name': 'm', 'description': 'd',
+                                                                    'parameters': {'type': 'object', 'properties': {}}}}])
+    assert cache_breakpoints(api.requests[0]) == 0

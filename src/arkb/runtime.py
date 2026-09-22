@@ -37,6 +37,7 @@ class Runtime:
         self.config = config
         self._resources = ExitStack()
         self._client = None
+        self._chat_clients: dict[tuple, object] = {}
         self._qdrant_clients: dict[str, 'QdrantClient'] = {}
         self._tokenizer = None
         self._closed = False
@@ -194,6 +195,26 @@ class Runtime:
                 Client(host=self.config.host, timeout=self.config.timeout, trust_env=False))
         return self._client
 
+    def chat_client(self, model: str = DEFAULT_GENERATION_MODEL, *, think: bool = DEFAULT_AGENT_THINK,
+                    effort: str = 'high', options: Mapping | None = None):
+        """The chat transport for this model name; a hosted one is owned here and closed with the runtime.
+
+        Local models keep using the shared Ollama client, which also serves
+        embeddings. A hosted transport is reused for the same settings, because
+        it also carries the assistant blocks it must replay. A missing API key
+        is reported before any request.
+        """
+        self._require_open()
+        from arkb.agent.transports import hosted_client
+        key = (model, think, effort)
+        if key not in self._chat_clients:
+            client = hosted_client(model, options=options, think=think, effort=effort)
+            if client is None:
+                return self.model_client()
+            self._resources.callback(client.close)
+            self._chat_clients[key] = client
+        return self._chat_clients[key]
+
     def qdrant_client(self, url: str):
         self._require_open()
         if url not in self._qdrant_clients:
@@ -293,7 +314,7 @@ class Runtime:
         if type(think) is not bool:
             raise ValueError('think must be a boolean.')
         from arkb.agent.loop import run_agent
-        return run_agent(query, client=self.model_client() if client is None else client,
+        return run_agent(query, client=self.chat_client(model, think=think) if client is None else client,
                          tools=tools, model=model, max_turns=max_turns, think=think,observer=observer,
                          search_stall_reminder=search_stall_reminder)
 

@@ -52,6 +52,7 @@ For example:
 - Deterministic exact, BM25, semantic, and hybrid retrieval with optional reranking.
 - Local Markdown indexing with section-aware chunking and reusable embeddings.
 - Inspectable agent traces and bounded tool-calling loops.
+- Local Ollama or hosted Claude/DeepSeek models, with prompt caching and per-run cost accounting.
 - CLI with JSON output and reusable Python APIs.
 - A read-only MCP stdio server, so Claude Code or the desktop app can be the agent instead.
 - Retrieval baselines, agent evaluation, and controlled model ablations.
@@ -269,6 +270,37 @@ mode: "hybrid"
 The actual queries and tool choices depend on the model and evidence collected during the run.
 
 The trace is written to stderr. The final response remains on stdout.
+
+With `--trace`, a usage summary follows the trajectory on stderr:
+
+```text
+usage: 5 request(s) | prompt 31,784 (uncached 31,784, cache read 0, cache write 0) | output 1,996
+```
+
+### Hosted models
+
+`--generation-model` selects the transport by name: `claude-*` uses the Claude Messages API,
+`deepseek-*` an OpenAI-compatible endpoint, and anything else the local Ollama server. The key
+comes from the environment or from the nearest `.env` above the working directory
+(`ANTHROPIC_API_KEY`, `DEEPSEEK_API_KEY`); a missing one is reported before any request is sent.
+The Claude transport is an optional dependency (`uv sync --locked --extra claude`).
+
+```sh
+uv run --locked arkb ask "..." --generation-model claude-opus-5 --trace
+```
+
+For a hosted model the summary carries a second line estimated from the published list prices
+recorded in `src/arkb/agent/transports.py` with the date they were read:
+
+```text
+cost: ~$0.0821 at claude-opus-5 list prices checked 2026-09-22
+```
+
+Every turn resends the whole conversation, so uncached input dominates that estimate. The Claude
+transport marks three stable prefixes with `cache_control` — the tool definitions, the system
+instruction, and the end of any conversation carried in from earlier turns — and never marks
+content the current turn is still producing. DeepSeek caches prefixes server-side with no request
+-side marking; its hits and misses are reported in the same summary. Ollama has no such notion.
 
 ### MCP server
 
@@ -702,7 +734,7 @@ See:
 
 ```text
 src/arkb/
-├── agent/        # Tool definitions, state, and bounded agent loop
+├── agent/        # Tool definitions, state, bounded agent loop, and chat transports
 ├── knowledge/    # Markdown access, chunking, embeddings, indexing, persistence
 ├── retrieval/    # Exact, BM25, semantic, hybrid, fusion, and reranking
 ├── generation/   # Context construction, generation, and citation validation
@@ -732,6 +764,9 @@ The design keeps deterministic knowledge processing and retrieval independent fr
 `evaluation/` and `benchmarks/` contain experiment inputs, configurations, and reports.
 
 `interfaces/mcp_server.py` serves the read-only tools to an external agent over MCP stdio.
+
+`agent/transports.py` holds the one selection rule the CLI and the evaluation harness share,
+and the recorded list prices.
 
 ## Development
 

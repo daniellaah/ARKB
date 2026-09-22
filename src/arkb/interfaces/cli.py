@@ -14,9 +14,10 @@ from httpx import HTTPError
 from ollama import ResponseError
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
+from arkb.agent.transports import ChatUsage, format_usage
 from arkb.config import (
     DEFAULT_DB, DEFAULT_NOTES_DIR, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL,
-    DEFAULT_AGENT_THINK, DEFAULT_RETRIEVAL_MODE, RuntimeConfig, RetrievalConfig,
+    DEFAULT_AGENT_THINK, DEFAULT_RETRIEVAL_MODE, RuntimeConfig, RetrievalConfig, load_env_file,
 )
 from arkb.knowledge.documents import DEFAULT_EXCLUDES
 from arkb.knowledge.embeddings import DEFAULT_QUERY_INSTRUCTION
@@ -132,10 +133,13 @@ def _parser():
             command.add_argument('query', type=_nonblank)
             command.add_argument('--max-turns', type=_positive_int, default=8,
                                  help='Maximum model turns, including the final response.')
-            command.add_argument('--trace', action='store_true', help='Print the available agent trajectory to stderr.')
+            command.add_argument('--trace', action='store_true',
+                                 help='Print the available agent trajectory and the usage summary.')
             command.add_argument('--think', action=argparse.BooleanOptionalAction, default=DEFAULT_AGENT_THINK,
                                  help='Enable model thinking (default); use --no-think to disable it.')
-            command.add_argument('--generation-model', type=_nonblank, default=DEFAULT_GENERATION_MODEL)
+            command.add_argument('--generation-model', type=_nonblank, default=DEFAULT_GENERATION_MODEL,
+                                 help='Local Ollama model, or a hosted claude-* or deepseek-* model whose '
+                                      'API key is in the environment or the nearest .env.')
     return parser
 
 
@@ -173,7 +177,20 @@ def _runtime_config(args):
                          qdrant_url=args.qdrant_url, exclude=_excludes(args))
 
 
-def _execute(runtime, args):
+def _load_api_keys(start=None):
+    """Fill the environment from the nearest .env above the working directory.
+
+    The hosted transports read their keys from the environment; a repository
+    keeps them in an uncommitted .env. Variables already set always win.
+    """
+    directory = (start or Path.cwd()).resolve()
+    for candidate in (directory, *directory.parents):
+        if (candidate / '.env').is_file():
+            return load_env_file(candidate / '.env')
+    return {}
+
+
+def _execute(runtime, args, usage=None):
     scope = {'db': args.db, 'vault_id': args.vault_id}
     if args.command == 'mcp':
         try:
@@ -193,14 +210,18 @@ def _execute(runtime, args):
         return runtime.search(args.query, **scope, mode=args.mode, top_k=args.top_k, source=args.source,
                               settings=settings, rerank=args.rerank, exact=args.exact)
     if args.command == 'ask':
+        client = ChatUsage(runtime.chat_client(args.generation_model, think=args.think), args.generation_model)
         try:
-            return runtime.ask(args.query, **scope, notes_dir=args.notes_dir,
+            return runtime.ask(args.query, **scope, notes_dir=args.notes_dir, client=client,
                                model=args.generation_model, max_turns=args.max_turns, think=args.think)
         except Exception as error:
             partial = getattr(error, 'agent_result', None)
             if args.trace and partial is not None:
                 _print_trace(partial)
             raise
+        finally:
+            if usage is not None:
+                usage.extend(format_usage(client.totals()))
     if args.command == 'index':
         return runtime.index(**scope, notes_dir=args.notes_dir, qdrant_config=args.qdrant_config,
             force=args.force, chunking=args.chunking, chunk_size=args.chunk_size,
@@ -269,10 +290,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = _parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
     _validate_arguments(parser, args)
+    if args.command == 'ask':
+        _load_api_keys()
+    usage = []
     try:
         with Runtime(_runtime_config(args)) as runtime:
-            result = _execute(runtime, args)
+            result = _execute(runtime, args, usage)
         _print_result(args, result)
+        if args.command == 'ask' and args.trace:
+            for line in usage:
+                print(line, file=sys.stderr)
         if args.command == 'ask' and result.stop_reason != 'final':
             detail = result.final.termination_reason if result.final else result.stop_reason
             print(f'Agent stopped without a final response: {detail}.', file=sys.stderr)

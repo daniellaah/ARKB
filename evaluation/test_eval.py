@@ -4,7 +4,8 @@ import time
 
 import pytest
 
-from evaluation.eval import (COSTS, METRICS, DeadlineExceeded, OllamaClient, compare, deadline, load_questions, markdown,
+from arkb.agent.transports import OllamaClient
+from evaluation.eval import (COSTS, METRICS, DeadlineExceeded, compare, deadline, load_questions, markdown,
                              score, summarize, write_json)
 
 
