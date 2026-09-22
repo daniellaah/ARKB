@@ -26,8 +26,9 @@ def test_session_list_is_validated_counts_as_retrieval_and_carries_no_evidence(t
     assert session.retrieval_attempted is True and session.references == {}
     assert session.invoke('list', {'limit': 0})['error']['code'] == 'invalid_arguments'
     assert session.invoke('list', {'pattern': 'b', 'extra': 1})['error']['code'] == 'invalid_arguments'
-    # An answer after only listing still needs cited evidence.
-    assert session.invoke('finish', {'answer': 'b.md is about beta', 'status': 'answered', 'evidence_refs': []})['error']['code'] == 'invalid_citation'
+    # An answer after only listing still needs cited evidence, and the error says what to do.
+    error = session.invoke('finish', {'answer': 'b.md is about beta', 'status': 'answered', 'evidence_refs': []})['error']
+    assert error['code'] == 'invalid_citation' and 'listings are not evidence' in error['message']
 
 
 def test_observer_delivers_a_listing_without_charging_the_evidence_allowance(tools):

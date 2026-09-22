@@ -143,6 +143,9 @@ class ToolSession:
         if len(set(refs)) != len(refs):
             raise ToolInputError('invalid_citation', 'Cite each evidence reference at most once.')
         if arguments['status'] in ('answered', 'partial') and self.retrieval_attempted and not refs:
+            if not self.references:
+                raise ToolInputError('invalid_citation', 'Nothing citable has been returned yet: listings are not evidence. '
+                                     'Read or match the notes the answer relies on, then cite their refs.')
             raise ToolInputError('invalid_citation', 'Cite returned evidence supporting this answer, or report insufficient_evidence.')
         citations = []
         for ref in refs:
