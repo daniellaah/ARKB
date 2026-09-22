@@ -91,6 +91,14 @@ class OllamaClient:
         self.http.close()
 
 
+def make_client(model, *, options, think, effort='high'):
+    """Ollama for local models; the Claude transport for claude-* models (think selects the effort)."""
+    if model.startswith('claude'):
+        from arkb.agent.claude_client import ClaudeClient
+        return ClaudeClient(model, effort=effort if think else 'low')
+    return OllamaClient(model, options=options, think=think)
+
+
 class DeadlineExceeded(RuntimeError):
     pass
 
@@ -223,7 +231,7 @@ def write_json(path, value):
 
 
 def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turns=8, limit=0, resume=False,
-        questions_path=QUESTIONS, notes=NOTES):
+        effort='high', questions_path=QUESTIONS, notes=NOTES):
     questions = load_questions(questions_path, notes)
     if limit:
         per, kept = Counter(), []
@@ -242,7 +250,7 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
         meta = json.loads((output / 'run.json').read_text())
         meta.update(resumed_at=strftime('%Y-%m-%dT%H:%M:%S%z'), resumed_from=len(rows))
     else:
-        meta = {'label': label, 'model': model, 'think': think, 'options': options, 'budget': asdict(budget),
+        meta = {'label': label, 'model': model, 'think': think, 'effort': effort, 'options': options, 'budget': asdict(budget),
                 'max_turns': max_turns, 'questions': len(questions), 'started_at': strftime('%Y-%m-%dT%H:%M:%S%z'), **git_state()}
     write_json(output / 'run.json', meta)
     started = perf_counter()
@@ -254,7 +262,7 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
         tokenizer = runtime.tokenizer()
         counter_id = 'reference-text:' + tokenizer_fingerprint(tokenizer)
         counter = lambda s: len(tokenizer.encode(s, add_special_tokens=False).ids)
-        client = OllamaClient(model, options=options, think=think)
+        client = make_client(model, options=options, think=think, effort=effort)
         meta['chat_model'] = client.identity
         write_json(output / 'run.json', meta)
         with SQLiteStorage(INDEX, read_only=True) as storage:
@@ -360,6 +368,7 @@ def main():
     r.add_argument('--num-ctx', type=int, default=OPTIONS['num_ctx'])
     r.add_argument('--num-predict', type=int, default=OPTIONS['num_predict'])
     r.add_argument('--max-turns', type=int, default=8)
+    r.add_argument('--effort', default='high', help='claude-* models with --think: low | medium | high | xhigh | max')
     r.add_argument('--max-evidence-tokens', type=int, default=BUDGET.max_evidence_tokens)
     r.add_argument('--limit', type=int, default=0, help='questions per type, for a quick check')
     r.add_argument('--resume', action='store_true', help='continue an interrupted run under the same label')
@@ -375,7 +384,8 @@ def main():
         options = {**OPTIONS, 'num_ctx': args.num_ctx, 'num_predict': args.num_predict}
         budget = AgentBudget(**{**asdict(BUDGET), 'max_evidence_tokens': args.max_evidence_tokens})
         summary = run((args.output or RESULTS / args.label).resolve(), label=args.label, model=args.model, think=args.think,
-                      options=options, budget=budget, max_turns=args.max_turns, limit=args.limit, resume=args.resume)
+                      options=options, budget=budget, max_turns=args.max_turns, limit=args.limit, resume=args.resume,
+                      effort=args.effort)
         print(markdown(summary, json.loads(((args.output or RESULTS / args.label) / 'run.json').read_text())))
     elif args.command == 'rescore':
         summary = rescore(args.run.resolve())
