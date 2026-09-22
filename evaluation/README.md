@@ -2,12 +2,12 @@
 
 One question file, one corpus, one script. It answers one question: did a
 change to the agent (tools, prompt, model, budget) make it better or worse on
-the same 84 questions?
+the same 114 questions?
 
 ```
 evaluation/
   notes/           58 Markdown notes, the corpus (40 authored notes, 18 fixtures)
-  questions.json   84 questions with the notes they should cite
+  questions.json   114 questions with the notes they should cite
   eval.py          run, rescore, compare
   test_eval.py
   results/         run outputs (gitignored)
@@ -30,6 +30,9 @@ evaluation/
 | direct_read | 4 | read the named note only, no search |
 | evidence_gap | 4 | `insufficient_evidence` when nothing is expected; `partial` when part of the question is answerable |
 | no_retrieval | 4 | an answer without any retrieval tool |
+| synthesis | 10 | one answer that needs three or more notes, all cited |
+| browse | 10 | the set of notes on a topic (which notes discuss X); extras cost precision, omissions cost recall |
+| false_premise | 10 | the question assumes something the notes contradict or never state: status `partial` or `insufficient_evidence`, citing the note that corrects it |
 
 `expected_sources` is read only by the scorer, after a run. `reference` is
 for a human reading the results; it is not scored. Every question was written
@@ -48,10 +51,17 @@ Builds (or reuses) the index of `notes/`, runs the product agent on every
 question (temperature 0, 32,768 context, 4,096 output tokens, 8 turns,
 budgets 12/10/6 tool, query and read calls, 8,000 evidence tokens, 300 s) and
 writes `results/<label>/{run.json,results.jsonl,summary.json,summary.md}`.
-About ten minutes at 9B. `--limit N` takes N questions per type for a quick
-check; `--resume` continues an interrupted run; `--max-evidence-tokens`,
-`--max-turns`, `--num-ctx`, `--num-predict` override the defaults. A finished
-run is not rerun under the same label.
+About fifteen minutes at 9B. `--limit N` takes N questions per type for a
+quick check; `--types a,b` runs only those types; `--resume` continues an
+interrupted run; `--max-evidence-tokens`, `--max-turns`, `--num-ctx`,
+`--num-predict` override the defaults. A finished run is not rerun under the
+same label.
+
+Models: an Ollama name runs locally; `claude-*` uses the Claude transport
+(`pip install -e .[claude]`, credentials from the environment, `--think`
+selects `--effort` and its absence low effort); `deepseek-chat` /
+`deepseek-reasoner` use the chat-completions transport with
+`DEEPSEEK_API_KEY` (thinking is a property of the model name there).
 
 ```bash
 .venv/bin/python -m evaluation.eval compare evaluation/results/baseline evaluation/results/my-change
@@ -74,7 +84,7 @@ Recomputes the scores of a saved run after the scorer or the question file chang
 | source_recall / source_precision | expected notes among the cited notes, and cited notes that were expected |
 | delivered_recall | expected notes among the notes whose evidence reached the model (what retrieval found, before the answer) |
 | complete | exact_lookup: cited set equals the expected set |
-| gap_respected, no_retrieval, read_only | behaviour on evidence_gap, no_retrieval and direct_read questions |
+| gap_respected, premise_flagged, no_retrieval, read_only | behaviour on evidence_gap, false_premise, no_retrieval and direct_read questions |
 | elapsed_s, model_requests, tool_calls, prompt/eval tokens, evidence_tokens, responses_cut | cost; `responses_cut` counts model responses stopped at `num_predict` |
 
 An error (harness exception or error final) counts as not answered with zero

@@ -41,9 +41,9 @@ OPTIONS = {'temperature': 0, 'num_ctx': 32768, 'num_predict': 4096}
 BUDGET = AgentBudget(max_tool_calls=12, max_query_calls=10, max_read_calls=6, max_evidence_tokens=8000, max_elapsed_ms=300000)
 QUESTION_DEADLINE_SECONDS = 360
 TYPES = ('semantic_discovery', 'exploratory_retrieval', 'knowledge_qa', 'multi_hop_qa', 'exact_lookup',
-         'direct_read', 'evidence_gap', 'no_retrieval')
+         'direct_read', 'evidence_gap', 'no_retrieval', 'synthesis', 'browse', 'false_premise')
 METRICS = ('answered', 'source_recall', 'source_precision', 'delivered_recall', 'complete', 'gap_respected',
-           'no_retrieval', 'read_only')
+           'premise_flagged', 'no_retrieval', 'read_only')
 COSTS = ('elapsed_s', 'model_requests', 'tool_calls', 'prompt_tokens', 'eval_tokens', 'evidence_tokens', 'responses_cut')
 
 
@@ -92,10 +92,13 @@ class OllamaClient:
 
 
 def make_client(model, *, options, think, effort='high'):
-    """Ollama for local models; the Claude transport for claude-* models (think selects the effort)."""
+    """Ollama for local models; Claude for claude-* (think selects the effort); DeepSeek for deepseek-* (DEEPSEEK_API_KEY)."""
     if model.startswith('claude'):
         from arkb.agent.claude_client import ClaudeClient
         return ClaudeClient(model, effort=effort if think else 'low')
+    if model.startswith('deepseek'):
+        from arkb.agent.chat_completions_client import ChatCompletionsClient
+        return ChatCompletionsClient(model, temperature=options.get('temperature', 0))
     return OllamaClient(model, options=options, think=think)
 
 
@@ -168,6 +171,8 @@ def score(row, question):
         'complete': set(cited) == expected if kind == 'exact_lookup' else None,
         # A gap with nothing expected wants an abstention; a gap beside answerable parts wants a partial answer.
         'gap_respected': status == ('partial' if expected else 'insufficient_evidence') if kind == 'evidence_gap' else None,
+        # A false premise must not be answered as asked; the honest statuses correct it or report the gap.
+        'premise_flagged': status in ('partial', 'insufficient_evidence') if kind == 'false_premise' else None,
         'no_retrieval': not any(t in ('list', 'search', 'match', 'read') for t in tools) if kind == 'no_retrieval' else None,
         'read_only': all(t in ('read', 'finish') for t in tools) if kind == 'direct_read' else None,
         'elapsed_s': row['elapsed_ms'] / 1000, 'model_requests': len(report.get('models') or []), 'tool_calls': len(tools),
@@ -208,11 +213,11 @@ def markdown(summary, meta):
     lines = [f"# Run `{meta['label']}`", '',
              f"model={meta['model']} think={meta['think']} git={meta['git_head'][:10]}{'+dirty' if meta['dirty'] else ''} "
              f"questions={meta['questions']} wall={meta.get('wall_seconds', 0):.0f}s", '',
-             '| type | n | errors | answered | source recall | source precision | delivered recall | complete | gap respected | no retrieval | read only | elapsed s | requests | tool calls | prompt tokens |',
-             '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
+             '| type | n | errors | answered | source recall | source precision | delivered recall | complete | gap respected | premise flagged | no retrieval | read only | elapsed s | requests | tool calls | prompt tokens |',
+             '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
     for name, b in [('all', summary['all'])] + list(summary['by_type'].items()):
         cells = [_cell(b[k]) for k in ('answered', 'source_recall', 'source_precision', 'delivered_recall', 'complete', 'gap_respected',
-                                       'no_retrieval', 'read_only', 'elapsed_s', 'model_requests', 'tool_calls', 'prompt_tokens')]
+                                       'premise_flagged', 'no_retrieval', 'read_only', 'elapsed_s', 'model_requests', 'tool_calls', 'prompt_tokens')]
         lines.append(f"| {name} | {b['n']} | {b['errors']} | " + ' | '.join(cells) + ' |')
     return '\n'.join(lines) + '\n'
 
@@ -231,8 +236,10 @@ def write_json(path, value):
 
 
 def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turns=8, limit=0, resume=False,
-        effort='high', questions_path=QUESTIONS, notes=NOTES):
+        effort='high', types=None, questions_path=QUESTIONS, notes=NOTES):
     questions = load_questions(questions_path, notes)
+    if types:
+        questions = [q for q in questions if q['type'] in types]
     if limit:
         per, kept = Counter(), []
         for q in questions:
@@ -250,7 +257,7 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
         meta = json.loads((output / 'run.json').read_text())
         meta.update(resumed_at=strftime('%Y-%m-%dT%H:%M:%S%z'), resumed_from=len(rows))
     else:
-        meta = {'label': label, 'model': model, 'think': think, 'effort': effort, 'options': options, 'budget': asdict(budget),
+        meta = {'label': label, 'model': model, 'think': think, 'effort': effort, 'types': types, 'options': options, 'budget': asdict(budget),
                 'max_turns': max_turns, 'questions': len(questions), 'started_at': strftime('%Y-%m-%dT%H:%M:%S%z'), **git_state()}
     write_json(output / 'run.json', meta)
     started = perf_counter()
@@ -371,6 +378,7 @@ def main():
     r.add_argument('--effort', default='high', help='claude-* models with --think: low | medium | high | xhigh | max')
     r.add_argument('--max-evidence-tokens', type=int, default=BUDGET.max_evidence_tokens)
     r.add_argument('--limit', type=int, default=0, help='questions per type, for a quick check')
+    r.add_argument('--types', default='', help='comma-separated question types to run; default all')
     r.add_argument('--resume', action='store_true', help='continue an interrupted run under the same label')
     r.add_argument('--output', type=Path, help='defaults to evaluation/results/<label>')
     s = sub.add_parser('rescore', help='recompute the scores of a saved run')
@@ -385,7 +393,7 @@ def main():
         budget = AgentBudget(**{**asdict(BUDGET), 'max_evidence_tokens': args.max_evidence_tokens})
         summary = run((args.output or RESULTS / args.label).resolve(), label=args.label, model=args.model, think=args.think,
                       options=options, budget=budget, max_turns=args.max_turns, limit=args.limit, resume=args.resume,
-                      effort=args.effort)
+                      effort=args.effort, types=[t for t in args.types.split(',') if t] or None)
         print(markdown(summary, json.loads(((args.output or RESULTS / args.label) / 'run.json').read_text())))
     elif args.command == 'rescore':
         summary = rescore(args.run.resolve())

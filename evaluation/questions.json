@@ -995,5 +995,347 @@
    "pilot_policy_6.md"
   ],
   "reference": "Every note containing the substring 'current retention', no others."
+ },
+ {
+  "id": "syn_001",
+  "type": "synthesis",
+  "question": "Three mechanisms in these notes are all described with words like cache or compression: prompt caching, low-precision KV caches, and embedding quantization. For each, say what is stored or reduced and why the three are not interchangeable.",
+  "expected_sources": [
+   "11_prompt_caching.md",
+   "17_embedding_quantization.md",
+   "35_llm_serving_and_kv_cache.md"
+  ],
+  "reference": "Prompt caching reuses prompt processing for repeated prompt material (no summarizing); a low-precision KV cache reduces the memory of attention keys/values during generation; embedding quantization lowers the precision of retrieval index vectors. Each acts on a different representation (prompt computation, attention state, index vectors) with its own error effects."
+ },
+ {
+  "id": "syn_002",
+  "type": "synthesis",
+  "question": "The notes describe several ways to keep a model's working context small during long tasks: compaction with persistent notes, session handoffs, deferred tool discovery, layered skill loading, and processing tool results in code. Group them by whether they shrink history, defer definitions, or move work out of the model, citing the note for each.",
+  "expected_sources": [
+   "03_dynamic_tool_discovery.md",
+   "04_code_execution_for_tools.md",
+   "05_agent_skills.md",
+   "06_context_compaction.md",
+   "07_long_running_harnesses.md"
+  ],
+  "reference": "Shrink history: compaction/persistent notes (06), session handoffs with progress records (07). Defer definitions: tool search keeps schemas deferred (03), skills load instructions and references on demand (05). Move work out of the model: an execution environment filters/aggregates tool results and returns a summary (04)."
+ },
+ {
+  "id": "syn_003",
+  "type": "synthesis",
+  "question": "Using the notes on cross-encoder reranking, hybrid rank fusion and chunk boundaries: what can a reranker not fix, and what do the other two notes say should be checked before blaming the reranker?",
+  "expected_sources": [
+   "13_hybrid_rank_fusion.md",
+   "14_cross_encoder_reranking.md",
+   "15_chunk_boundaries.md"
+  ],
+  "reference": "A reranker only reorders a shortlist; it cannot recover a passage that never entered it (14). Candidate coverage depends on retrieval: hybrid fusion combines lexical and vector candidates via RRF (13), and chunking decides whether a fragment carries enough context to be retrievable at all (15). Check coverage and chunk boundaries before evaluating reranking."
+ },
+ {
+  "id": "syn_004",
+  "type": "synthesis",
+  "question": "According to the notes, how do LoRA fine-tuning, Direct Preference Optimization and retrieval-augmented generation differ in what they change and when that change takes effect?",
+  "expected_sources": [
+   "19_parameter_efficient_tuning.md",
+   "20_direct_preference_optimization.md",
+   "30_retrieval_and_fine_tuning.md"
+  ],
+  "reference": "LoRA trains a small adapter on top of frozen base weights (a learned change deployed with the base model). DPO changes parameters from preferred/rejected pairs with a reference model and no separate reward model. RAG changes nothing in the model: it supplies external evidence at inference time. Fine-tuning changes behavior at training time; retrieval acts at question time."
+ },
+ {
+  "id": "syn_005",
+  "type": "synthesis",
+  "question": "Four notes warn against generalizing a benchmark result: MTEB, process supervision on mathematics, SimpleQA, and weak-to-strong generalization. State each note's caveat in one sentence.",
+  "expected_sources": [
+   "18_embedding_benchmarks.md",
+   "22_process_supervision.md",
+   "23_weak_to_strong_generalization.md",
+   "26_simpleqa_factuality.md"
+  ],
+  "reference": "MTEB: good scores on one task/language do not establish quality for another application (18). Process supervision: results on math should not be treated as evidence for every reasoning domain (22). SimpleQA: concise fact questions do not establish reliability of long multi-claim answers (26). Weak-to-strong: promising small-supervises-large results do not show oversight of superhuman systems is solved (23)."
+ },
+ {
+  "id": "syn_006",
+  "type": "synthesis",
+  "question": "Combine the notes on trial reliability, hallucination incentives and agent evaluation: how should retries, guesses and failed runs be counted so that a system does not look better than it is?",
+  "expected_sources": [
+   "25_hallucination_incentives.md",
+   "27_agent_trial_reliability.md",
+   "38_agent_evaluation_and_observability.md"
+  ],
+  "reference": "Report how many attempts were allowed and keep failures; a successful retry must not erase an earlier failure (27). Do not give a wrong answer the same credit as an abstention, or guessing is rewarded (25). Evaluate the final state and the trace, not only the final message, and record infrastructure conditions so an environmental failure is not misread as model quality (38)."
+ },
+ {
+  "id": "syn_007",
+  "type": "synthesis",
+  "question": "Three notes describe records an agent writes while it works: the task and progress ledgers, memory files updated by concurrent workers, and traces and threads for observability. Say what each record is for and what goes wrong when it is missing or overwritten.",
+  "expected_sources": [
+   "31_multi_agent_coordination.md",
+   "34_agent_memory_lifecycle.md",
+   "38_agent_evaluation_and_observability.md"
+  ],
+  "reference": "Task Ledger holds facts/assumptions/plan and Progress Ledger tracks execution; without them a lead cannot tell progress from repeated attempts (31). Memory files need controlled writers; last-write-wins between concurrent workers can drop an earlier observation, so consolidate (34). Runs, traces and threads answer different questions; without a trace a polite final message can hide a failed export (38)."
+ },
+ {
+  "id": "syn_008",
+  "type": "synthesis",
+  "question": "Which retrieval preparations in the notes happen at indexing time and which at query time? Cover contextual retrieval, GraphRAG community summaries, LazyGraphRAG, query rewriting and contextual compression.",
+  "expected_sources": [
+   "12_contextual_retrieval.md",
+   "33_graph_search_strategies.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "Indexing time: contextual retrieval prepends passage-specific context before embedding (12); original GraphRAG extracts entities and prepares community summaries (33). Query time: LazyGraphRAG defers relevance testing and reasoning until a query arrives (33); query rewriting happens before first-stage retrieval and contextual compression after retrieval (40)."
+ },
+ {
+  "id": "syn_009",
+  "type": "synthesis",
+  "question": "For fictional service F3, what are the current retention period and the incident-record exception, and which archived figure must be ignored? Explain how the notes establish which policy is current.",
+  "expected_sources": [
+   "pilot_archive_3.md",
+   "pilot_policy_3.md",
+   "pilot_service_3.md"
+  ],
+  "reference": "Current: 23 days, incident exception 5 days (pilot_policy_3, which pilot_service_3 delegates to). The archived 83 days (pilot_archive_3) is superseded; the service note says the archived policy is not current."
+ },
+ {
+  "id": "syn_010",
+  "type": "synthesis",
+  "question": "A generator answered wrongly from a table. Using the multimodal retrieval note, the document ingestion note and the chunk-boundaries note: where can such an error come from, and what should the pipeline keep so the source can be checked?",
+  "expected_sources": [
+   "15_chunk_boundaries.md",
+   "32_document_ingestion_and_structure.md",
+   "37_multimodal_evidence_retrieval.md"
+  ],
+  "reference": "Ingestion can drop column headings so numbers lose meaning (32); multimodal retrieval distinguishes search text from the evidence the generator inspects and must preserve the page-to-image mapping (37); chunk boundaries can separate a value from the condition that qualifies it (15). Keep document identity, edition, section/page and the original page so a reviewer can check the source."
+ },
+ {
+  "id": "brw_001",
+  "type": "browse",
+  "question": "Which notes discuss how documents are split into retrieval units (chunking)? List each with one line on what it adds. Do not include notes that only use the word chunk for something else.",
+  "expected_sources": [
+   "12_contextual_retrieval.md",
+   "15_chunk_boundaries.md",
+   "32_document_ingestion_and_structure.md"
+  ],
+  "reference": "15 (fixed vs content-aware boundaries), 32 (partition elements, then combine into chunks; keep structure and metadata), 12 (prepend passage context before indexing a chunk). 35's chunked prefill and 40's compression are not document chunking."
+ },
+ {
+  "id": "brw_002",
+  "type": "browse",
+  "question": "Which notes are primarily about evaluating or benchmarking models and agents? List them.",
+  "expected_sources": [
+   "18_embedding_benchmarks.md",
+   "25_hallucination_incentives.md",
+   "26_simpleqa_factuality.md",
+   "27_agent_trial_reliability.md",
+   "38_agent_evaluation_and_observability.md"
+  ],
+  "reference": "18 (MTEB), 25 (scoring rules and guessing), 26 (SimpleQA), 27 (pass-at-k vs all-trials), 38 (harness, infrastructure, traces, N-1 tests)."
+ },
+ {
+  "id": "brw_003",
+  "type": "browse",
+  "question": "Which notes cite an Anthropic source (anthropic.com or alignment.anthropic.com)? List the filenames.",
+  "expected_sources": [
+   "01_workflows_and_agents.md",
+   "02_tool_interface_design.md",
+   "03_dynamic_tool_discovery.md",
+   "04_code_execution_for_tools.md",
+   "05_agent_skills.md",
+   "06_context_compaction.md",
+   "07_long_running_harnesses.md",
+   "08_think_tool.md",
+   "09_agent_sandboxing.md",
+   "10_mcp_connections.md",
+   "12_contextual_retrieval.md",
+   "27_agent_trial_reliability.md",
+   "31_multi_agent_coordination.md",
+   "36_prompt_injection_and_monitors.md",
+   "38_agent_evaluation_and_observability.md"
+  ],
+  "reference": "Fifteen notes: 01–10, 12, 27, 31, 36, 38 (match on 'anthropic.com' in the Source sections)."
+ },
+ {
+  "id": "brw_004",
+  "type": "browse",
+  "question": "Which notes describe reducing the memory or cost of embedding vectors themselves (not of prompts or attention state)?",
+  "expected_sources": [
+   "16_matryoshka_embeddings.md",
+   "17_embedding_quantization.md"
+  ],
+  "reference": "16 (fewer dimensions via Matryoshka training), 17 (scalar/binary quantization). 11 and 35 concern prompt processing and KV cache, not index vectors."
+ },
+ {
+  "id": "brw_005",
+  "type": "browse",
+  "question": "How many notes are titled 'Current fictional policy', and what are their filenames?",
+  "expected_sources": [
+   "pilot_policy_1.md",
+   "pilot_policy_2.md",
+   "pilot_policy_3.md",
+   "pilot_policy_4.md",
+   "pilot_policy_5.md",
+   "pilot_policy_6.md"
+  ],
+  "reference": "Six: pilot_policy_1.md to pilot_policy_6.md."
+ },
+ {
+  "id": "brw_006",
+  "type": "browse",
+  "question": "Which notes explain how to make LLM inference faster or schedule it better?",
+  "expected_sources": [
+   "11_prompt_caching.md",
+   "21_speculative_decoding.md",
+   "35_llm_serving_and_kv_cache.md"
+  ],
+  "reference": "11 (reuse prompt processing), 21 (draft-and-verify decoding), 35 (prefill/decode, continuous batching, chunked prefill, KV cache precision and offloading)."
+ },
+ {
+  "id": "brw_007",
+  "type": "browse",
+  "question": "Which notes describe a method that changes a model's parameters through training (adapters, preference optimization, reward models, supervision studies, alignment training)? List only notes whose main subject is such a method, not notes that merely contrast training with retrieval.",
+  "expected_sources": [
+   "19_parameter_efficient_tuning.md",
+   "20_direct_preference_optimization.md",
+   "22_process_supervision.md",
+   "23_weak_to_strong_generalization.md",
+   "24_deliberative_alignment.md"
+  ],
+  "reference": "19 (LoRA), 20 (DPO), 22 (process-supervised reward models), 23 (weak-to-strong supervision), 24 (SFT + RL on safety specs). 30 only contrasts fine-tuning with retrieval and is not expected."
+ },
+ {
+  "id": "brw_008",
+  "type": "browse",
+  "question": "Which notes contain a section headed 'Illustrative scenario'? Give the filenames.",
+  "expected_sources": [
+   "31_multi_agent_coordination.md",
+   "32_document_ingestion_and_structure.md",
+   "33_graph_search_strategies.md",
+   "34_agent_memory_lifecycle.md",
+   "35_llm_serving_and_kv_cache.md",
+   "36_prompt_injection_and_monitors.md",
+   "37_multimodal_evidence_retrieval.md",
+   "38_agent_evaluation_and_observability.md",
+   "39_synthetic_data_quality.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "The ten long notes 31–40."
+ },
+ {
+  "id": "brw_009",
+  "type": "browse",
+  "question": "Which notes describe a two-stage design where a cheap model, representation or classifier runs first and a more expensive one only on a shortlist or on escalation? Name the mechanism in each.",
+  "expected_sources": [
+   "14_cross_encoder_reranking.md",
+   "16_matryoshka_embeddings.md",
+   "17_embedding_quantization.md",
+   "21_speculative_decoding.md",
+   "36_prompt_injection_and_monitors.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "14 (cross-encoder on a retriever's shortlist), 16 (short vector prefix for search, full vector for detail), 17 (compressed vectors for candidates, full precision for rescoring), 21 (small model drafts, target model verifies), 36 (cheap probe first, stronger classifier on escalation), 40 (first-stage retrieval, then a semantic ranker on the shortlist)."
+ },
+ {
+  "id": "brw_010",
+  "type": "browse",
+  "question": "Which notes cite a LangChain source? List them and the LangChain topic each covers.",
+  "expected_sources": [
+   "31_multi_agent_coordination.md",
+   "34_agent_memory_lifecycle.md",
+   "38_agent_evaluation_and_observability.md",
+   "40_query_planning_and_compression.md"
+  ],
+  "reference": "31 (LangGraph Command handoffs), 34 (memory lifecycle, LangMem, Context Hub), 38 (runs/traces/threads, N-1 testing), 40 (query transformations, contextual compression)."
+ },
+ {
+  "id": "fp_001",
+  "type": "false_premise",
+  "question": "The prompt caching note says caching summarizes long documents so that later requests are cheaper. What summary length does it recommend?",
+  "expected_sources": [
+   "11_prompt_caching.md"
+  ],
+  "reference": "False premise: the note says caching reuses prompt processing and does not summarize material or select documents; no summary length exists."
+ },
+ {
+  "id": "fp_002",
+  "type": "false_premise",
+  "question": "What chunk size in tokens does the chunk-boundaries note recommend for technical manuals?",
+  "expected_sources": [
+   "15_chunk_boundaries.md"
+  ],
+  "reference": "The note gives no size; it says to test chunking against actual questions and structure and to preserve nearby context."
+ },
+ {
+  "id": "fp_003",
+  "type": "false_premise",
+  "question": "By what percentage does chunked prefill improve retrieval precision according to the serving note?",
+  "expected_sources": [
+   "35_llm_serving_and_kv_cache.md"
+  ],
+  "reference": "The note explicitly says chunked prefill is not a retrieval improvement; it is a scheduling mechanism. No percentage."
+ },
+ {
+  "id": "fp_004",
+  "type": "false_premise",
+  "question": "The DPO note says the method first trains an explicit reward model. What data does that reward model use?",
+  "expected_sources": [
+   "20_direct_preference_optimization.md"
+  ],
+  "reference": "False premise: DPO avoids fitting a separate reward model; it trains directly on preferred/rejected pairs with a reference model."
+ },
+ {
+  "id": "fp_005",
+  "type": "false_premise",
+  "question": "How many attempts does the trial-reliability note say an agent must pass before it counts as reliable?",
+  "expected_sources": [
+   "27_agent_trial_reliability.md"
+  ],
+  "reference": "No number; the note contrasts pass-at-k and all-trials-success and says to report how many attempts were allowed."
+ },
+ {
+  "id": "fp_006",
+  "type": "false_premise",
+  "question": "What speedup factor does the speculative decoding note guarantee?",
+  "expected_sources": [
+   "21_speculative_decoding.md"
+  ],
+  "reference": "None: the benefit depends on the acceptance rate and the cost of drafting and verification."
+ },
+ {
+  "id": "fp_007",
+  "type": "false_premise",
+  "question": "Which vendor's MCP server implementation does the MCP note recommend?",
+  "expected_sources": [
+   "10_mcp_connections.md"
+  ],
+  "reference": "The note names no vendor or implementation; it explains the client/server distinction."
+ },
+ {
+  "id": "fp_008",
+  "type": "false_premise",
+  "question": "The weak-to-strong note concludes that oversight of superhuman systems is solved. What evidence does it give for that conclusion?",
+  "expected_sources": [
+   "23_weak_to_strong_generalization.md"
+  ],
+  "reference": "False premise: the note says promising results in this setup do not establish that oversight of future superhuman systems is solved."
+ },
+ {
+  "id": "fp_009",
+  "type": "false_premise",
+  "question": "According to the sandboxing note, restricting file writes is enough to stop data leaving the sandbox. Which section says so?",
+  "expected_sources": [
+   "09_agent_sandboxing.md"
+  ],
+  "reference": "False premise: the note says restricting file writes alone does not control outbound traffic; both filesystem and network boundaries are needed."
+ },
+ {
+  "id": "fp_010",
+  "type": "false_premise",
+  "question": "The hybrid fusion note says Reciprocal Rank Fusion adds the BM25 score to the cosine score. What weights does it use for the two scores?",
+  "expected_sources": [
+   "13_hybrid_rank_fusion.md"
+  ],
+  "reference": "False premise: RRF uses rank positions, precisely to avoid adding raw lexical and vector scores as if comparable; there are no score weights."
  }
 ]

@@ -10,9 +10,11 @@ from evaluation.eval import (COSTS, METRICS, DeadlineExceeded, OllamaClient, com
 
 def test_question_file_is_valid_and_covers_every_type():
     questions = load_questions()
-    assert len(questions) == 84
+    assert len(questions) == 114
     assert {q['type'] for q in questions} == {'semantic_discovery', 'exploratory_retrieval', 'knowledge_qa', 'multi_hop_qa',
-                                              'exact_lookup', 'direct_read', 'evidence_gap', 'no_retrieval'}
+                                              'exact_lookup', 'direct_read', 'evidence_gap', 'no_retrieval', 'synthesis', 'browse', 'false_premise'}
+    assert all(len(q['expected_sources']) >= 3 for q in questions if q['type'] == 'synthesis')
+    assert all(q['expected_sources'] for q in questions if q['type'] in ('browse', 'false_premise'))
     assert all(q['expected_sources'] == [] for q in questions if q['type'] == 'no_retrieval')
 
 
@@ -42,6 +44,9 @@ def test_scores_follow_the_question_type():
     partial = {'id': 'p', 'type': 'evidence_gap', 'expected_sources': ['a.md']}
     assert score(record('partial', cited=['a.md']), partial)['gap_respected'] is True
     assert score(record('answered', cited=['a.md']), partial)['gap_respected'] is False
+    trap = {'id': 't', 'type': 'false_premise', 'expected_sources': ['a.md']}
+    assert score(record('partial', cited=['a.md']), trap)['premise_flagged'] is True and score(record('answered', cited=['a.md']), trap)['premise_flagged'] is False
+    assert score(record('answered'), q)['premise_flagged'] is None
     assert score(record(tools=()), {'id': 'n', 'type': 'no_retrieval', 'expected_sources': []})['no_retrieval'] is True
     assert score(record(tools=('search',)), {'id': 'n', 'type': 'no_retrieval', 'expected_sources': []})['no_retrieval'] is False
     assert score(record(tools=('read',)), {'id': 'd', 'type': 'direct_read', 'expected_sources': ['a.md']})['read_only'] is True
