@@ -75,6 +75,21 @@ history style.
 仓库：/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases（分支 main，工作树应干净）。
 代码、注释、提交信息用英文；跟我汇报用中文，简短。
 
+## 运行环境（这台机器，先看这段，能省你半小时）
+- 用仓库根目录的 .venv/bin/python。常用：make test、make lint、
+  make eval LABEL=<名字> MODEL=qwen3.5:9b THINK=--think、make compare A=<run> B=<run>
+- Ollama：http://127.0.0.1:11434，已拉取 qwen3.5:4b / 9b / 27b 与 qwen3-embedding
+- Qdrant：**http://127.0.0.1:6340**。注意 CLI 的默认值是 6333，那个端口没有服务——
+  凡是索引或检索的命令都要显式带 --qdrant-url http://127.0.0.1:6340，否则连不上
+- match 依赖 rg（/opt/homebrew/bin/rg）。某条命令如果因 PATH 失败，用
+  PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
+- GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
+  要等就等，**绝不要 kill 别的进程**
+- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
+  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+  动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
+
 ## 背景
 ARKB 是一个 agentic 检索系统：一个有界的 agent 循环（src/arkb/agent/loop.py）通过五个工具
 （list / match / search / read / finish）访问一个 Markdown 知识库，下层是确定性的检索引擎
@@ -124,12 +139,13 @@ ARKB 是一个 agentic 检索系统：一个有界的 agent 循环（src/arkb/ag
    （tests/knowledge/test_documents.py、tests/retrieval/ 下的 exact 测试、tests/agent/）。
 2. 真实 vault 端到端跑通，把数字告诉我：
    .venv/bin/python -m arkb.interfaces.cli index --db .arkb/obsidian.sqlite --vault-id obsidian \
-     --notes-dir /Users/daboluo/ObsidianVault/MyObsidian --offline
+     --notes-dir /Users/daboluo/ObsidianVault/MyObsidian --qdrant-url http://127.0.0.1:6340 --offline
    记录：索引耗时、文档数、chunk 数、跳过的文件数。注意这会用本地 Ollama 做 embedding，
    1,603 篇可能要几十分钟，先用 --notes-dir 指向其中一个子目录小规模验证再跑全量。
 3. 索引完后跑一个真实问题并把输出贴给我：
    .venv/bin/python -m arkb.interfaces.cli ask "<随便一个关于我笔记内容的问题>" \
-     --db .arkb/obsidian.sqlite --vault-id obsidian --notes-dir /Users/daboluo/ObsidianVault/MyObsidian --trace
+     --db .arkb/obsidian.sqlite --vault-id obsidian --notes-dir /Users/daboluo/ObsidianVault/MyObsidian \
+     --qdrant-url http://127.0.0.1:6340 --trace
 4. 评估不退化：
    make eval LABEL=t1-9b-think MODEL=qwen3.5:9b THINK=--think
    .venv/bin/python -m evaluation.eval compare evaluation/results/v2-9b-think evaluation/results/t1-9b-think
@@ -147,6 +163,21 @@ ARKB 是一个 agentic 检索系统：一个有界的 agent 循环（src/arkb/ag
 ```text
 仓库：/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases（分支 main）。
 代码、注释、提交信息用英文；跟我汇报用中文，简短。
+
+## 运行环境（这台机器，先看这段，能省你半小时）
+- 用仓库根目录的 .venv/bin/python。常用：make test、make lint、
+  make eval LABEL=<名字> MODEL=qwen3.5:9b THINK=--think、make compare A=<run> B=<run>
+- Ollama：http://127.0.0.1:11434，已拉取 qwen3.5:4b / 9b / 27b 与 qwen3-embedding
+- Qdrant：**http://127.0.0.1:6340**。注意 CLI 的默认值是 6333，那个端口没有服务——
+  凡是索引或检索的命令都要显式带 --qdrant-url http://127.0.0.1:6340，否则连不上
+- match 依赖 rg（/opt/homebrew/bin/rg）。某条命令如果因 PATH 失败，用
+  PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
+- GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
+  要等就等，**绝不要 kill 别的进程**
+- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
+  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+  动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
 ARKB 是一个 Markdown 知识库的检索层：确定性的检索引擎（bm25 / semantic / hybrid）、
@@ -178,6 +209,8 @@ ARKB 只提供工具，内部不需要任何 LLM。
 4. 只读：不提供任何写入、删除、索引重建的工具。
 5. 依赖：用官方 `mcp` Python SDK，加成 pyproject 的可选 extra（例如 [project.optional-dependencies] 的 mcp），
    不要塞进主依赖。用 uv lock / uv sync --extra mcp 安装，别破坏现有的 claude / rerank extra。
+   **写代码前先读一遍已安装版本的 API**（包的 README 或 site-packages 里的源码/示例）：
+   这个 SDK 的接口改过几版，凭记忆写出来的类名和装饰器很可能是旧的。
 6. 错误按 MCP 的错误响应返回，不要让 server 因为一次坏参数退出。
 
 ## 验收
@@ -201,6 +234,21 @@ ARKB 只提供工具，内部不需要任何 LLM。
 ```text
 仓库：/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases（分支 main）。
 代码、注释、提交信息用英文；跟我汇报用中文，简短。
+
+## 运行环境（这台机器，先看这段，能省你半小时）
+- 用仓库根目录的 .venv/bin/python。常用：make test、make lint、
+  make eval LABEL=<名字> MODEL=qwen3.5:9b THINK=--think、make compare A=<run> B=<run>
+- Ollama：http://127.0.0.1:11434，已拉取 qwen3.5:4b / 9b / 27b 与 qwen3-embedding
+- Qdrant：**http://127.0.0.1:6340**。注意 CLI 的默认值是 6333，那个端口没有服务——
+  凡是索引或检索的命令都要显式带 --qdrant-url http://127.0.0.1:6340，否则连不上
+- match 依赖 rg（/opt/homebrew/bin/rg）。某条命令如果因 PATH 失败，用
+  PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
+- GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
+  要等就等，**绝不要 kill 别的进程**
+- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
+  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+  动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
 ARKB 的 agent 循环（src/arkb/agent/loop.py）通过一个 chat(**request) 契约调用模型，请求形状是
@@ -254,6 +302,8 @@ B. 多轮会话：
    3. 历史变长时要有上限：超过阈值就丢弃最早的工具观察（保留它们的 source 摘要），
       不要让上下文无声地溢出。阈值可配置。
    4. 命令：空行退出，/reset 清空会话，/trace 切换轨迹打印。
+   5. REPL 要可测：把会话逻辑写成一个接受输入迭代器、返回输出的函数，
+      CLI 只是它加上 input() 的薄壳。测试直接驱动那个函数，不要去模拟终端。
 
 ## 约束
 - 不要改 agent 循环的工具契约或预算语义。
@@ -286,6 +336,21 @@ B. 多轮会话：
 ```text
 仓库：/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases（分支 main）。
 代码、注释、提交信息用英文；跟我汇报用中文，简短。
+
+## 运行环境（这台机器，先看这段，能省你半小时）
+- 用仓库根目录的 .venv/bin/python。常用：make test、make lint、
+  make eval LABEL=<名字> MODEL=qwen3.5:9b THINK=--think、make compare A=<run> B=<run>
+- Ollama：http://127.0.0.1:11434，已拉取 qwen3.5:4b / 9b / 27b 与 qwen3-embedding
+- Qdrant：**http://127.0.0.1:6340**。注意 CLI 的默认值是 6333，那个端口没有服务——
+  凡是索引或检索的命令都要显式带 --qdrant-url http://127.0.0.1:6340，否则连不上
+- match 依赖 rg（/opt/homebrew/bin/rg）。某条命令如果因 PATH 失败，用
+  PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
+- GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
+  要等就等，**绝不要 kill 别的进程**
+- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
+  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+  动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
 ARKB 的 agent 有五个工具：list（浏览文件名/标题/小节标题）、match（rg 字面匹配）、
@@ -346,6 +411,21 @@ _load_note 已经解析 frontmatter 并把 tags/aliases 存进了 Note 的 metad
 ```text
 仓库：/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases（分支 main）。
 代码、注释、提交信息用英文；跟我汇报用中文，简短。
+
+## 运行环境（这台机器，先看这段，能省你半小时）
+- 用仓库根目录的 .venv/bin/python。常用：make test、make lint、
+  make eval LABEL=<名字> MODEL=qwen3.5:9b THINK=--think、make compare A=<run> B=<run>
+- Ollama：http://127.0.0.1:11434，已拉取 qwen3.5:4b / 9b / 27b 与 qwen3-embedding
+- Qdrant：**http://127.0.0.1:6340**。注意 CLI 的默认值是 6333，那个端口没有服务——
+  凡是索引或检索的命令都要显式带 --qdrant-url http://127.0.0.1:6340，否则连不上
+- match 依赖 rg（/opt/homebrew/bin/rg）。某条命令如果因 PATH 失败，用
+  PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
+- GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
+  要等就等，**绝不要 kill 别的进程**
+- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
+  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+  动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
 
 ## 背景
 agent 现在每次都是「冷启动」：不知道库长什么样，不管库有多小都要先检索，长轨迹里早期的工具观察
@@ -410,6 +490,21 @@ agent 现在每次都是「冷启动」：不知道库长什么样，不管库�
 仓库：/Users/daboluo/MyWorkSpace/GitHub/agentic-retrieval-for-knowledge-bases（分支 main）。
 代码、注释、提交信息用英文；跟我汇报用中文，简短。
 
+## 运行环境（这台机器，先看这段，能省你半小时）
+- 用仓库根目录的 .venv/bin/python。常用：make test、make lint、
+  make eval LABEL=<名字> MODEL=qwen3.5:9b THINK=--think、make compare A=<run> B=<run>
+- Ollama：http://127.0.0.1:11434，已拉取 qwen3.5:4b / 9b / 27b 与 qwen3-embedding
+- Qdrant：**http://127.0.0.1:6340**。注意 CLI 的默认值是 6333，那个端口没有服务——
+  凡是索引或检索的命令都要显式带 --qdrant-url http://127.0.0.1:6340，否则连不上
+- match 依赖 rg（/opt/homebrew/bin/rg）。某条命令如果因 PATH 失败，用
+  PATH=/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin 重试
+- GPU 是共享的：跑本地模型前先 ps 和 curl -s 127.0.0.1:11434/api/ps 看有没有别的推理在跑；
+  要等就等，**绝不要 kill 别的进程**
+- 托管模型的 key 在仓库根目录 .env（DEEPSEEK_API_KEY 已填，ANTHROPIC 没有）。
+  调 API 要花钱：跑全量评估前先把预计花费告诉我，我同意再跑
+- 评估全量 114 题：9B 约 40 分钟、27B 约 110 分钟、deepseek 约 17 分钟。
+  动手改评估相关代码后，先 --limit 1 冒烟（11 题）再跑全量
+
 ## 背景
 2026-09-22 在 114 题上实测：
 
@@ -455,7 +550,8 @@ B. 评估侧一个小修正：false_premise 这个题型现在的判定是「状
 ## 验收
 1. make test、make lint 全绿；提示改动与验证步各有测试（假 client，检查请求数、剔除逻辑、
    全部剔除时的状态降级）。
-2. 至少四组评估，把对比表贴给我：
+2. 至少四组评估（其中两组用 deepseek，会花钱：一次全量约 2.2M 输入 + 0.17M 输出 token，
+   按当前价目表估一下先告诉我），把对比表贴给我：
    - 基线：evaluation/results/v2-deepseek-reasoner、v2-9b-think（已存在，rescore 后使用）
    - 只开提示约束：deepseek 与 9b 各一次
    - 开验证步：deepseek 与 9b 各一次
