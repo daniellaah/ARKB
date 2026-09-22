@@ -15,8 +15,8 @@ quality is measured, not assumed.
 3. `src/arkb/retrieval/`: `exact.py` (literal matching with a disposable text
    cache), `bm25.py`, `semantic.py`, `hybrid.py` (reciprocal rank fusion),
    `engine.py` (explicit mode dispatch).
-4. `src/arkb/knowledge/`: documents, chunking, embeddings, SQLite snapshots,
-   Qdrant collections, the index builder.
+4. `src/arkb/knowledge/`: documents, chunking, embeddings, the wikilink graph,
+   SQLite snapshots, Qdrant collections, the index builder.
 5. `src/arkb/runtime.py`: composition of services, engines and tools;
    `agent/transports.py`: which chat transport a model name selects, and what a
    run cost; `interfaces/cli.py`: the seven commands; `interfaces/chat.py`: the

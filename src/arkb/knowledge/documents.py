@@ -4,8 +4,9 @@ A source is a vault-relative POSIX path ("04-Areas/Career/note.md"); a flat
 knowledge base is the special case where every source is a bare filename.
 """
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 from fnmatch import fnmatchcase
 import os
 from pathlib import Path, PurePosixPath
@@ -157,6 +158,45 @@ def _load_note(path: Path, *, source: str | None = None) -> Note:
     return _read_note(path, path.name if source is None else source)[0]
 
 
+# A tag starts a word, holds at least one letter, and nests with "/". The
+# word boundary keeps "## Heading" and the fragment of "http://host#anchor"
+# out; a purely numeric "#1" is an issue reference, not a tag.
+_INLINE_TAG = re.compile(r'(?:^|(?<=\s))#([\w/-]*[^\W\d_][\w/-]*)', re.MULTILINE)
+
+
+def note_tags(note: Note) -> tuple[str, ...]:
+    """Collect a note's tags: frontmatter "tags"/"tag" plus inline #tags in the body.
+
+    Frontmatter values may be a list or one string holding several tags
+    separated by commas or spaces, with or without a leading "#". Tags keep the
+    spelling they were written in, in frontmatter-then-body order, without
+    duplicates.
+    """
+    found: list[str] = []
+    for key in ('tags', 'tag'):
+        value = note.metadata.get(key)
+        for item in value if isinstance(value, list) else [value] if isinstance(value, str) else []:
+            if isinstance(item, str):
+                found.extend(part.lstrip('#') for part in re.split(r'[,\s]+', item) if part.strip('#'))
+    found.extend(match.group(1) for match in _INLINE_TAG.finditer(note.content))
+    return tuple(dict.fromkeys(tag for tag in found if tag))
+
+
+def _tagged(tags: Sequence[str], wanted: str) -> bool:
+    """Match a tag case-insensitively, and match a parent of a nested tag."""
+    wanted = wanted.lstrip('#').lower()
+    return any(tag.lower() == wanted or tag.lower().startswith(wanted + '/') for tag in tags)
+
+
+def _instant(value: str, name: str) -> float:
+    """Read an ISO date or datetime as a local-time epoch second."""
+    _require_text(value, name)
+    try:
+        return datetime.fromisoformat(value).timestamp()
+    except ValueError as error:
+        raise ValueError(f'{name} must be an ISO date such as 2026-01-31, or an ISO datetime.') from error
+
+
 def _excluded(name: str, relative: str, exclude: Sequence[str]) -> bool:
     """Match a directory by its own name or by its vault-relative path."""
     return any(fnmatchcase(name, pattern) or fnmatchcase(relative, pattern)
@@ -244,35 +284,78 @@ class DocumentAccess:
             if self._confined(path):
                 yield path, relative
 
-    def list(self, pattern: str | None = None, *, limit: int = 50, max_headings: int = 12) -> dict:
-        """Summarize notes in source order: source, title, headings and body size.
+    def list(self, pattern: str | None = None, *, tag: str | None = None,
+             modified_after: str | None = None, modified_before: str | None = None,
+             limit: int = 50, max_headings: int = 12) -> dict:
+        """Summarize notes in source order: source, title, headings, size, tags and mtime.
 
-        pattern filters filenames case-insensitively; a pattern without glob
-        characters matches as a substring. Nothing here is evidence: the
-        listing lets a caller decide what to search or read, and reports
-        `truncated` when more notes matched than limit.
+        pattern filters the vault-relative path case-insensitively, so a folder
+        can be selected with "04-Areas/*"; a pattern without glob characters
+        matches as a substring, and "*" also matches "/". tag matches a
+        frontmatter or inline tag, including a parent of a nested tag.
+        modified_after and modified_before bound the file's modification time
+        as a half-open local-time range: a note is kept when its mtime is at or
+        after modified_after and strictly before modified_before, so a bare
+        date includes that whole day only on the after side. Every given filter
+        must hold.
+
+        Nothing here is evidence: the listing lets a caller decide what to
+        search or read, and reports `truncated` when more notes matched than
+        limit.
         """
         if pattern is not None:
             _require_text(pattern, 'pattern')
             pattern = pattern.lower()
             if not any(c in pattern for c in '*?['):
                 pattern = f'*{pattern}*'
+        if tag is not None:
+            _require_text(tag, 'tag')
+        after = None if modified_after is None else _instant(modified_after, 'modified_after')
+        before = None if modified_before is None else _instant(modified_before, 'modified_before')
         if type(limit) is not int or limit < 1:
             raise ValueError('limit must be a positive integer.')
         notes, total = [], 0
         for path, source in self._paths():
-            if pattern is not None and not fnmatchcase(path.name.lower(), pattern):
+            if pattern is not None and not fnmatchcase(source.lower(), pattern):
+                continue
+            mtime = path.stat().st_mtime
+            if (after is not None and mtime < after) or (before is not None and mtime >= before):
+                continue
+            # A tag is only known once the note is read, so a tag filter costs
+            # one read per candidate; the other filters still decide first.
+            note = _load_note(path, source=source) if tag is not None else None
+            tags = () if note is None else note_tags(note)
+            if tag is not None and not _tagged(tags, tag):
                 continue
             total += 1
             if len(notes) >= limit:
                 continue
-            note = _load_note(path, source=source)
+            if note is None:
+                note = _load_note(path, source=source)
+                tags = note_tags(note)
             headings = ['#' * block.level + ' ' + block.heading
                         for block in _markdown_blocks(note.content) if block.kind == 'heading']
             notes.append({'source': note.source, 'title': note.title, 'chars': len(note.content),
+                          'modified': datetime.fromtimestamp(mtime).isoformat(timespec='seconds'),
+                          **({'tags': list(tags)} if tags else {}),
                           'headings': headings[:max_headings],
                           **({'more_headings': len(headings) - max_headings} if len(headings) > max_headings else {})})
         return {'notes': notes, 'total': total, 'truncated': total > len(notes)}
+
+    def titles(self, sources: Iterable[str]) -> dict[str, str]:
+        """Current titles for known sources, omitting any outside the live scope.
+
+        A caller that has paths from elsewhere -- the link graph, for instance
+        -- uses this to name them without reading them as evidence.
+        """
+        found = {}
+        for source in sources:
+            for path, relative in self._paths(source):
+                try:
+                    found[relative] = _load_note(path, source=relative).title
+                except (OSError, UnicodeDecodeError):
+                    continue
+        return found
 
     def records(self, *, source: str | None = None) -> Iterator[ChunkRecord]:
         """Yield current complete bodies in source order, filtering before I/O.

@@ -23,6 +23,7 @@ from arkb.agent.observation import AgentBudget, AgentObserver
 from arkb.agent.transports import make_client
 from arkb.config import RuntimeConfig, load_env_file
 from arkb.knowledge.embeddings import tokenizer_fingerprint
+from arkb.knowledge.links import LinkGraph
 from arkb.knowledge.models import QdrantConfig
 from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.runtime import Runtime
@@ -237,7 +238,8 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
         with SQLiteStorage(INDEX, read_only=True) as storage:
             manifest = storage.active_manifest(VAULT_ID)
             engine = runtime.retrieval_engine(storage, manifest, modes=('bm25', 'semantic'), exact=True)
-            tools = runtime.agent_tools(engine=engine, directory=notes, vault_id=VAULT_ID, rerank=False, prepare_exact=True)
+            tools = runtime.agent_tools(engine=engine, directory=notes, vault_id=VAULT_ID, rerank=False,
+                                        prepare_exact=True, links=LinkGraph(storage, manifest.index_version))
             try:
                 for index_, question in enumerate(questions):
                     observer = AgentObserver(budget=budget, counter=counter, counter_identity=counter_id)

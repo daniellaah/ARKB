@@ -3,7 +3,8 @@
 from copy import deepcopy
 from typing import TypedDict
 
-from arkb.knowledge.documents import DocumentAccess
+from arkb.knowledge.documents import DocumentAccess, DocumentNotFound
+from arkb.knowledge.links import LinkGraph
 from arkb.knowledge.models import ConfigValue
 from arkb.retrieval.engine import RetrievalEngine
 from arkb.retrieval.exact import ExactRetriever
@@ -55,22 +56,25 @@ def _query_result(response: SearchResponse) -> QueryResult:
             **({'truncated': response.truncated} if response.truncated is not None else {})}
 
 
-def tool_definitions(modes: tuple[str, ...], *, default_mode: str) -> tuple[dict[str, ConfigValue], ...]:
+def tool_definitions(modes: tuple[str, ...], *, default_mode: str,
+                     links: bool = True) -> tuple[dict[str, ConfigValue], ...]:
     """Render the effective tool schemas without constructing capability objects."""
-    definitions = deepcopy(TOOL_DEFINITIONS)
+    definitions = [definition for definition in deepcopy(TOOL_DEFINITIONS)
+                   if links or definition['name'] != 'links']
     search = next(definition for definition in definitions if definition['name'] == 'search')
     search['parameters']['properties']['mode']['enum'] = [*modes, None]
     meanings = {'bm25': 'keyword ranking', 'semantic': 'meaning', 'hybrid': 'keywords and meaning'}
     strategies = ', '.join(f'{mode} ({meanings[mode]})' for mode in modes)
     search['parameters']['properties']['mode']['description'] = (
         f'Available strategies: {strategies or "none"}; omitted/null uses {default_mode}.')
-    return definitions
+    return tuple(definitions)
 
 
 DEFAULT_MATCH_LIMIT = 5
 UNIQUE_SOURCES_LIMIT = 50
 DEFAULT_SEARCH_LIMIT = 10
 DEFAULT_LIST_LIMIT = 50
+DEFAULT_LINKS_LIMIT = 20
 
 
 class AgentTools:
@@ -82,7 +86,8 @@ class AgentTools:
     """
 
     def __init__(self, *, documents: DocumentAccess, exact: ExactRetriever,
-                 engine: RetrievalEngine, mode: str = 'semantic', rerank: bool = False):
+                 engine: RetrievalEngine, mode: str = 'semantic', rerank: bool = False,
+                 links: LinkGraph | None = None):
         if mode not in ('semantic', 'bm25', 'lexical', 'hybrid'):
             raise ValueError('Unknown configured retrieval mode.')
         if type(rerank) is not bool:
@@ -92,11 +97,14 @@ class AgentTools:
         self._engine = engine
         self._mode = mode
         self._rerank = rerank
+        self._links = links
 
     def tool_definitions(self) -> tuple[dict[str, ConfigValue], ...]:
         """Describe only search modes supported by the composed engine.
 
         This advertises capabilities, without choosing a strategy for the agent.
+        A composition without an indexed link graph does not advertise links,
+        so the agent is never offered a tool that cannot answer.
         The shared catalog remains unchanged for other compositions.
         """
         modes = []
@@ -106,7 +114,7 @@ class AgentTools:
             modes.append('semantic')
         if len(modes) == 2:
             modes.append('hybrid')
-        return tool_definitions(tuple(modes), default_mode=self._mode)
+        return tool_definitions(tuple(modes), default_mode=self._mode, links=self._links is not None)
 
     def match(self, query: str, *, target: str = 'content', regex: bool = False,
               case_sensitive: bool = True, source: str | None = None, limit: int | None = None,
@@ -143,9 +151,45 @@ class AgentTools:
                                                 rerank=self._rerank,
                                                 filters=filters, top_k=limit))
 
-    def list(self, pattern: str | None = None, *, limit: int = DEFAULT_LIST_LIMIT) -> dict:
-        """Browse the knowledge base: source paths, titles, headings and sizes, no evidence."""
-        return self._documents.list(pattern, limit=limit)
+    def list(self, pattern: str | None = None, *, tag: str | None = None,
+             modified_after: str | None = None, modified_before: str | None = None,
+             limit: int = DEFAULT_LIST_LIMIT) -> dict:
+        """Browse the knowledge base: source paths, titles, headings, sizes, tags, no evidence."""
+        return self._documents.list(pattern, tag=tag, modified_after=modified_after,
+                                    modified_before=modified_before, limit=limit)
+
+    def links(self, source: str, *, direction: str = 'both',
+              limit: int = DEFAULT_LINKS_LIMIT) -> dict:
+        """Follow the vault's link graph out of and into one note, no evidence.
+
+        Outgoing links are the notes this one links to; incoming links are the
+        notes linking to it. Each carries the other note's path, its current
+        title and a short excerpt of the line the link was written in, which is
+        enough to judge the relation without quoting it.
+        """
+        if self._links is None:
+            raise ValueError('This knowledge base has no indexed link graph.')
+        if direction not in ('both', 'out', 'in'):
+            raise ValueError('direction must be both, out or in.')
+        if type(limit) is not int or limit < 1:
+            raise ValueError('limit must be a positive integer.')
+        wanted = {'out': ('out',), 'in': ('in',), 'both': ('out', 'in')}[direction]
+        found = {'out': self._links.out(source) if 'out' in wanted else [],
+                 'in': self._links.incoming(source) if 'in' in wanted else []}
+        titles = self._documents.titles(dict.fromkeys(
+            [source, *(link.source for links in found.values() for link in links[:limit])]))
+        if source not in titles:
+            raise DocumentNotFound(f'No document matches source={source!r}.')
+        result: dict = {'source': source, 'title': titles[source]}
+        for name in wanted:
+            result[name] = [{'source': link.source,
+                             **({'title': titles[link.source]} if link.source in titles else {}),
+                             'context': link.context,
+                             **({'occurrences': link.occurrences} if link.occurrences > 1 else {})}
+                            for link in found[name][:limit]]
+            result[f'{name}_total'] = len(found[name])
+        result['truncated'] = any(len(found[name]) > limit for name in wanted)
+        return result
 
     def read(self, document_id: str | None = None, *, source: str | None = None,
              section_id: str | None = None,
@@ -212,18 +256,45 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
     },
     {
         'name': 'list',
-        'description': 'Browse the knowledge base: source paths, titles, headings and sizes of notes, in source '
-                       'order. Use it to see what exists before searching, or to find a note by name; pattern '
-                       'filters filenames (case-insensitive substring, or a glob such as *embedding*). Listings '
-                       'are not evidence: read or search a note before citing it. truncated=true means more notes '
-                       'matched than limit.',
+        'description': 'Browse the knowledge base: source paths, titles, headings, sizes, tags and modification '
+                       'times of notes, in source order. Use it to see what exists before searching, to find a '
+                       'note by name, or to scope a folder, a tag or a period. Filters combine with AND. '
+                       'Listings are not evidence: read or search a note before citing it. truncated=true means '
+                       'more notes matched than limit.',
         'parameters': {
             'type': 'object', 'additionalProperties': False,
             'properties': {
                 'pattern': {'type': ['string', 'null'], 'minLength': 1,
-                            'description': 'Filename filter: a substring, or a glob with * and ?.'},
+                            'description': 'Path filter on the vault-relative source: a case-insensitive substring, '
+                                           'or a glob with * and ?, such as 04-Areas/* or *embedding*.'},
+                'tag': {'type': ['string', 'null'], 'minLength': 1,
+                        'description': 'Keep notes carrying this tag, from frontmatter or the body, with or without '
+                                       '"#"; a parent tag also matches its nested tags.'},
+                'modified_after': {'type': ['string', 'null'], 'minLength': 1,
+                                   'description': 'ISO date or datetime; keep notes modified at or after it.'},
+                'modified_before': {'type': ['string', 'null'], 'minLength': 1,
+                                    'description': 'ISO date or datetime; keep notes modified strictly before it.'},
                 'limit': {'type': 'integer', 'minimum': 1, 'maximum': 200, 'default': 50,
                           'description': 'Maximum notes returned.'},
+            },
+        },
+    },
+    {
+        'name': 'links',
+        'description': 'Follow the links of one note: the notes it links to and the notes linking to it, each with '
+                       'its path, title and the line the link appears in. Use it to reach neighbouring notes that '
+                       'search does not surface, for example when a note names a topic but keeps the detail in a '
+                       'linked note. Like list, this is navigation, not evidence: read or search a note before '
+                       'citing it.',
+        'parameters': {
+            'type': 'object', 'required': ['source'], 'additionalProperties': False,
+            'properties': {
+                'source': {'type': 'string', 'minLength': 1,
+                           'description': 'Vault-relative source path, exactly as list, match or search returned it.'},
+                'direction': {'type': 'string', 'enum': ['both', 'out', 'in'], 'default': 'both',
+                              'description': 'out: notes this one links to; in: notes linking to it; both: each.'},
+                'limit': {'type': 'integer', 'minimum': 1, 'maximum': 100, 'default': 20,
+                          'description': 'Maximum links returned per direction.'},
             },
         },
     },

@@ -207,3 +207,25 @@ def test_section_metadata_and_legacy_records_survive_storage_roundtrip(tmp_path,
         assert restored.chunk.note_id == note.note_id
         assert restored.chunk.heading_path == (() if legacy else ('Section',))
         assert restored.chunk.chunk_id == chunk.chunk_id
+
+
+def test_a_database_without_the_link_graph_is_upgraded_in_place_by_a_writer(tmp_path, sample):
+    from arkb.knowledge.links import OutgoingLink
+    path = tmp_path / 'index.sqlite'
+    with SQLiteStorage(path) as store:
+        populate(store, sample)
+    # An index built before links existed: same content, one table fewer.
+    with sqlite3.connect(path) as connection:
+        connection.execute('DROP TABLE snapshot_links')
+        connection.execute('PRAGMA user_version=2')
+    with pytest.raises(ValueError, match='Run arkb index once'):
+        SQLiteStorage(path, read_only=True)
+
+    with SQLiteStorage(path) as store:
+        # The upgrade is additive, so the expensive embedding cache survives it.
+        assert store.connection.execute('PRAGMA user_version').fetchone()[0] == 3
+        assert store.snapshot_records('v1') == [sample[1]]
+        assert store.get_embedding(sample[0], prepare_document(sample[1].chunk)) is not None
+        store.add_links('v1', [OutgoingLink('notes/a.md', 'notes/b.md', 0, 1, 'see [[b]]')])
+    with SQLiteStorage(path, read_only=True) as store:
+        assert store.note_links('v1', target='notes/b.md')[0].source == 'notes/a.md'

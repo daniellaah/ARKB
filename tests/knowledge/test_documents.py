@@ -327,3 +327,57 @@ def test_access_rejects_non_canonical_source_selectors(tmp_path, source):
     assert list(access.records(source=source)) == []
     with pytest.raises(LookupError):
         access.read(source=source)
+
+
+def test_list_filters_by_path_tag_and_modification_time(linked_vault):
+    access = DocumentAccess(linked_vault, vault_id='v')
+
+    def sources(**filters):
+        return [note['source'] for note in access.list(**filters)['notes']]
+
+    # A pattern now filters the vault-relative path, so a folder is selectable.
+    assert sources(pattern='Concepts/*') == ['Concepts/Attention.md', 'Concepts/KV Cache.md']
+    assert sources(pattern='kv') == ['Archive/KV Cache.md', 'Concepts/KV Cache.md']
+    # A tag matches frontmatter or body, ignoring case and a leading "#", and a
+    # parent tag matches the nested tags below it.
+    assert sources(tag='#MOC') == ['index.md']
+    assert sources(tag='ai') == ['Concepts/Attention.md', 'Concepts/KV Cache.md']
+    assert sources(tag='ai/llm') == ['Concepts/KV Cache.md']
+    assert sources(tag='daily') == ['Journal/2026-01-02.md']
+    assert sources(tag='archive') == ['Archive/Attention.md', 'Archive/KV Cache.md']
+    # Dates bound the file's modification time: at or after, strictly before.
+    assert sources(modified_after='2026-03-01') == ['Concepts/KV Cache.md', 'index.md']
+    assert sources(modified_before='2026-01-05') == ['Journal/2026-01-02.md']
+    assert sources(modified_after='2026-01-05', modified_before='2026-02-11') == [
+        'Archive/Attention.md', 'Archive/KV Cache.md', 'Concepts/Attention.md']
+    # Filters combine with AND.
+    assert sources(pattern='Concepts/*', tag='ai/transformer') == ['Concepts/Attention.md']
+    assert sources(pattern='Archive/*', modified_after='2026-02-01') == []
+
+
+def test_list_reports_each_note_with_its_tags_and_modification_time(linked_vault):
+    listing = DocumentAccess(linked_vault, vault_id='v').list(tag='ai', limit=1)
+
+    note, = listing['notes']
+    assert note['source'] == 'Concepts/Attention.md' and note['tags'] == ['ai/transformer']
+    assert note['modified'] == '2026-02-10T12:00:00' and note['headings'] == ['## Masking']
+    assert listing['total'] == 2 and listing['truncated'] is True
+    # A note without tags does not carry an empty list.
+    plain = DocumentAccess(linked_vault, vault_id='v').list(pattern='Journal/*')['notes'][0]
+    assert plain['tags'] == ['journal', 'daily'] and 'more_headings' not in plain
+
+
+def test_list_rejects_a_date_that_is_not_ISO(linked_vault):
+    access = DocumentAccess(linked_vault, vault_id='v')
+    for filters in ({'modified_after': 'yesterday'}, {'modified_before': '2026-13-01'}):
+        with pytest.raises(ValueError, match='ISO date'):
+            access.list(**filters)
+    with pytest.raises(ValueError):
+        access.list(tag=' ')
+
+
+def test_titles_name_known_sources_and_skip_the_rest(linked_vault):
+    access = DocumentAccess(linked_vault, vault_id='v')
+
+    assert access.titles(['index.md', 'Concepts/Attention.md', 'gone.md', '../outside.md']) == {
+        'index.md': 'Vault Map', 'Concepts/Attention.md': 'Attention'}

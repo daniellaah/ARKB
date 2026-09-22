@@ -12,11 +12,26 @@ import sqlite3
 import numpy as np
 
 from arkb.knowledge.embeddings import prepare_document, validate_vectors
+from arkb.knowledge.links import OutgoingLink
 from arkb.knowledge.models import Chunk, ChunkRecord, EmbeddingSpec, IndexManifest
 
 
-# Version 2 stores ARKB identities and cache keys; older databases remain untouched.
-STORAGE_VERSION = 2
+# Version 2 stores ARKB identities and cache keys; version 3 adds the link
+# graph. Databases older than 2 remain untouched.
+STORAGE_VERSION = 3
+
+# Outgoing links only: backlinks are this table read by target. A note pair
+# appears once, with the first context and how often it recurs.
+_LINKS_DDL = """
+CREATE TABLE snapshot_links (
+    version TEXT NOT NULL REFERENCES builds(version) ON DELETE CASCADE,
+    source TEXT NOT NULL, target TEXT NOT NULL, ordinal INTEGER NOT NULL,
+    occurrences INTEGER NOT NULL, context TEXT NOT NULL,
+    PRIMARY KEY(version, source, target)
+);
+CREATE INDEX snapshot_links_target ON snapshot_links(version, target, source);
+"""
+
 _DDL = f"""
 CREATE TABLE embeddings (
     key TEXT PRIMARY KEY, spec TEXT NOT NULL, vector BLOB NOT NULL, checksum TEXT NOT NULL
@@ -34,8 +49,13 @@ CREATE TABLE snapshot_chunks (
 CREATE TABLE active_indexes (
     vault_id TEXT PRIMARY KEY, version TEXT NOT NULL REFERENCES builds(version)
 );
-PRAGMA user_version = {STORAGE_VERSION};
+{_LINKS_DDL}PRAGMA user_version = {STORAGE_VERSION};
 """
+
+# Purely additive upgrades, applied in order by a writer. Nothing already
+# stored is rewritten, so an expensive embedding cache survives the change; a
+# reader cannot upgrade and is told which command will.
+_UPGRADES = {2: _LINKS_DDL}
 
 
 def _json(value) -> str:
@@ -82,7 +102,15 @@ class SQLiteStorage:
                     raise ValueError("Refusing to initialize an unrelated SQLite database.")
                 self.connection.executescript("BEGIN IMMEDIATE;\n" + _DDL + "COMMIT;")
                 version = STORAGE_VERSION
+            while not read_only and version in _UPGRADES:
+                self.connection.executescript(f"BEGIN IMMEDIATE;\n{_UPGRADES[version]}"
+                                              f"PRAGMA user_version = {version + 1};\nCOMMIT;")
+                version += 1
             if version != STORAGE_VERSION:
+                if version in _UPGRADES:
+                    raise ValueError(f"Storage version {version} is older than this build, and a "
+                                     "reader cannot upgrade it. Run arkb index once on this "
+                                     "database to upgrade it in place.")
                 raise ValueError(f"Unsupported storage version: {version}. "
                                  "Rebuild with arkb index --db <new-database-path>.")
             if not read_only:
@@ -213,6 +241,32 @@ class SQLiteStorage:
                     raise ValueError("Chunk embedding is missing from the cache.")
                 self.connection.execute("INSERT INTO snapshot_chunks VALUES (?, ?, ?, ?, ?)",
                                         (version, ordinal, record.chunk_id, _json(asdict(record)), spec.embedding_key(text)))
+
+    def add_links(self, version: str, links: Sequence[OutgoingLink]) -> None:
+        """Store one building snapshot's outgoing links; a vault without links stores none."""
+        with self._transaction():
+            self._building(version)
+            for link in links:
+                self.connection.execute("INSERT INTO snapshot_links VALUES (?, ?, ?, ?, ?, ?)",
+                                        (version, link.source, link.target, link.ordinal,
+                                         link.occurrences, link.context))
+
+    def note_links(self, version: str, *, source: str | None = None,
+                   target: str | None = None) -> list[OutgoingLink]:
+        """Read one note's outgoing links by source, or its backlinks by target.
+
+        Outgoing links keep the order they appear in the note; backlinks are
+        ordered by the linking note's path, so both listings are stable.
+        """
+        if (source is None) == (target is None):
+            raise ValueError('Query links by source or by target.')
+        column, value = ('source', source) if source is not None else ('target', target)
+        order = 'ordinal' if source is not None else 'source'
+        rows = self.connection.execute(
+            f"SELECT * FROM snapshot_links WHERE version=? AND {column}=? ORDER BY {order}",
+            (version, value)).fetchall()
+        return [OutgoingLink(source=row['source'], target=row['target'], ordinal=row['ordinal'],
+                             occurrences=row['occurrences'], context=row['context']) for row in rows]
 
     def snapshot_records(self, version: str) -> list[ChunkRecord]:
         manifest = self.get_manifest(version)

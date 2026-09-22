@@ -158,13 +158,21 @@ class ToolSession:
     def invoke(self, name, arguments, *, exact_timeout=30):
         """Expected mistakes return observations; unexpected backend errors propagate."""
         try:
-            if name in ('match', 'search', 'read', 'list'):
+            if name in ('match', 'search', 'read', 'list', 'links'):
                 self.retrieval_attempted = True
             if name not in self._schemas:
-                raise ToolInputError('unknown_tool', 'Use list, match, search, read or finish.')
+                raise ToolInputError('unknown_tool', 'Use one of the advertised tools, or finish.')
             validate_arguments(arguments, self._schemas[name])
             if name == 'list':
-                return {'status': 'success', **self.tools.list(arguments.get('pattern'), limit=arguments.get('limit', DEFAULT_LIST_LIMIT))}
+                return {'status': 'success', **self.tools.list(**{'limit': DEFAULT_LIST_LIMIT, **arguments})}
+            if name == 'links':
+                # Navigation, like list: it returns no evidence references, so
+                # nothing here is citable and nothing is charged for it.
+                try:
+                    return {'status': 'success', **self.tools.links(**arguments)}
+                except DocumentNotFound as error:
+                    raise ToolInputError('source_unavailable', 'No note has this source path in the live '
+                                         'knowledge base; list or search for its current path.') from error
             if name == 'read':
                 return {'status': 'success', 'result': self._read(**arguments)}
             if name == 'finish':

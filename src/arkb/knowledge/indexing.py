@@ -20,6 +20,7 @@ from arkb.knowledge.embeddings import (
     DEFAULT_QUERY_INSTRUCTION, prepare_document, prepare_query, validate_input_tokens,
     iter_embedding_batches, count_tokens, tokenizer_fingerprint,
 )
+from arkb.knowledge.links import LINK_PARSER_VERSION, resolve_links
 from arkb.knowledge.sqlite import SQLiteStorage
 
 
@@ -33,6 +34,9 @@ class BuildReport:
     modified_documents: int = 0
     deleted_documents: int = 0
     build_seconds: float = 0.0
+    # Resolved note-to-note links stored with this snapshot; zero on a vault
+    # that uses none, which is also what a reused older snapshot reports.
+    link_count: int = 0
     # Files the scan could not use, carried from VaultScan so one unreadable
     # note in a large vault is reported rather than silently absent.
     skipped: tuple[SkippedNote, ...] = ()
@@ -86,6 +90,7 @@ def build_index(
         raise ValueError('chunking must be recursive or none.')
     source_notes = {note.source: note for note in notes}
     records = [ChunkRecord.from_note(chunk, note=source_notes[chunk.source], vault_id=vault_id) for chunk in chunks]
+    links = resolve_links(notes)
     texts = [prepare_document(record.chunk, document_template=spec.document_template) for record in records]
     counts = [validate_input_tokens(text, tokenizer=tokenizer, max_tokens=max_input_tokens,
                                    source=f'{r.chunk.source}, chunk {r.chunk.chunk_index}')
@@ -107,6 +112,10 @@ def build_index(
     if qdrant_client is None:
         raise ValueError('Qdrant indexing requires an explicit client.')
     metadata['input'] = {'max_tokens': max_input_tokens, 'tokenizer': token_identity}
+    # The link graph is derived from the same bodies as the chunks, so the
+    # corpus fingerprint cannot notice a change of parser. Recording the parser
+    # here does: a snapshot whose graph was built by other rules is not reused.
+    metadata['link_graph'] = LINK_PARSER_VERSION
     if source_scope is not None:
         metadata['source_scope'] = source_scope
     # Recorded only when it differs from the default so that snapshots built
@@ -134,7 +143,9 @@ def build_index(
         remote = _qdrant_index(qdrant_client, previous['backend'], active, create=False)
         remote.verify_snapshot(prior_records, prior_vectors)
         remote.wait_ready(expected_count=active.chunk_count)
-        return BuildReport(active, 0, unique_count, reused_index=True)
+        # Reuse required an identical corpus and link parser, so the stored
+        # graph is the one just resolved.
+        return BuildReport(active, 0, unique_count, reused_index=True, link_count=len(links))
     old_records = storage.snapshot_records(active.index_version) if active is not None else []
     old = {r.chunk.source: r.document_revision for r in old_records}
     new = {r.chunk.source: r.document_revision for r in records}
@@ -155,6 +166,7 @@ def build_index(
         ):
             storage.put_embeddings(spec, missing[start:start + len(vectors)], vectors)
         storage.add_chunks(manifest.index_version, records)
+        storage.add_links(manifest.index_version, links)
         _, loaded, vectors = storage.load_snapshot(manifest.index_version)
         if loaded:
             remote.upsert(loaded, vectors)
@@ -163,7 +175,8 @@ def build_index(
         storage.set_backend(manifest.index_version, metadata)
         ready = storage.publish(manifest.index_version)
         return BuildReport(ready, len(missing), len(unique) - len(missing),
-                           added_documents=added, modified_documents=modified, deleted_documents=deleted)
+                           added_documents=added, modified_documents=modified,
+                           deleted_documents=deleted, link_count=len(links))
     except BaseException as error:
         storage.mark_failed(manifest.index_version, str(error) or type(error).__name__)
         raise

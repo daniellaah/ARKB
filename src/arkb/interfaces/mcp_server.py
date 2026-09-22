@@ -29,10 +29,11 @@ SERVER_NAME = 'arkb'
 
 INSTRUCTIONS = (
     'Read-only retrieval over the "{vault_id}" Markdown knowledge base. list browses notes, '
-    'match finds literal text, search ranks chunks by relevance, and read returns a note or one '
-    'of its sections. Results identify evidence by its vault-relative source path and the '
-    'document revision it was read from; quote and cite those paths. This server never writes to '
-    'the knowledge base.'
+    'match finds literal text, search ranks chunks by relevance, read returns a note or one of '
+    'its sections, and links -- when the index holds a link graph -- follows the notes one note '
+    'links to or is linked from. Results identify evidence by its vault-relative source path '
+    'and the document revision it was read from; quote and cite those paths. This server never '
+    'writes to the knowledge base.'
 )
 
 # Only these leave the boundary: enough to quote and re-read a result, and
@@ -140,10 +141,16 @@ class ReadOnlyTools:
     def invoke(self, name: str, arguments: dict, *, exact_timeout: float = 30) -> dict:
         """Run one advertised tool; expected mistakes raise ToolInputError."""
         if name not in self._schemas:
-            raise ToolInputError('unknown_tool', 'Use list, match, search or read.')
+            raise ToolInputError('unknown_tool', f'Use {", ".join(sorted(self._schemas))}.')
         validate_arguments(arguments, self._schemas[name])
         if name == 'list':
-            return self.tools.list(arguments.get('pattern'), limit=arguments.get('limit', DEFAULT_LIST_LIMIT))
+            return self.tools.list(**{'limit': DEFAULT_LIST_LIMIT, **arguments})
+        if name == 'links':
+            try:
+                return self.tools.links(**arguments)
+            except DocumentNotFound as error:
+                raise ToolInputError('source_unavailable', 'No note has this source path in the live '
+                                     'knowledge base; list or search for its current path.') from error
         if name == 'read':
             return self._read(**arguments)
         if name == 'match':

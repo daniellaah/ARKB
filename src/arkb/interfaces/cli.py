@@ -320,6 +320,7 @@ def _print_result(args, result):
         print(f'Vault: {result.manifest.vault_id} | Documents: {result.manifest.document_count} | Chunks: {result.manifest.chunk_count}')
         print(f'Embedded: {result.embedded_inputs} | Cached: {result.cached_inputs}')
         print(f'Added: {result.added_documents} | Modified: {result.modified_documents} | Deleted: {result.deleted_documents}')
+        print(f'Links: {result.link_count}')
         print(f'Skipped: {len(result.skipped)} | Unparsed frontmatter: {len(result.unparsed_metadata)}')
         for skipped in (*result.skipped, *result.unparsed_metadata):
             print(f'  {skipped.source}: {skipped.reason}', file=sys.stderr)

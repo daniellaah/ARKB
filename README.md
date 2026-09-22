@@ -49,6 +49,7 @@ For example:
 ## Features
 
 - Agent-controlled iterative retrieval with `match`, `search`, and `read`.
+- Obsidian-native navigation: wikilink and backlink traversal with `links`, and tag, folder and date filters on `list`.
 - Deterministic exact, BM25, semantic, and hybrid retrieval with optional reranking.
 - Local Markdown indexing with section-aware chunking and reusable embeddings.
 - Inspectable agent traces and bounded tool-calling loops.
@@ -161,6 +162,8 @@ ARKB loads UTF-8 `.md` files under the specified directory, including subdirecto
 Directories whose name begins with `.` (`.obsidian`, `.trash`), plus `Attachments/` and `Excalidraw/`, are skipped. `--exclude <glob>` skips further directories by name or vault-relative path and may be repeated; the value is saved with the index so `match` and `ask` walk the scope that was indexed.
 
 A leading `---` delimited YAML block is parsed into the note's metadata and removed from the body. A file that cannot be read or decoded is skipped, and a frontmatter block outside the parsed YAML subset leaves the note without metadata; `arkb index` reports both counts and lists the affected sources on stderr.
+
+Indexing also resolves the note-to-note link graph — `[[wikilinks]]`, including `[[note|alias]]` and `[[note#heading]]`, and Markdown links to other `.md` files — and stores it with the snapshot, which is what the `links` tool reads; `arkb index` reports how many links it resolved. A target that names no note in the scanned scope is left out. A database built before this existed is upgraded in place by the next `arkb index`, which keeps its cached embeddings and rebuilds the snapshot to add the graph.
 
 When an index already exists, `match` and `ask` use its saved directory. An explicit `--notes-dir` must agree with that scope.
 
@@ -371,15 +374,19 @@ For the desktop app, the same command goes into `claude_desktop_config.json`:
 }
 ```
 
-Four tools are exposed, with the same names, descriptions and parameter schemas the internal
+These tools are exposed, with the same names, descriptions and parameter schemas the internal
 agent loop uses:
 
 | Tool | Purpose |
 | --- | --- |
-| `list` | Browse source paths, titles, headings and sizes; not evidence |
+| `list` | Browse source paths, titles, headings, sizes, tags and modification times; not evidence |
 | `match` | Literal occurrences through ripgrep, over live files |
 | `search` | Ranked chunks from the index: `bm25`, `semantic` or `hybrid` |
+| `links` | The notes one note links to and the notes linking to it; not evidence |
 | `read` | A whole note by source path, or the section around a returned offset |
+
+`links` is advertised only when the index carries a link graph, which every index built by the
+current version does.
 
 The agent loop's `finish` tool is not exposed: the client writes the answer. Neither are its
 `ev_*` evidence references, which bind evidence within one run of that loop. A client here is

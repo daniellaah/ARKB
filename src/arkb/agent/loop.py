@@ -20,6 +20,7 @@ SYSTEM_INSTRUCTION = """Answer the user's query, using knowledge tools when usef
 Use list to see which notes exist (source paths, titles, headings) or to find a note by name; listings are not evidence.
 Use match when exact lexical occurrence matters, including which notes mention a literal term.
 Use search when conceptual relevance matters, including notes related to a topic.
+Use links to reach the notes a note links to or that link to it; link listings are not evidence.
 Choose only among the search modes available in the tool definition; omit mode to use its default.
 Use read(ref=...) to expand a returned result, or read(source=...) for a source path returned earlier.
 Copy references exactly; they bind the source and revision. Correct recoverable tool errors.

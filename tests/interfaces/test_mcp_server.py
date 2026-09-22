@@ -152,3 +152,44 @@ def test_unknown_tool_and_hybrid_overshoot_are_reported(tools):
     with pytest.raises(ValueError) as overshoot:
         vault.invoke('search', {'query': 'x', 'mode': 'hybrid', 'limit': 50})
     assert overshoot.value.code == 'invalid_arguments'
+
+
+@pytest.fixture
+def linked_server(linked_vault, engine, tmp_path):
+    """The same boundary over a vault whose snapshot carries a link graph."""
+    from arkb.knowledge.documents import load_notes
+    from arkb.knowledge.links import LinkGraph, resolve_links
+    from arkb.knowledge.models import EmbeddingSpec, IndexManifest, fingerprint_config
+    from arkb.knowledge.sqlite import SQLiteStorage
+
+    spec = EmbeddingSpec(model='test', model_revision='digest', dimensions=2,
+                         document_template='title-body-v1')
+    with SQLiteStorage(tmp_path / 'index.sqlite') as storage:
+        storage.create_build(
+            IndexManifest(index_version='v1', vault_id='v', embedding_spec=spec,
+                          chunking_fingerprint=fingerprint_config({}), document_count=0, chunk_count=0),
+            corpus_fingerprint='corpus', backend={'kind': 'qdrant'})
+        storage.add_links('v1', resolve_links(load_notes(linked_vault)))
+        documents = DocumentAccess(linked_vault, vault_id='v')
+        with ExactRetriever(documents) as exact:
+            tools = AgentTools(documents=documents, exact=exact, engine=engine,
+                               links=LinkGraph(storage, 'v1'))
+            yield build_server(tools, vault_id='v')
+
+
+def test_the_boundary_republishes_the_new_filters_and_the_link_graph(linked_server):
+    listing = session(linked_server, lambda client: client.list_tools())
+    tools = {tool.name: tool for tool in listing.tools}
+    assert set(tools) == {'list', 'links', 'match', 'search', 'read'}
+    assert set(tools['list'].inputSchema['properties']) == {
+        'pattern', 'tag', 'modified_after', 'modified_before', 'limit'}
+
+    tagged = session(linked_server, lambda client: client.call_tool('list', {'tag': 'ai'}))
+    assert [note['source'] for note in tagged.structuredContent['notes']] == [
+        'Concepts/Attention.md', 'Concepts/KV Cache.md']
+    followed = session(linked_server, lambda client: client.call_tool(
+        'links', {'source': 'Concepts/KV Cache.md', 'direction': 'in'}))
+    assert [link['source'] for link in followed.structuredContent['in']] == [
+        'Journal/2026-01-02.md', 'index.md']
+    missing = session(linked_server, lambda client: client.call_tool('links', {'source': 'gone.md'}))
+    assert missing.isError is True and 'source_unavailable' in text(missing)

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from arkb.agent.tools import AgentTools
     from arkb.retrieval.engine import RetrievalEngine
     from arkb.knowledge.indexing import BuildReport
+    from arkb.knowledge.links import LinkGraph
     from ollama import Client
     from qdrant_client import QdrantClient
     from tokenizers import Tokenizer
@@ -120,6 +121,7 @@ class Runtime:
         services. The snapshot closes when the context exits, which is why a
         long-lived server keeps this context for its whole session.
         """
+        from arkb.knowledge.links import LinkGraph
         from arkb.retrieval.engine import RetrievalEngine
 
         with self._snapshot(db, vault_id, required=False) as (storage, manifest):
@@ -127,8 +129,11 @@ class Runtime:
             engine = RetrievalEngine(
                 bm25=_LazySnapshotRetriever(self, storage, manifest, 'bm25'),
                 semantic=_LazySnapshotRetriever(self, storage, manifest, 'semantic'))
+            # The link graph belongs to a published snapshot; without one the
+            # composition simply has no links tool to advertise.
+            links = None if manifest is None else LinkGraph(storage, manifest.index_version)
             yield self.agent_tools(engine=engine, directory=directory, vault_id=vault_id,
-                                   mode=mode, exclude=exclude)
+                                   mode=mode, exclude=exclude, links=links)
 
     def ask(self, query: str, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
             notes_dir: Path | None = None, model: str = DEFAULT_GENERATION_MODEL,
@@ -275,8 +280,8 @@ class Runtime:
 
     def agent_tools(self, *, engine: 'RetrievalEngine', directory: Path, vault_id: str,
                     mode: str = 'semantic', rerank: bool = False,
-                    prepare_exact: bool = False,
-                    exclude: Sequence[str] | None = None) -> 'AgentTools':
+                    prepare_exact: bool = False, exclude: Sequence[str] | None = None,
+                    links: 'LinkGraph | None' = None) -> 'AgentTools':
         """Bind live document tools to an already prepared retrieval engine.
 
         Use the same directory/vault as indexing. The caller selects a default
@@ -299,7 +304,7 @@ class Runtime:
         if prepare_exact:
             exact.prepare()
         return AgentTools(documents=documents, exact=exact, engine=engine,
-                          mode=mode, rerank=rerank)
+                          mode=mode, rerank=rerank, links=links)
 
     def run_agent(self, query: str, *, tools: 'AgentTools',
                   model: str = DEFAULT_GENERATION_MODEL, max_turns: int = 8,
