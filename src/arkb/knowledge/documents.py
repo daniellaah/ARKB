@@ -342,6 +342,32 @@ class DocumentAccess:
                           **({'more_headings': len(headings) - max_headings} if len(headings) > max_headings else {})})
         return {'notes': notes, 'total': total, 'truncated': total > len(notes)}
 
+    # The annotation avoids the bare name list, which this class defines as a method.
+    def sizes(self, prefix: str | None = None) -> Sequence[tuple[str, int]]:
+        """Every in-scope source under prefix with its file size in bytes, reading no file.
+
+        A caller deciding something about the scope as a whole -- how much text
+        it holds -- can decide it from directory entries alone, which is what
+        makes the question affordable on a vault with thousands of notes. The
+        sizes include frontmatter and the title line, which the body does not.
+
+        prefix selects one folder, given without a trailing slash; a note is in
+        it when the source is the prefix itself or lies under it. None is the
+        whole scope.
+        """
+        if prefix is not None:
+            _require_text(prefix, 'prefix')
+            prefix = prefix.rstrip('/')
+        found = []
+        for path, relative in self._paths():
+            if prefix is not None and relative != prefix and not relative.startswith(prefix + '/'):
+                continue
+            try:
+                found.append((relative, path.stat().st_size))
+            except OSError:
+                continue
+        return found
+
     def titles(self, sources: Iterable[str]) -> dict[str, str]:
         """Current titles for known sources, omitting any outside the live scope.
 

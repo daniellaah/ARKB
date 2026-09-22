@@ -1,17 +1,27 @@
-"""What a run forgets when it grows long, and the setting that decides it.
+"""What a run starts with, and what it forgets when it grows long.
 
-Compaction drops the bodies of the oldest observations from the replayed
-conversation. The session's reference table is not part of the conversation, so
-a reference whose observation was compacted still resolves and is still
-accepted by finish; only the text the model can re-read is gone.
+Two decisions taken around the bounded loop. Neither changes the tool contract
+or the budget semantics:
 
-It is off when its setting is zero, which returns the run to the unbounded
-conversation the loop had before.
+- A vault map is orientation. It enters the conversation as a system message
+  that says it is a layout description, and it carries no evidence reference,
+  so it cannot be cited.
+- Compaction drops the bodies of the oldest observations from the replayed
+  conversation. The session's reference table is not part of the conversation,
+  so a reference whose observation was compacted still resolves and is still
+  accepted by finish; only the text the model can re-read is gone.
+
+Both are off when their setting is zero or empty, which returns the run to the
+cold start the loop had before.
 """
 
 from collections.abc import Iterable
 from dataclasses import dataclass
 import json
+from pathlib import PurePosixPath
+
+from arkb.knowledge.documents import DocumentNotFound
+from arkb.knowledge.models import is_canonical_source
 
 # Four characters per token: a transport-independent estimate, deliberately not
 # the embedding tokenizer the observer uses to measure evidence. It only decides
@@ -26,11 +36,19 @@ DEFAULT_HISTORY_TOKENS = 24000
 
 COMPACTED_NOTE = ('Earlier observation; its text was dropped to bound this conversation. '
                   'Read a source again if its exact wording matters.')
+MAP_NOTE_PREAMBLE = (
+    'The note below, {source}, describes how this knowledge base is organised. Use it to decide '
+    'where to look. It is orientation, not evidence: it has no evidence reference, it cannot be '
+    'cited, and anything it states must be confirmed with a tool result before you rely on it.')
 
 
 @dataclass(frozen=True, kw_only=True)
 class ContextPolicy:
-    """What one run does with its context; each setting is off at zero.
+    """The two settings for one run; each is off at zero or empty.
+
+    map_notes are candidate layout notes in order of preference, empty by
+    default: the note is vault-specific, and a knowledge base without one must
+    not pay a lookup on every run.
 
     history_tokens compacts the oldest observations once the replayed
     conversation is estimated above that size. On by default, because a bound
@@ -38,16 +56,29 @@ class ContextPolicy:
     provider error rather than an answer.
     """
 
+    map_notes: tuple[str, ...] = ()
     history_tokens: int = DEFAULT_HISTORY_TOKENS
 
     def __post_init__(self):
+        if isinstance(self.map_notes, str) or any(
+                not isinstance(note, str) or not note.strip() for note in self.map_notes):
+            raise ValueError('map_notes must be a sequence of nonblank source paths.')
+        object.__setattr__(self, 'map_notes', tuple(self.map_notes))
         if type(self.history_tokens) is not int or self.history_tokens < 0:
             raise ValueError('history_tokens must be a nonnegative integer.')
 
 
-# The unbounded conversation the loop had before.
+# The cold start the loop had before any of this: no map, no compaction.
 OFF = ContextPolicy(history_tokens=0)
 
+
+def parse_map_notes(values: Iterable[str]) -> tuple[str, ...]:
+    """Split repeated or comma-separated candidates into source paths, in order, without duplicates."""
+    found = [part.strip() for value in values or () for part in value.split(',') if part.strip()]
+    return tuple(dict.fromkeys(found))
+
+
+# --- the conversation's size ------------------------------------------------
 
 def estimate_tokens(messages: Iterable[dict]) -> int:
     """Approximate the conversation's size without loading a tokenizer."""
@@ -109,3 +140,48 @@ def compact(messages: Iterable[dict], *, limit: int, measure=estimate_tokens,
             kept[index] = {**message, 'content': summarize_observation(message['content'])}
             compacted += 1
     return kept, compacted
+
+
+# --- the vault map ----------------------------------------------------------
+
+def _candidates(tools, candidate: str) -> Iterable[str]:
+    """The source paths one setting may mean: itself, then notes with that filename.
+
+    A vault-relative path is used as given. A bare filename is also matched
+    against the filenames in scope, so "Vault Layout.md" finds
+    "00-ObsSys/Vault Layout.md" without the author repeating the folder.
+    """
+    yield candidate
+    if '/' in candidate:
+        return
+    wanted = candidate.lower()
+    for source, _ in tools._documents.sizes():
+        if PurePosixPath(source).name.lower() == wanted and source != candidate:
+            yield source
+
+
+def map_note(tools, candidates: Iterable[str]) -> dict | None:
+    """The first candidate layout note that exists and has a body, or None.
+
+    A knowledge base without a layout note simply starts cold: a candidate that
+    resolves to nothing, or to a file that cannot be read, is skipped rather
+    than reported, because orientation is an optimisation and never a
+    precondition for answering.
+    """
+    for candidate in candidates or ():
+        if not isinstance(candidate, str) or not is_canonical_source(candidate.strip()):
+            continue
+        for source in _candidates(tools, candidate.strip()):
+            try:
+                evidence = tools.read(source=source)['result']
+            except (DocumentNotFound, OSError, UnicodeDecodeError, ValueError):
+                continue
+            if evidence['content'].strip():
+                return {'source': evidence['source'], 'title': evidence['title'],
+                        'content': evidence['content']}
+    return None
+
+
+def map_message(note: dict) -> str:
+    """The system message carrying a layout note: what it is, then the note."""
+    return f"{MAP_NOTE_PREAMBLE.format(source=note['source'])}\n\n# {note['title']}\n{note['content']}"

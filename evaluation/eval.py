@@ -19,7 +19,7 @@ import subprocess
 from threading import current_thread, main_thread
 from time import perf_counter, strftime
 
-from arkb.agent.context import ContextPolicy
+from arkb.agent.context import ContextPolicy, parse_map_notes
 from arkb.agent.observation import AgentBudget, AgentObserver
 from arkb.agent.transports import make_client
 from arkb.config import RuntimeConfig, load_env_file
@@ -344,6 +344,7 @@ def main():
     r.add_argument('--max-turns', type=int, default=8)
     r.add_argument('--effort', default='high', help='claude-* models with --think: low | medium | high | xhigh | max')
     r.add_argument('--max-evidence-tokens', type=int, default=BUDGET.max_evidence_tokens)
+    r.add_argument('--map-note', action='append', default=[], help='candidate layout note; repeatable or comma-separated')
     r.add_argument('--history-tokens', type=int, default=ContextPolicy.history_tokens,
                    help='compact the earliest observations above this estimate; 0 disables it')
     r.add_argument('--limit', type=int, default=0, help='questions per type, for a quick check')
@@ -360,7 +361,7 @@ def main():
     if args.command == 'run':
         options = {**OPTIONS, 'num_ctx': args.num_ctx, 'num_predict': args.num_predict}
         budget = AgentBudget(**{**asdict(BUDGET), 'max_evidence_tokens': args.max_evidence_tokens})
-        policy = ContextPolicy(history_tokens=args.history_tokens)
+        policy = ContextPolicy(map_notes=parse_map_notes(args.map_note), history_tokens=args.history_tokens)
         summary = run((args.output or RESULTS / args.label).resolve(), label=args.label, model=args.model, think=args.think,
                       options=options, budget=budget, max_turns=args.max_turns, limit=args.limit, resume=args.resume,
                       effort=args.effort, types=[t for t in args.types.split(',') if t] or None, policy=policy)

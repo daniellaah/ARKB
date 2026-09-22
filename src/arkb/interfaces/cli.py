@@ -14,7 +14,7 @@ from httpx import HTTPError
 from ollama import ResponseError
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
-from arkb.agent.context import DEFAULT_HISTORY_TOKENS, ContextPolicy
+from arkb.agent.context import DEFAULT_HISTORY_TOKENS, ContextPolicy, parse_map_notes
 from arkb.agent.transports import ChatUsage, format_usage
 from arkb.config import (
     DEFAULT_DB, DEFAULT_NOTES_DIR, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL,
@@ -154,6 +154,10 @@ def _parser():
             command.add_argument('--history-tokens', type=_nonnegative_int, default=DEFAULT_HISTORY_TOKENS,
                                  help='Compact the earliest tool observations above this estimated size, '
                                       'within a run and between turns; 0 lets the conversation grow unbounded.')
+            command.add_argument('--map-note', type=_nonblank, action='append', metavar='SOURCE',
+                                 help='Layout note describing how the knowledge base is organised, added to '
+                                      'the conversation as orientation; repeatable or comma-separated, first '
+                                      'one found wins, missing notes are skipped.')
     return parser
 
 
@@ -193,7 +197,7 @@ def _runtime_config(args):
 
 def _context_policy(args):
     """The run's context engineering, as the ask and chat commands expose it."""
-    return ContextPolicy(history_tokens=args.history_tokens)
+    return ContextPolicy(map_notes=parse_map_notes(args.map_note), history_tokens=args.history_tokens)
 
 
 def _load_api_keys(start=None):

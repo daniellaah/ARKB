@@ -11,7 +11,8 @@ quality is measured, not assumed.
 1. [README.md](../README.md): what the product does and how to run it.
 2. `src/arkb/agent/tools.py` (tool contract), `session.py` (validated boundary,
    evidence references), `observation.py` (budgets and accounting),
-   `loop.py` (the bounded tool-calling loop), `context.py` (what a long trajectory forgets).
+   `loop.py` (the bounded tool-calling loop), `context.py` (what a run opens
+   with and what a long trajectory forgets).
 3. `src/arkb/retrieval/`: `exact.py` (literal matching with a disposable text
    cache), `bm25.py`, `semantic.py`, `hybrid.py` (reciprocal rank fusion),
    `engine.py` (explicit mode dispatch).

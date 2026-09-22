@@ -111,8 +111,8 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
     references remain the session's, so a caller that wants earlier references
     to stay citable supplies the session that issued them.
 
-    policy decides when an old observation loses its body; context.OFF restores
-    the unbounded conversation.
+    policy decides what the conversation opens with and when old observations
+    lose their bodies; context.OFF restores the cold start.
     """
     if not isinstance(query, str) or not query.strip():
         raise ValueError('query must be a nonblank string.')
@@ -175,6 +175,25 @@ class _AgentRun:
         self.state.messages.append({'role': 'tool', 'tool_name': name,
                                     'content': json.dumps(result, ensure_ascii=False, allow_nan=False)})
 
+    # Context ------------------------------------------------------------------
+
+    def prepare_context(self):
+        """Open the conversation with orientation when the knowledge base describes itself.
+
+        The message is placed before any carried history, so a multi-turn
+        session replays a stable prefix: what changes between turns is the
+        history and the question, which follow it. It is a system message and
+        therefore not carried over by a session that trims history; each run
+        decides again, against the knowledge base as it is now.
+        """
+        self.stage = 'context'
+        note = context.map_note(self.tools, self.policy.map_notes)
+        if note is not None:
+            self.state.messages.insert(1, {'role': 'system', 'content': context.map_message(note)})
+            self.observer.context['map_note'] = note['source']
+        self.turn_start = len(self.state.messages)
+        self.stage = 'setup'
+
     # Turns --------------------------------------------------------------------
 
     def run(self):
@@ -182,6 +201,7 @@ class _AgentRun:
         try:
             self.session = self.session_factory(self.tools)
             self.definitions = [{'type': 'function', 'function': d} for d in self.session.definitions]
+            self.prepare_context()
             for _ in range(self.max_turns):
                 result = self.turn()
                 if result is not None:

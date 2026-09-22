@@ -1,4 +1,4 @@
-"""Context engineering around the real loop: what a long trajectory forgets.
+"""Context engineering around the real loop: a vault map and a long trajectory.
 
 Every run here uses scripted responses and a temporary vault: no model, no
 index, no services. What is asserted is what the model is given and what finish
@@ -11,7 +11,8 @@ import pytest
 
 from arkb.agent import AgentBudget, AgentObserver, AgentTools, run_agent
 from arkb.agent.context import (OFF, ContextPolicy, compact, estimate_tokens, is_compacted,
-                                summarize_observation)
+                                map_note, parse_map_notes, summarize_observation)
+from arkb.agent.loop import SYSTEM_INSTRUCTION
 from arkb.knowledge.documents import DocumentAccess
 from arkb.retrieval import ExactRetriever
 from tests.agent.helpers import ScriptedModel, reply, tool_call
@@ -31,6 +32,46 @@ def observer(**budget):
 
 def cite(answer, refs, status='answered'):
     return reply(calls=[tool_call('finish', answer=answer, status=status, evidence_refs=list(refs))])
+
+
+# --- the vault map ----------------------------------------------------------
+
+def test_a_layout_note_opens_the_conversation_as_orientation_and_is_not_evidence(vault_tools, engine):
+    policy = ContextPolicy(map_notes=('index.md',))
+    model = ScriptedModel(cite('Nothing was retrieved.', [], status='insufficient_evidence'))
+    result = run_agent('where do concepts live?', client=model, tools=vault_tools, model='fake',
+                       policy=policy, observer=(watch := observer()))
+    # Orientation arrives before the question, as a system message that says what it is.
+    messages = model.requests[0]['messages']
+    assert messages[0]['content'] == SYSTEM_INSTRUCTION
+    assert messages[1]['role'] == 'system' and messages[-1]['content'] == 'where do concepts live?'
+    assert 'index.md' in messages[1]['content'] and 'cannot be cited' in messages[1]['content']
+    assert 'The map starts at [[Concepts/KV Cache]]' in messages[1]['content']
+    # It is orientation, not evidence: no reference was issued, so nothing became citable.
+    assert result.observation['evidence_references'] == {}
+    assert result.observation['context'] == {'map_note': 'index.md'}
+    assert [e['name'] for e in watch.tools] == ['finish'] and engine.search.call_count == 0
+
+
+def test_a_bare_filename_finds_the_note_in_its_folder_and_the_first_candidate_wins(vault_tools):
+    assert map_note(vault_tools, ('KV Cache.md',))['source'] == 'Archive/KV Cache.md'
+    assert map_note(vault_tools, ('Concepts/KV Cache.md', 'index.md'))['source'] == 'Concepts/KV Cache.md'
+
+
+@pytest.mark.parametrize('candidates', [('nowhere.md',), ('../escape.md', 'Missing/none.md'), ()])
+def test_a_missing_layout_note_is_skipped_without_failing_the_run(vault_tools, candidates):
+    assert map_note(vault_tools, candidates) is None
+    model = ScriptedModel(cite('No knowledge needed.', [], status='insufficient_evidence'))
+    result = run_agent('hello', client=model, tools=vault_tools, model='fake',
+                       policy=ContextPolicy(map_notes=candidates))
+    assert result.stop_reason == 'final'
+    assert [m['role'] for m in model.requests[0]['messages']] == ['system', 'user']
+    assert result.observation['context'] == {}
+
+
+def test_repeated_and_comma_separated_candidates_become_one_ordered_list():
+    assert parse_map_notes(['a.md, b.md', ' c.md ', 'a.md']) == ('a.md', 'b.md', 'c.md')
+    assert parse_map_notes(None) == () and parse_map_notes(['  ']) == ()
 
 
 # --- the long trajectory ----------------------------------------------------
@@ -118,11 +159,13 @@ def test_a_summary_keeps_valid_json_even_for_an_observation_it_cannot_parse():
     assert json.loads(summarize_observation(json.dumps({'status': 'recoverable_error'})))['status'] == 'recoverable_error'
 
 
-@pytest.mark.parametrize('settings', [{'history_tokens': -1}, {'history_tokens': 'many'}])
+@pytest.mark.parametrize('settings', [{'history_tokens': -1}, {'history_tokens': 'many'},
+                                      {'map_notes': 'index.md'}, {'map_notes': (' ',)}])
 def test_a_policy_refuses_settings_it_cannot_honour(settings):
     with pytest.raises(ValueError):
         ContextPolicy(**settings)
 
 
-def test_the_default_policy_bounds_the_conversation():
-    assert ContextPolicy().history_tokens == 24000 and OFF.history_tokens == 0
+def test_the_default_policy_only_bounds_the_conversation():
+    assert ContextPolicy().map_notes == () and ContextPolicy().history_tokens == 24000
+    assert OFF.history_tokens == 0 and OFF.map_notes == ()

@@ -382,3 +382,18 @@ def test_titles_name_known_sources_and_skip_the_rest(linked_vault):
     assert access.titles(['index.md', 'Concepts/Attention.md', 'gone.md', '../outside.md']) == {
         'index.md': 'Vault Map', 'Concepts/Attention.md': 'Attention'}
 
+
+def test_sizes_measure_the_scope_from_directory_entries_alone(linked_vault):
+    access = DocumentAccess(linked_vault, vault_id='v')
+    sizes = access.sizes()
+
+    assert [source for source, _ in sizes] == [relative for _, relative in access._paths()]
+    assert all(size == (linked_vault / source).stat().st_size for source, size in sizes)
+    # A folder is selected with or without its trailing slash, and nothing else is read.
+    assert [s for s, _ in access.sizes('Concepts')] == ['Concepts/Attention.md', 'Concepts/KV Cache.md']
+    assert access.sizes('Concepts/') == access.sizes('Concepts')
+    assert access.sizes('Concept') == [] and access.sizes('Journal/2026-01-02.md')
+    # Excluded folders stay out of the measurement, as they are out of every other scope.
+    (linked_vault / 'Attachments').mkdir()
+    (linked_vault / 'Attachments/note.md').write_text('# Attached\n', encoding='utf-8')
+    assert [s for s, _ in access.sizes()] == [s for s, _ in sizes]
