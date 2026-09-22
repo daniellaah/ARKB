@@ -178,7 +178,7 @@ def test_prepared_matching_reuses_text_and_only_reloads_changed_sources(tmp_path
     path.write_text('# Title\n\nnew text')
     os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
     assert [h.source for h in exact.search('old', regex=True).results] == ['a.md']
-    load.assert_called_once_with(path)
+    load.assert_called_once_with(path, source='b.md')
     new, = exact.search('new').results
     assert new.metadata['document_revision'] != first[1].metadata['document_revision']
     assert exact.documents.read(new.source_id, start_char=new.start_char,
@@ -221,8 +221,8 @@ def test_preparation_interruption_is_resumable_and_does_not_hide_bad_input(tmp_p
         (tmp_path / name).write_text('needle')
     cancel = Event()
     load = text_cache._load_note
-    def interrupted(path):
-        note = load(path)
+    def interrupted(path, *, source=None):
+        note = load(path, source=source)
         if path.name == 'b.md':
             cancel.set()
         return note
@@ -311,3 +311,43 @@ def test_unique_sources_lists_each_document_once_and_reports_truncation(tmp_path
     assert [r.source for r in filtered.results] == ['c.md'] and filtered.truncated is False
     with pytest.raises(ValueError):
         exact.search('word', unique_sources='yes')
+
+
+def test_same_filename_in_two_folders_keeps_separate_cached_bodies(tmp_path):
+    for folder, body in (('one', 'needle in one'), ('two', 'other text, needle in two')):
+        (tmp_path / folder).mkdir()
+        (tmp_path / folder / 'note.md').write_text(f'# Note\n\n{body}', encoding='utf-8')
+    (tmp_path / 'note.md').write_text('# Note\n\nneedle at the root', encoding='utf-8')
+    with ExactRetriever(DocumentAccess(tmp_path, vault_id='v')) as tool:
+        assert tool.prepare()['documents'] == 3
+        for options in ({}, {'regex': True}, {'case_sensitive': False}):
+            hits = tool.search('needle', top_k=10, **options).results
+            assert [(hit.source, hit.start_char) for hit in hits] == [
+                ('note.md', 0), ('one/note.md', 0), ('two/note.md', 12)]
+        # Every hit still expands to its own live document, not a same-named sibling.
+        for hit in tool.search('needle', top_k=10).results:
+            document = tool.documents.read(hit.source_id)
+            assert document.source == hit.source
+            assert document.content[hit.start_char:hit.end_char] == 'needle'
+        assert [h.source for h in tool.search('one/note.md', target='source').results] == ['one/note.md']
+        assert [h.source for h in tool.search('needle', filters={'source': 'two/note.md'}).results] == ['two/note.md']
+
+
+def test_cached_bodies_follow_an_edit_to_one_of_two_same_named_notes(tmp_path):
+    for folder in ('one', 'two'):
+        (tmp_path / folder).mkdir()
+        (tmp_path / folder / 'note.md').write_text('# Note\n\nold body', encoding='utf-8')
+    with ExactRetriever(DocumentAccess(tmp_path, vault_id='v')) as tool:
+        tool.prepare()
+        (tmp_path / 'two' / 'note.md').write_text('# Note\n\nnew body', encoding='utf-8')
+        assert [h.source for h in tool.search('old body', top_k=10).results] == ['one/note.md']
+        assert [h.source for h in tool.search('new body', top_k=10, regex=True).results] == ['two/note.md']
+
+
+def test_excluded_folders_stay_out_of_exact_matching(tmp_path):
+    (tmp_path / 'Attachments').mkdir()
+    (tmp_path / 'Attachments' / 'clip.md').write_text('needle', encoding='utf-8')
+    (tmp_path / 'kept.md').write_text('needle', encoding='utf-8')
+    with ExactRetriever(DocumentAccess(tmp_path, vault_id='v')) as tool:
+        assert [h.source for h in tool.search('needle', top_k=10).results] == ['kept.md']
+        assert tool.search('needle', filters={'source': 'Attachments/clip.md'}).results == ()

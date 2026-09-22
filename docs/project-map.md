@@ -1,7 +1,7 @@
 # Project map
 
 Start here to learn the codebase. ARKB is an agentic retrieval system over a
-flat directory of Markdown notes: a small LLM chooses among `match`, `search`
+directory tree of Markdown notes: a small LLM chooses among `match`, `search`
 and `read`, and a deterministic retrieval engine executes them. Everything
 below the agent is reproducible and label-free; everything about answer
 quality is measured, not assumed.
@@ -50,6 +50,8 @@ documents live under `docs/archive/` and their artifacts under `archive/`.
 
 ## Conventions
 
+- A source is a vault-relative POSIX path; absolute paths, backslashes, drive
+  letters and `..` segments are rejected at every boundary that accepts one.
 - Labels, answers and judge prompts never enter inference code paths; scoring
   reads them afterwards from separate files.
 - Completed attempts are immutable and checksummed; interrupted work needs

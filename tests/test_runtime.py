@@ -300,3 +300,38 @@ def test_env_file_sets_missing_variables_only(tmp_path, monkeypatch):
     import os
     assert os.environ['ARKB_TEST_A'] == 'alpha' and os.environ['ARKB_TEST_B'] == 'kept'
     assert load_env_file(tmp_path / 'missing') == {}
+
+
+def test_live_tools_walk_the_nested_scope_and_honour_configured_exclusions(tmp_path, monkeypatch):
+    from arkb.config import RuntimeConfig
+    from arkb.runtime import Runtime
+
+    for relative in ('04-Areas/rag.md', 'Attachments/rag.md', '99-Archive/rag.md'):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('# Retrieval\nRAG', encoding='utf-8')
+    monkeypatch.setattr('ollama.Client', Mock())
+    monkeypatch.setattr('arkb.knowledge.qdrant.connect_qdrant', Mock())
+    db = tmp_path / 'absent.sqlite'
+    with Runtime() as runtime:
+        default = runtime.match('RAG', db=db, notes_dir=tmp_path, vault_id='v', top_k=5)
+    assert [hit.source for hit in default.results] == ['04-Areas/rag.md', '99-Archive/rag.md']
+    with Runtime(RuntimeConfig(exclude=('.*', 'Attachments', 'Excalidraw', '99-Archive'))) as runtime:
+        narrowed = runtime.match('RAG', db=db, notes_dir=tmp_path, vault_id='v', top_k=5)
+    assert [hit.source for hit in narrowed.results] == ['04-Areas/rag.md']
+
+
+def test_notes_scope_prefers_configuration_then_the_indexed_exclusions(tmp_path):
+    from arkb.config import RuntimeConfig
+    from arkb.knowledge.documents import DEFAULT_EXCLUDES
+    from arkb.runtime import Runtime
+
+    storage = Mock()
+    storage.build_metadata.return_value = {'backend': {'source_scope': str(tmp_path),
+                                                       'source_exclude': ['.*', '99-Archive']}}
+    manifest = Mock(index_version='v1')
+    with Runtime() as runtime:
+        assert runtime._notes_scope(storage, manifest, None) == (tmp_path, ('.*', '99-Archive'))
+        assert runtime._notes_scope(storage, None, tmp_path) == (tmp_path, DEFAULT_EXCLUDES)
+    with Runtime(RuntimeConfig(exclude=('Attachments',))) as runtime:
+        assert runtime._notes_scope(storage, manifest, None) == (tmp_path, ('Attachments',))

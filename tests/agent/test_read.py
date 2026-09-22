@@ -89,3 +89,58 @@ def test_read_rejects_conflicting_document_selectors(tools, documents):
     record = next(documents.records(source='a.md'))
     with pytest.raises(LookupError):
         tools.read(record.document_id, source='b.md')
+
+
+def test_session_reads_nested_sources_and_rejects_paths_outside_the_vault(tmp_path):
+    from arkb.agent.session import ToolSession
+    from arkb.retrieval import RetrievalEngine, SearchResponse
+
+    (tmp_path / '04-Areas').mkdir()
+    (tmp_path / '04-Areas' / 'note.md').write_text('# Career\n\nA plan.', encoding='utf-8')
+    (tmp_path / 'note.md').write_text('# Root\n\nAnother plan.', encoding='utf-8')
+    (tmp_path.parent / 'outside.md').write_text('private', encoding='utf-8')
+    documents = DocumentAccess(tmp_path, vault_id='v')
+    engine = Mock(spec=RetrievalEngine)
+    engine.search.return_value = SearchResponse(query='q', method='semantic')
+    with ExactRetriever(documents) as exact:
+        session = ToolSession(AgentTools(documents=documents, exact=exact, engine=engine))
+        nested = session.invoke('read', {'source': '04-Areas/note.md'})
+        assert nested['status'] == 'success'
+        assert nested['result']['source'] == '04-Areas/note.md'
+        assert nested['result']['content'] == 'A plan.'
+        assert session.invoke('read', {'source': 'note.md'})['result']['content'] == 'Another plan.'
+        for source in ('../outside.md', '/etc/passwd', '04-Areas\\note.md', 'C:/vault/note.md',
+                       './04-Areas/note.md', '04-Areas/../04-Areas/note.md'):
+            error = session.invoke('read', {'source': source})['error']
+            assert error['code'] == 'invalid_arguments', source
+            assert 'vault-relative' in error['message']
+        assert session.invoke('read', {'source': '04-Areas/missing.md'})['error']['code'] == 'source_unavailable'
+        assert session.invoke('match', {'query': 'plan', 'source': '../outside.md'})['error']['code'] == 'invalid_arguments'
+
+
+def test_nested_listing_and_matching_report_vault_relative_sources(tmp_path):
+    from arkb.agent.session import ToolSession
+    from arkb.retrieval import RetrievalEngine, SearchResponse
+
+    for relative in ('04-Areas/Career Development/plan.md', '01-Journal/plan.md'):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('# Plan\n\nrare token', encoding='utf-8')
+    (tmp_path / '.obsidian').mkdir()
+    (tmp_path / '.obsidian' / 'workspace.md').write_text('rare token', encoding='utf-8')
+    documents = DocumentAccess(tmp_path, vault_id='v')
+    engine = Mock(spec=RetrievalEngine)
+    engine.search.return_value = SearchResponse(query='q', method='semantic')
+    with ExactRetriever(documents) as exact:
+        session = ToolSession(AgentTools(documents=documents, exact=exact, engine=engine))
+        listing = session.invoke('list', {})
+        assert [note['source'] for note in listing['notes']] == [
+            '01-Journal/plan.md', '04-Areas/Career Development/plan.md']
+        matched = session.invoke('match', {'query': 'rare token', 'limit': 10})
+        session.deliver(matched)
+        hits = matched['results']
+        assert [hit['source'] for hit in hits] == [
+            '01-Journal/plan.md', '04-Areas/Career Development/plan.md']
+        # A ref returned for one note expands to that note, not to its same-named sibling.
+        expanded = session.invoke('read', {'ref': hits[1]['ref'], 'expand': 'document'})
+        assert expanded['result']['source'] == '04-Areas/Career Development/plan.md'

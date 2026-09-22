@@ -342,3 +342,36 @@ def test_old_chunking_fingerprint_requires_a_new_snapshot_but_reuses_embeddings(
     assert not second.reused_index
     assert second.manifest.index_version != first.manifest.index_version
     assert second.embedded_inputs == 0 and second.cached_inputs == 1
+
+
+def test_nested_sources_index_as_distinct_documents(setup):
+    storage, options = setup
+    notes = [Note(title='Note', content='one body', source='one/note.md'),
+             Note(title='Note', content='two body', source='two/note.md')]
+    report = build_index(storage, notes, **options, index_version='nested')
+    assert report.manifest.document_count == 2 and report.manifest.chunk_count == 2
+    records = storage.snapshot_records('nested')
+    assert sorted(record.chunk.source for record in records) == ['one/note.md', 'two/note.md']
+    assert len({record.document_id for record in records}) == 2
+
+
+def test_frontmatter_only_metadata_does_not_invalidate_a_snapshot(setup):
+    storage, options = setup
+    notes = [Note(title='A', content='first', source='a.md')]
+    first = build_index(storage, notes, **options)
+    tagged = [Note(title='A', content='first', source='a.md', metadata={'tags': ['career']})]
+    again = build_index(storage, tagged, **options)
+    # Note.metadata is parsed but not yet indexed, so the built snapshot is identical.
+    assert again.reused_index is True
+    assert again.manifest.index_version == first.manifest.index_version
+
+
+def test_non_default_exclusions_are_recorded_for_live_tools(setup):
+    storage, options = setup
+    notes = [Note(title='A', content='first', source='a.md')]
+    build_index(storage, notes, **options, index_version='default-scope')
+    assert 'source_exclude' not in storage.build_metadata('default-scope')['backend']
+    build_index(storage, notes, **options, index_version='narrow-scope',
+                source_exclude=('.*', 'Attachments', 'Excalidraw', '99-Archive'))
+    backend = storage.build_metadata('narrow-scope')['backend']
+    assert backend['source_exclude'] == ['.*', 'Attachments', 'Excalidraw', '99-Archive']

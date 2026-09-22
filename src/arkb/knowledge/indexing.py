@@ -1,7 +1,7 @@
 """Build complete, validated index candidates and atomically publish them."""
 
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass, replace
+from dataclasses import dataclass, replace
 from functools import partial, wraps
 from time import perf_counter
 from uuid import uuid4
@@ -15,6 +15,7 @@ from arkb.knowledge.models import (
 from arkb.knowledge.qdrant import QdrantIndex
 
 from arkb.knowledge.chunking import chunk_notes, whole_note_chunks
+from arkb.knowledge.documents import DEFAULT_EXCLUDES, SkippedNote
 from arkb.knowledge.embeddings import (
     DEFAULT_QUERY_INSTRUCTION, prepare_document, prepare_query, validate_input_tokens,
     iter_embedding_batches, count_tokens, tokenizer_fingerprint,
@@ -32,6 +33,10 @@ class BuildReport:
     modified_documents: int = 0
     deleted_documents: int = 0
     build_seconds: float = 0.0
+    # Files the scan could not use, carried from VaultScan so one unreadable
+    # note in a large vault is reported rather than silently absent.
+    skipped: tuple[SkippedNote, ...] = ()
+    unparsed_metadata: tuple[SkippedNote, ...] = ()
 
 
 def _exclusive_build(function):
@@ -52,7 +57,8 @@ def build_index(
     query_instruction: str = DEFAULT_QUERY_INSTRUCTION, index_version: str | None = None,
     batch_size: int = 32, max_batch_tokens: int | None = None, max_retries: int = 0,
     qdrant_config: QdrantConfig,
-    force: bool = False, source_scope: str | None = None, qdrant_client=None,
+    force: bool = False, source_scope: str | None = None,
+    source_exclude: Sequence[str] | None = None, qdrant_client=None,
 ) -> BuildReport:
     """Preflight inputs, reuse cached vectors, checkpoint batches, then publish.
 
@@ -103,7 +109,15 @@ def build_index(
     metadata['input'] = {'max_tokens': max_input_tokens, 'tokenizer': token_identity}
     if source_scope is not None:
         metadata['source_scope'] = source_scope
-    corpus = fingerprint_config({'notes': [asdict(n) for n in notes]})
+    # Recorded only when it differs from the default so that snapshots built
+    # before exclusions existed stay reusable, and so live tools can reproduce
+    # the indexed scope without repeating the option.
+    if source_exclude is not None and tuple(source_exclude) != DEFAULT_EXCLUDES:
+        metadata['source_exclude'] = list(source_exclude)
+    # Fingerprint what the snapshot stores. Note.metadata is parsed but not yet
+    # indexed, so a frontmatter-only edit must not invalidate an index.
+    corpus = fingerprint_config({'notes': [
+        {'title': n.title, 'content': n.content, 'source': n.source} for n in notes]})
     active = storage.active_manifest(vault_id)
     if active is not None:
         previous = storage.build_metadata(active.index_version)

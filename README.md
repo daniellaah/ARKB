@@ -153,7 +153,11 @@ Use `--host` and `--qdrant-url` to configure service endpoints, and `--db` and `
 
 To index your own notes, replace `example_notes` with your Markdown directory.
 
-ARKB currently loads UTF-8 `.md` files directly inside the specified directory. It does not recursively traverse subdirectories.
+ARKB loads UTF-8 `.md` files under the specified directory, including subdirectories. A source is the vault-relative POSIX path of a note, such as `04-Areas/Career Development/note.md`; in a flat knowledge base it is simply the filename.
+
+Directories whose name begins with `.` (`.obsidian`, `.trash`), plus `Attachments/` and `Excalidraw/`, are skipped. `--exclude <glob>` skips further directories by name or vault-relative path and may be repeated; the value is saved with the index so `match` and `ask` walk the scope that was indexed.
+
+A leading `---` delimited YAML block is parsed into the note's metadata and removed from the body. A file that cannot be read or decoded is skipped, and a frontmatter block outside the parsed YAML subset leaves the note without metadata; `arkb index` reports both counts and lists the affected sources on stderr.
 
 When an index already exists, `match` and `ask` use its saved directory. An explicit `--notes-dir` must agree with that scope.
 
@@ -189,7 +193,7 @@ uv run --locked arkb match "RAG" \
 
 `match` searches live Markdown content through ripgrep.
 
-It returns literal occurrences with source filenames and body character offsets.
+It returns literal occurrences with source paths and body character offsets.
 
 It does not require an index, embedding model, Qdrant, or generation model.
 
@@ -230,7 +234,7 @@ uv run --locked arkb search \
   --json
 ```
 
-`--source <filename.md>` restricts `match` or `search` to one exact source filename.
+`--source <path.md>` restricts `match` or `search` to one exact vault-relative source path.
 
 ### Agentic multi-step retrieval
 
@@ -435,7 +439,7 @@ The agent can select an available search mode on each `search` call.
 `match` and `search` return opaque evidence references. The Agent expands a result
 with `read(ref="…")`, which returns the bounded heading section around the
 evidence by default (`expand="snippet"` for the excerpt only, `expand="document"`
-for the whole note), or reads a known filename with `read(source="rag.md")`.
+for the whole note), or reads a known source path with `read(source="notes/rag.md")`.
 `match` lists occurrences by default; `unique_sources=true` lists each matching
 note once, and every `match` response reports `truncated` when more matches exist
 beyond `limit`. `search` returns ten ranked chunks by default. Under an evidence

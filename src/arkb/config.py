@@ -21,6 +21,9 @@ class RuntimeConfig:
     embedding_model: str | None = None
     qdrant_url: str | None = None
     qdrant_timeout: float | None = None
+    # Directory globs excluded from the note scan; None uses the indexed scope,
+    # then knowledge.documents.DEFAULT_EXCLUDES.
+    exclude: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True, kw_only=True)

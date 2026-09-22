@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from arkb.retrieval.exact import ExactPatternError, ExactTimeout, ExactCancelled
 from arkb.knowledge.documents import DocumentNotFound
+from arkb.knowledge.models import is_canonical_source
 from arkb.agent.tools import DEFAULT_LIST_LIMIT, DEFAULT_SEARCH_LIMIT
 
 
@@ -43,8 +44,9 @@ def validate_arguments(arguments, schema):
         if actual == 'array' and any(not isinstance(v, str) or not v.strip() for v in value):
             raise ToolInputError('invalid_arguments', f'{key} must contain reference strings.')
     source = arguments.get('source')
-    if source is not None and (source in ('.', '..') or '/' in source or '\\' in source):
-        raise ToolInputError('invalid_arguments', 'source must be a filename in this flat knowledge base.')
+    if source is not None and not is_canonical_source(source):
+        raise ToolInputError('invalid_arguments', 'source must be a vault-relative path such as '
+                             'area/note.md, with no leading slash and no ".." segment.')
 
 
 SECTION_WINDOW_CHARS = 3000

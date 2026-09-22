@@ -1,8 +1,8 @@
 """Compose capabilities and manage the lifetime of resources opened here."""
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from contextlib import ExitStack, closing, contextmanager
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 from arkb.config import (
@@ -66,13 +66,22 @@ class Runtime:
                 raise ValueError('No published index; run the index command first.')
             yield storage, manifest
 
-    @staticmethod
-    def _notes_directory(storage, manifest, notes_dir: Path | None) -> Path:
-        scope = (storage.build_metadata(manifest.index_version)['backend'].get('source_scope')
-                 if manifest is not None else None)
+    def _notes_scope(self, storage, manifest, notes_dir: Path | None) -> tuple[Path, tuple[str, ...]]:
+        """Resolve the live directory and its exclusions from the index, then configuration.
+
+        Live tools must walk the scope the snapshot was built from, so a note
+        under an excluded folder is neither listed nor readable.
+        """
+        from arkb.knowledge.documents import DEFAULT_EXCLUDES
+        backend = (storage.build_metadata(manifest.index_version)['backend']
+                   if manifest is not None else {})
+        scope = backend.get('source_scope')
         if notes_dir is not None and scope is not None and Path(notes_dir).resolve() != Path(scope).resolve():
             raise ValueError('--notes-dir differs from the indexed knowledge base; use its directory or another vault/database.')
-        return Path(notes_dir if notes_dir is not None else scope or DEFAULT_NOTES_DIR)
+        indexed = backend.get('source_exclude')
+        exclude = (tuple(self.config.exclude) if self.config.exclude is not None
+                   else tuple(indexed) if indexed is not None else DEFAULT_EXCLUDES)
+        return Path(notes_dir if notes_dir is not None else scope or DEFAULT_NOTES_DIR), exclude
 
     def match(self, pattern: str, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
               notes_dir: Path | None = None, top_k: int = 5,
@@ -83,7 +92,8 @@ class Runtime:
 
         filters = validate_request(pattern, top_k, {'source': source} if source is not None else None)
         with self._snapshot(db, vault_id, required=False) as (storage, manifest):
-            documents = DocumentAccess(self._notes_directory(storage, manifest, notes_dir), vault_id=vault_id)
+            directory, exclude = self._notes_scope(storage, manifest, notes_dir)
+            documents = DocumentAccess(directory, vault_id=vault_id, exclude=exclude)
             with ExactRetriever(documents) as exact:
                 return exact.search(pattern, top_k=top_k, filters=filters, unique_sources=unique_sources)
 
@@ -111,12 +121,12 @@ class Runtime:
         from arkb.retrieval.engine import RetrievalEngine
 
         with self._snapshot(db, vault_id, required=False) as (storage, manifest):
-            directory = self._notes_directory(storage, manifest, notes_dir)
+            directory, exclude = self._notes_scope(storage, manifest, notes_dir)
             engine = RetrievalEngine(
                 bm25=_LazySnapshotRetriever(self, storage, manifest, 'bm25'),
                 semantic=_LazySnapshotRetriever(self, storage, manifest, 'semantic'))
             tools = self.agent_tools(engine=engine, directory=directory, vault_id=vault_id,
-                                     mode=DEFAULT_RETRIEVAL_MODE)
+                                     mode=DEFAULT_RETRIEVAL_MODE, exclude=exclude)
             return self.run_agent(query, tools=tools, model=model, max_turns=max_turns,
                                   think=think, client=client,observer=observer,
                                   search_stall_reminder=search_stall_reminder)
@@ -129,12 +139,14 @@ class Runtime:
               query_instruction: str = DEFAULT_QUERY_INSTRUCTION) -> 'BuildReport':
         """Scan before opening index state, then reuse the existing index builder."""
         self._require_open()
-        from arkb.knowledge.documents import scan_notes
+        from arkb.knowledge.documents import DEFAULT_EXCLUDES, scan_notes
         from arkb.knowledge.embeddings import resolve_embedding_spec
         from arkb.knowledge.indexing import build_index
 
         notes_dir = Path(notes_dir)
-        notes = scan_notes(notes_dir)
+        exclude = DEFAULT_EXCLUDES if self.config.exclude is None else tuple(self.config.exclude)
+        scan = scan_notes(notes_dir, exclude=exclude)
+        notes = scan.notes
         tokenizer = self.tokenizer()
         client = self.model_client()
         spec = resolve_embedding_spec(client, self.config.embedding_model or DEFAULT_EMBEDDING_MODEL,
@@ -142,12 +154,13 @@ class Runtime:
         qdrant_config = qdrant_config or QdrantConfig(url=self.config.qdrant_url or QdrantConfig.url)
         with SQLiteStorage(Path(db)) as storage:
             qclient = self.qdrant_client(qdrant_config.url)
-            return build_index(storage, notes, spec=spec, vault_id=vault_id, client=client,
+            report = build_index(storage, notes, spec=spec, vault_id=vault_id, client=client,
                 tokenizer=tokenizer, max_input_tokens=context_length, chunking=chunking,
                 chunk_size=chunk_size, chunk_overlap=chunk_overlap, batch_size=batch_size,
                 max_batch_tokens=max_batch_tokens, max_retries=max_retries,
                 query_instruction=query_instruction, force=force, source_scope=str(notes_dir.resolve()),
-                qdrant_config=qdrant_config, qdrant_client=qclient)
+                source_exclude=exclude, qdrant_config=qdrant_config, qdrant_client=qclient)
+        return replace(report, skipped=scan.unreadable, unparsed_metadata=scan.unparsed_metadata)
 
     def status(self, *, db: Path = DEFAULT_DB, vault_id: str = 'default') -> dict:
         """Read saved manifests and backend configuration without contacting services."""
@@ -227,7 +240,8 @@ class Runtime:
 
     def agent_tools(self, *, engine: 'RetrievalEngine', directory: Path, vault_id: str,
                     mode: str = 'semantic', rerank: bool = False,
-                    prepare_exact: bool = False) -> 'AgentTools':
+                    prepare_exact: bool = False,
+                    exclude: Sequence[str] | None = None) -> 'AgentTools':
         """Bind live document tools to an already prepared retrieval engine.
 
         Use the same directory/vault as indexing. The caller selects a default
@@ -240,10 +254,11 @@ class Runtime:
         if type(prepare_exact) is not bool:
             raise ValueError('prepare_exact must be a boolean.')
         from arkb.agent.tools import AgentTools
-        from arkb.knowledge.documents import DocumentAccess
+        from arkb.knowledge.documents import DEFAULT_EXCLUDES, DocumentAccess
         from arkb.retrieval.exact import ExactRetriever
 
-        documents = DocumentAccess(directory, vault_id=vault_id)
+        documents = DocumentAccess(directory, vault_id=vault_id,
+                                   exclude=DEFAULT_EXCLUDES if exclude is None else exclude)
         exact = ExactRetriever(documents)
         self._resources.callback(exact.close)
         if prepare_exact:

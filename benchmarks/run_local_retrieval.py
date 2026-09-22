@@ -48,7 +48,7 @@ def main(argv=None):
         parser.error('Require 0 < top-k <= candidate-k')
     raw = args.cases.read_bytes()
     cases = [json.loads(line) for line in raw.splitlines() if line.strip()]
-    notes = scan_notes(args.notes_dir)
+    notes = scan_notes(args.notes_dir).notes
     for case in cases:
         if set(case['relevance']) - {note.source for note in notes}:
             parser.error('Case labels refer to sources outside this corpus')

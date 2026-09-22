@@ -227,3 +227,32 @@ def test_runtime_errors_go_to_stderr_without_partial_results(runtime, capsys, co
     output = capsys.readouterr()
     assert output.out == '' and str(error) in output.err and 'Traceback' not in output.err
     fake.__exit__.assert_called_once()
+
+
+def test_exclude_is_repeatable_added_to_the_defaults_and_left_unset_otherwise(runtime):
+    from arkb.knowledge.documents import DEFAULT_EXCLUDES
+    _, factory = runtime
+    assert main(['index', '--notes-dir', 'vault', '--exclude', '99-Archive',
+                 '--exclude', '04-Areas/private']) == 0
+    assert factory.call_args.args[0].exclude == (*DEFAULT_EXCLUDES, '99-Archive', '04-Areas/private')
+    factory.reset_mock()
+    assert main(['match', 'RAG', '--exclude', '99-Archive']) == 0
+    assert factory.call_args.args[0].exclude == (*DEFAULT_EXCLUDES, '99-Archive')
+    factory.reset_mock()
+    # Without the option the indexed scope decides, so the configuration stays unset.
+    assert main(['ask', 'Q']) == 0
+    assert factory.call_args.args[0].exclude is None
+
+
+def test_index_reports_skipped_files_and_unparsed_frontmatter(runtime, capsys):
+    from dataclasses import replace
+    from arkb.knowledge.documents import SkippedNote
+    fake, _ = runtime
+    fake.index.return_value = replace(fake.index.return_value,
+        skipped=(SkippedNote('01-Journal/broken.md', 'UnicodeDecodeError: invalid byte'),),
+        unparsed_metadata=(SkippedNote('04-Areas/odd.md', 'Nested mappings are not supported.'),))
+    assert main(['index', '--notes-dir', 'vault']) == 0
+    output = capsys.readouterr()
+    assert 'Skipped: 1 | Unparsed frontmatter: 1' in output.out
+    assert '01-Journal/broken.md: UnicodeDecodeError' in output.err
+    assert '04-Areas/odd.md: Nested mappings' in output.err

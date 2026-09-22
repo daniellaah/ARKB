@@ -144,14 +144,14 @@ class AgentTools:
                                                 filters=filters, top_k=limit))
 
     def list(self, pattern: str | None = None, *, limit: int = DEFAULT_LIST_LIMIT) -> dict:
-        """Browse the knowledge base: filenames, titles, headings and sizes, no evidence."""
+        """Browse the knowledge base: source paths, titles, headings and sizes, no evidence."""
         return self._documents.list(pattern, limit=limit)
 
     def read(self, document_id: str | None = None, *, source: str | None = None,
              section_id: str | None = None,
              start_char: int | None = None, end_char: int | None = None) -> ReadResult:
-        """Read by returned document ID or known source filename. Both selectors
-        must agree when supplied together. Optionally select a section or range.
+        """Read by returned document ID or known vault-relative source path. Both
+        selectors must agree when supplied together. Optionally select a section or range.
         """
         document = self._documents.read(document_id, source=source, section_id=section_id,
                                          start_char=start_char, end_char=end_char)
@@ -212,7 +212,7 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
     },
     {
         'name': 'list',
-        'description': 'Browse the knowledge base: filenames, titles, headings and sizes of notes, in filename '
+        'description': 'Browse the knowledge base: source paths, titles, headings and sizes of notes, in source '
                        'order. Use it to see what exists before searching, or to find a note by name; pattern '
                        'filters filenames (case-insensitive substring, or a glob such as *embedding*). Listings '
                        'are not evidence: read or search a note before citing it. truncated=true means more notes '
@@ -229,7 +229,7 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
     },
     {
         'name': 'read',
-        'description': 'Expand returned evidence using ref. Alternatively read a known source filename. '
+        'description': 'Expand returned evidence using ref. Alternatively read a known source path. '
                        'Supply exactly one selector. References are bound to their source revision; '
                        'if stale, search again or read the filename to get current text. expand=section '
                        '(default) returns the bounded section around the evidence; snippet returns only '
@@ -240,7 +240,8 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
             'properties': {
                 'ref': {'type': 'string', 'minLength': 1},
                 'source': {'type': 'string', 'minLength': 1,
-                           'description': 'Known filename in the knowledge base, e.g. rag.md.'},
+                           'description': 'Known source path in the knowledge base, exactly as returned, '
+                                          'e.g. rag.md or notes/rag.md.'},
                 'expand': {'type': 'string', 'enum': ['section', 'snippet', 'document'], 'default': 'section',
                            'description': 'section: heading section around the evidence (bounded); snippet: the excerpt only; document: the entire note.'},
             },

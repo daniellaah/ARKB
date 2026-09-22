@@ -76,7 +76,7 @@ def test_load_notes_reports_a_missing_directory(tmp_path: Path) -> None:
         load_notes(tmp_path / "missing")
 
 
-def test_load_notes_reads_only_markdown_files_in_the_given_directory(
+def test_load_notes_reads_only_markdown_files_including_nested_directories(
     tmp_path: Path,
 ) -> None:
     (tmp_path / "current.md").write_text("# Current\n\nAn idea.\n", encoding="utf-8")
@@ -87,7 +87,7 @@ def test_load_notes_reads_only_markdown_files_in_the_given_directory(
 
     notes = load_notes(tmp_path)
 
-    assert [note.source for note in notes] == ["current.md"]
+    assert [note.source for note in notes] == ["archive.md/old.md", "current.md"]
 
 
 def test_load_notes_returns_an_empty_list_for_an_empty_directory(tmp_path: Path) -> None:
@@ -97,12 +97,11 @@ def test_load_notes_returns_an_empty_list_for_an_empty_directory(tmp_path: Path)
 def test_scan_rejects_changes_during_reading(tmp_path, monkeypatch):
     import arkb.knowledge.documents as loaders
     (tmp_path / 'a.md').write_text('# A\nbody')
-    original = loaders.load_notes
-    def changing(directory):
-        notes = original(directory)
-        (directory / 'b.md').write_text('# B\nnew')
-        return notes
-    monkeypatch.setattr(loaders, 'load_notes', changing)
+    original = loaders._read_note
+    def changing(path, source):
+        (path.parent / 'b.md').write_text('# B\nnew')
+        return original(path, source)
+    monkeypatch.setattr(loaders, '_read_note', changing)
     with pytest.raises(ValueError, match='changed during scanning'):
         loaders.scan_notes(tmp_path)
 
@@ -125,10 +124,10 @@ def test_access_identity_matches_index_records_and_only_reads_resolved_file(tmp_
     assert (read.document_id, read.document_revision, read.source, read.title, read.content) == (
         indexed.document_id, indexed.document_revision, note.source, note.title, note.content)
     assert not hasattr(read, 'chunk_id')
-    load.assert_called_once_with(tmp_path / 'a.md')
+    load.assert_called_once_with(tmp_path / 'a.md', source='a.md')
     load.reset_mock()
     assert access.read(source='a.md') == read
-    load.assert_called_once_with(tmp_path / 'a.md')
+    load.assert_called_once_with(tmp_path / 'a.md', source='a.md')
     load.reset_mock()
     with pytest.raises(LookupError):
         access.read(indexed.document_id, source='unrelated.md')
@@ -170,7 +169,7 @@ def test_access_tracks_new_deleted_renamed_files_without_retaining_bodies(tmp_pa
     assert next(access.records()).document_id != original.document_id
 
 
-def test_access_preserves_flat_scope_and_excludes_external_symlinks(tmp_path):
+def test_access_spans_subdirectories_and_excludes_external_symlinks(tmp_path):
     from arkb.knowledge.documents import scan_notes
     root = tmp_path / 'notes'
     root.mkdir()
@@ -182,13 +181,15 @@ def test_access_preserves_flat_scope_and_excludes_external_symlinks(tmp_path):
     outside.write_text('outside', encoding='utf-8')
     (root / 'link.md').symlink_to(outside)
     # Indexing retains its existing symlink scope; live tools stay confined.
-    assert [note.source for note in load_notes(root)] == ['a.md', 'link.md']
-    assert scan_notes(root) == load_notes(root)
+    assert [note.source for note in load_notes(root)] == ['a.md', 'link.md', 'nested/nested.md']
+    assert list(scan_notes(root).notes) == load_notes(root)
     access = DocumentAccess(root, vault_id='v')
-    assert [r.chunk.source for r in access.records()] == ['a.md']
+    assert [r.chunk.source for r in access.records()] == ['a.md', 'nested/nested.md']
     assert list(access.records(source='../private.md')) == []
     assert access.read(source='a.md').content == 'inside'
-    for source in ('../private.md', str(outside), 'link.md', 'nested/nested.md', 'ignore.txt'):
+    assert access.read(source='nested/nested.md').content == 'nested'
+    for source in ('../private.md', 'nested/../nested/nested.md', str(outside), 'link.md',
+                   'nested\\nested.md', 'ignore.txt'):
         with pytest.raises(LookupError):
             access.read(source=source)
 
@@ -203,8 +204,126 @@ def test_access_propagates_filesystem_and_decoding_errors(tmp_path, monkeypatch)
     with pytest.raises(FileNotFoundError):
         list(DocumentAccess(tmp_path / 'missing', vault_id='v').records())
 
-    def disappeared(path):
+    def disappeared(path, *, source=None):
         raise FileNotFoundError('removed during read')
     monkeypatch.setattr('arkb.knowledge.documents._load_note', disappeared)
     with pytest.raises(LookupError, match='no longer exists'):
         access.read(record.document_id)
+
+
+def test_note_files_walks_subdirectories_in_source_order_and_skips_excluded_folders(tmp_path):
+    from arkb.knowledge.documents import DEFAULT_EXCLUDES, note_files
+    for relative in ('top.md', '04-Areas/Career Development/note.md', '04-Areas/other.md',
+                     '.obsidian/plugin.md', '.trash/deleted.md', 'Attachments/clip.md',
+                     'Excalidraw/sketch.md', 'Archive/old.md', 'Archive/nested/older.md'):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f'# {relative}\n\nbody', encoding='utf-8')
+    (tmp_path / '04-Areas/image.png').write_bytes(b'\x89PNG')
+
+    assert [source for _, source in note_files(tmp_path)] == [
+        '04-Areas/Career Development/note.md', '04-Areas/other.md',
+        'Archive/nested/older.md', 'Archive/old.md', 'top.md']
+    assert [source for _, source in note_files(tmp_path, exclude=(*DEFAULT_EXCLUDES, 'Archive'))] == [
+        '04-Areas/Career Development/note.md', '04-Areas/other.md', 'top.md']
+    # A pattern may address one nested folder without excluding every folder of that name.
+    assert [source for _, source in note_files(tmp_path, exclude=(*DEFAULT_EXCLUDES, 'Archive/nested'))] == [
+        '04-Areas/Career Development/note.md', '04-Areas/other.md', 'Archive/old.md', 'top.md']
+    assert [source for _, source in note_files(tmp_path, exclude=())] == [
+        '.obsidian/plugin.md', '.trash/deleted.md', '04-Areas/Career Development/note.md',
+        '04-Areas/other.md', 'Archive/nested/older.md', 'Archive/old.md',
+        'Attachments/clip.md', 'Excalidraw/sketch.md', 'top.md']
+
+
+def test_excluded_directories_leave_the_live_document_scope(tmp_path):
+    (tmp_path / 'Attachments').mkdir()
+    (tmp_path / 'Attachments' / 'clip.md').write_text('# Clip\n\nbody', encoding='utf-8')
+    (tmp_path / 'kept.md').write_text('# Kept\n\nbody', encoding='utf-8')
+    access = DocumentAccess(tmp_path, vault_id='v')
+    assert [note['source'] for note in access.list()['notes']] == ['kept.md']
+    assert list(access.records(source='Attachments/clip.md')) == []
+    with pytest.raises(LookupError):
+        access.read(source='Attachments/clip.md')
+    included = DocumentAccess(tmp_path, vault_id='v', exclude=())
+    assert included.read(source='Attachments/clip.md').content == 'body'
+
+
+def test_identical_filenames_in_different_folders_are_distinct_documents(tmp_path):
+    for folder in ('one', 'two'):
+        (tmp_path / folder).mkdir()
+        (tmp_path / folder / 'note.md').write_text(f'# Note\n\n{folder} body', encoding='utf-8')
+    access = DocumentAccess(tmp_path, vault_id='v')
+    records = list(access.records())
+    assert [record.chunk.source for record in records] == ['one/note.md', 'two/note.md']
+    assert records[0].document_id != records[1].document_id
+    assert access.read(records[0].document_id).content == 'one body'
+    assert access.read(records[1].document_id).content == 'two body'
+    assert access.read(source='two/note.md').document_id == records[1].document_id
+
+
+def test_load_note_strips_frontmatter_into_metadata_without_changing_title_rules(tmp_path):
+    (tmp_path / 'a.md').write_text(
+        '---\n'
+        'title: Ignored\n'
+        'tags:\n'
+        '  - career\n'
+        '  - "writing"\n'
+        'aliases: [Plan B, second]\n'
+        'created: 2026-09-22\n'
+        'empty:\n'
+        '# a comment\n'
+        '---\n'
+        '# Real Title\n\nBody text.\n', encoding='utf-8')
+    (tmp_path / 'b.md').write_text('---\ntags: one\n---\nNo heading here.\n', encoding='utf-8')
+    note, other = load_notes(tmp_path)
+    assert note.metadata == {'title': 'Ignored', 'tags': ['career', 'writing'],
+                             'aliases': ['Plan B', 'second'], 'created': '2026-09-22', 'empty': ''}
+    assert (note.title, note.content) == ('Real Title', 'Body text.')
+    assert (other.title, other.content, other.metadata) == ('b', 'No heading here.', {'tags': 'one'})
+
+
+def test_frontmatter_is_only_stripped_when_the_block_is_delimited(tmp_path):
+    (tmp_path / 'rule.md').write_text('---\nA horizontal rule opens this note.\n', encoding='utf-8')
+    (tmp_path / 'plain.md').write_text('# Plain\n\nNo block.\n', encoding='utf-8')
+    plain, rule = load_notes(tmp_path)
+    assert rule.content == '---\nA horizontal rule opens this note.' and rule.metadata == {}
+    assert plain.content == 'No block.' and plain.metadata == {}
+
+
+def test_unparsable_frontmatter_keeps_the_body_and_is_reported(tmp_path):
+    from arkb.knowledge.documents import scan_notes
+    (tmp_path / 'bad.md').write_text(
+        '---\nnested:\n  key: value\n---\n# Bad\n\nStill indexed.\n', encoding='utf-8')
+    (tmp_path / 'good.md').write_text('---\ntags: t\n---\n# Good\n\nFine.\n', encoding='utf-8')
+    scan = scan_notes(tmp_path)
+    assert [(note.source, note.title, note.content) for note in scan.notes] == [
+        ('bad.md', 'Bad', 'Still indexed.'), ('good.md', 'Good', 'Fine.')]
+    assert scan.notes[0].metadata == {} and scan.notes[1].metadata == {'tags': 't'}
+    assert [skipped.source for skipped in scan.unparsed_metadata] == ['bad.md']
+    assert 'Nested mappings' in scan.unparsed_metadata[0].reason
+    assert scan.unreadable == ()
+
+
+def test_scan_skips_and_reports_one_unreadable_file_instead_of_failing(tmp_path):
+    from arkb.knowledge.documents import scan_notes
+    (tmp_path / 'good.md').write_text('# Good\n\nbody', encoding='utf-8')
+    (tmp_path / 'sub').mkdir()
+    (tmp_path / 'sub' / 'broken.md').write_bytes(b'# Broken\n\n\xff\xfe')
+    scan = scan_notes(tmp_path)
+    assert [note.source for note in scan.notes] == ['good.md']
+    assert [skipped.source for skipped in scan.unreadable] == ['sub/broken.md']
+    assert 'UnicodeDecodeError' in scan.unreadable[0].reason
+    with pytest.raises(UnicodeDecodeError):
+        load_notes(tmp_path)
+
+
+@pytest.mark.parametrize('source', [
+    '../outside.md', '/abs/note.md', 'C:/vault/note.md', 'sub\\note.md',
+    './sub/note.md', 'sub//note.md', 'sub/../sub/note.md', 'sub/note.txt'])
+def test_access_rejects_non_canonical_source_selectors(tmp_path, source):
+    (tmp_path / 'sub').mkdir()
+    (tmp_path / 'sub' / 'note.md').write_text('# Note\n\nbody', encoding='utf-8')
+    access = DocumentAccess(tmp_path, vault_id='v')
+    assert list(access.records(source=source)) == []
+    with pytest.raises(LookupError):
+        access.read(source=source)

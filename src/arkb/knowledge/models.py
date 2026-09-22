@@ -6,7 +6,7 @@ document's identity; identical embedding inputs may still reuse cached vectors.
 """
 
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, field, fields
 import math
 import hashlib
 import json
@@ -14,13 +14,32 @@ import re
 from typing import Literal
 
 
+def is_canonical_source(source: str) -> bool:
+    """Report whether source is a vault-relative POSIX path such as "area/note.md".
+
+    Reject backslashes, drive letters, absolute paths, and "." or ".." parts,
+    so one document has exactly one spelling across the index, the live tools
+    and the exact-matching cache.
+    """
+    return (isinstance(source, str) and source != ""
+            and "\\" not in source
+            and re.match(r"^[A-Za-z]:", source) is None
+            and not any(part in ("", ".", "..") for part in source.split("/")))
+
+
 @dataclass(frozen=True)
 class Note:
-    """A Markdown note with a title, body, and source filename."""
+    """A Markdown note with a title, body, vault-relative source and metadata.
+
+    metadata holds the note's parsed YAML frontmatter, an empty mapping when
+    there is none. It is not part of any identity: editing only the
+    frontmatter leaves note_id and document_revision unchanged.
+    """
 
     title: str
     content: str
     source: str
+    metadata: dict = field(default_factory=dict)
 
     @property
     def note_id(self) -> str:
@@ -184,9 +203,7 @@ class ChunkRecord:
             raise ValueError("chunk must be a Chunk.")
         source = self.chunk.source
         _require_text(source, "source")
-        if "\\" in source or any(part in ("", ".", "..") for part in source.split("/")):
-            raise ValueError("source must be a canonical vault-relative POSIX path.")
-        if re.match(r"^[A-Za-z]:", source):
+        if not is_canonical_source(source):
             raise ValueError("source must be a canonical vault-relative POSIX path.")
         if not isinstance(self.chunk.title, str) or not isinstance(self.chunk.content, str):
             raise ValueError("chunk title and content must be strings.")

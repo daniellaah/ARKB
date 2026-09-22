@@ -6,11 +6,10 @@ not in an unbounded Python dictionary. It never replaces the live source scope.
 from dataclasses import dataclass
 import os
 from pathlib import Path
-import re
 from tempfile import TemporaryDirectory
 
 from arkb.knowledge.documents import DocumentAccess, _load_note
-from arkb.knowledge.models import Note
+from arkb.knowledge.models import Note, is_canonical_source
 
 
 def _signature(path):
@@ -64,21 +63,26 @@ class TextCache:
         if self._closed:
             raise RuntimeError('Text cache is closed.')
         seen = set()
-        for path in self.documents._paths(source):
+        for path, relative in self.documents._paths(source):
             check()
-            seen.add(path.name)
+            seen.add(relative)
             signature = _signature(path)
-            entry = self._entries.get(path.name)
+            entry = self._entries.get(relative)
             if entry is None or entry.signature != signature:
-                note = _load_note(path)
-                # Loading a flat filename still has to enforce the canonical
-                # source contract previously checked by ChunkRecord creation.
-                if '\\' in note.source or re.match(r'^[A-Za-z]:', note.source):
+                note = _load_note(path, source=relative)
+                # Loading a live path still has to enforce the canonical source
+                # contract previously checked by ChunkRecord creation.
+                if not is_canonical_source(note.source):
                     raise ValueError('source must be a canonical vault-relative POSIX path.')
                 if _signature(path) != signature:
                     raise ValueError('Document changed while preparing exact matching; retry the call.')
                 check()
                 if entry is None:
+                    # Cached files are named by an opaque serial rather than by
+                    # the source: two notes with the same filename in different
+                    # folders cannot collide, no cache subdirectories have to be
+                    # created, rg's argv stays short, and mapping rg output back
+                    # to a source stays an exact lookup on the basename.
                     cached = self.directory / 'content' / f'{self._serial:09d}'
                     self._serial += 1
                 else:
@@ -93,7 +97,7 @@ class TextCache:
                 self._materialized['content'].discard(cached.name)
                 entry = CachedText(note.source, note.title, signature, cached, len(body),
                                    self._bodies.fileno(), offset)
-                self._entries[path.name] = entry
+                self._entries[relative] = entry
             yield entry
         # Only a complete, unfiltered scan can prove that a cached source left
         # the scope. A timed-out/early-terminated scan remains safely resumable.

@@ -18,6 +18,7 @@ from arkb.config import (
     DEFAULT_DB, DEFAULT_NOTES_DIR, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL,
     DEFAULT_AGENT_THINK, DEFAULT_RETRIEVAL_MODE, RuntimeConfig, RetrievalConfig,
 )
+from arkb.knowledge.documents import DEFAULT_EXCLUDES
 from arkb.knowledge.embeddings import DEFAULT_QUERY_INSTRUCTION
 from arkb.knowledge.models import QdrantConfig
 from arkb.runtime import Runtime
@@ -106,13 +107,18 @@ def _parser():
         if name in ('match', 'search'):
             command.add_argument('pattern' if name == 'match' else 'query', type=_nonblank)
             command.add_argument('--top-k', type=_positive_int, default=5 if name == 'match' else 2)
-            command.add_argument('--source', type=_nonblank, help='Restrict to this exact source filename.')
+            command.add_argument('--source', type=_nonblank,
+                                 help='Restrict to this exact vault-relative source path.')
         if name == 'match':
             command.add_argument('--unique-sources', action='store_true',
                                  help='List each matching note once instead of every occurrence.')
         if name in ('match', 'ask'):
             command.add_argument('--notes-dir', type=Path,
                                  help='Live notes directory; defaults to the saved scope, then example_notes.')
+        if name in ('match', 'ask', 'index'):
+            command.add_argument('--exclude', type=_nonblank, action='append', metavar='GLOB',
+                                 help='Skip directories matching this name, vault-relative path or glob; '
+                                      f'repeatable and added to the defaults {" ".join(DEFAULT_EXCLUDES)}.')
         if name == 'index':
             _add_index_arguments(command)
         elif name == 'search':
@@ -148,12 +154,18 @@ def _validate_arguments(parser, args):
             parser.error('reranking requires top-k <= rerank-candidates')
 
 
+def _excludes(args):
+    """Add repeated --exclude values to the defaults; None keeps the indexed scope."""
+    extra = getattr(args, 'exclude', None)
+    return DEFAULT_EXCLUDES + tuple(extra) if extra else None
+
+
 def _runtime_config(args):
     if args.command in ('match', 'status'):
-        return RuntimeConfig()
+        return RuntimeConfig(exclude=_excludes(args))
     return RuntimeConfig(host=args.host, timeout=args.timeout, tokenizer_cache=args.tokenizer_cache,
                          offline=args.offline, embedding_model=args.embedding_model,
-                         qdrant_url=args.qdrant_url)
+                         qdrant_url=args.qdrant_url, exclude=_excludes(args))
 
 
 def _execute(runtime, args):
@@ -223,6 +235,9 @@ def _print_result(args, result):
         print(f'Vault: {result.manifest.vault_id} | Documents: {result.manifest.document_count} | Chunks: {result.manifest.chunk_count}')
         print(f'Embedded: {result.embedded_inputs} | Cached: {result.cached_inputs}')
         print(f'Added: {result.added_documents} | Modified: {result.modified_documents} | Deleted: {result.deleted_documents}')
+        print(f'Skipped: {len(result.skipped)} | Unparsed frontmatter: {len(result.unparsed_metadata)}')
+        for skipped in (*result.skipped, *result.unparsed_metadata):
+            print(f'  {skipped.source}: {skipped.reason}', file=sys.stderr)
     else:
         print(f'Vault: {result["vault_id"]}')
         print(f'Notes: {result["notes_dir"] or "unknown"}')
