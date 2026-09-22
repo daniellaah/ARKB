@@ -1,4 +1,4 @@
-"""No-LLM engine measurement on the dev-loop recall scenarios.
+"""No-LLM engine measurement on the recall scenarios.
 
 For each recall scenario, run the frozen retrieval engine directly in every mode
 and report document-level positive recall and distinct sources at 5, 10 and 20
@@ -14,11 +14,11 @@ from time import perf_counter
 import numpy as np
 
 from arkb.config import RuntimeConfig
-from arkb.evaluation.external import write_json
 from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.runtime import Runtime
 
-ROOT = Path(__file__).resolve().parents[2]
+from .common import ROOT, resolve, write_json
+from .run import DEVSET, QDRANT_URL
 CUTOFFS = (5, 10, 20)
 
 
@@ -28,11 +28,11 @@ def measure(devset, output, *, modes=('bm25', 'semantic', 'hybrid')):
     scopes = json.loads((devset / 'scopes.json').read_text())
     rows = []
     with Runtime(RuntimeConfig(offline=True, tokenizer_cache=(ROOT / '.uv-cache/tokenizers').resolve(),
-                               qdrant_url='http://127.0.0.1:6340')) as runtime:
+                               qdrant_url=QDRANT_URL)) as runtime:
         for scope_name in sorted({s['scope'] for s in scenarios}):
             scope = scopes[scope_name]
             source_map = json.loads((devset / 'scoring' / f'{scope_name}.json').read_text())['source_map']
-            with SQLiteStorage(Path(scope['sqlite']), read_only=True) as storage:
+            with SQLiteStorage(resolve(scope['sqlite']), read_only=True) as storage:
                 manifest = storage.active_manifest(scope['vault_id'])
                 engine = runtime.retrieval_engine(storage, manifest, modes=('bm25', 'semantic'), exact=True)
                 for scenario in [s for s in scenarios if s['scope'] == scope_name]:
@@ -65,7 +65,7 @@ def measure(devset, output, *, modes=('bm25', 'semantic', 'hybrid')):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--devset', type=Path, default=ROOT / 'evaluation/devloop/devset-v1')
+    p.add_argument('--devset', type=Path, default=DEVSET)
     p.add_argument('--output', type=Path, required=True)
     args = p.parse_args()
     summary = measure(args.devset.resolve(), args.output.resolve())

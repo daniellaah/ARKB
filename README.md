@@ -675,8 +675,8 @@ uv run --locked python -m pytest -q -m "not integration"
 
 These tests use local fixtures and mocked model services. `make test`, `make lint`
 (ruff, pyflakes-level) and `make help` cover the everyday tasks; the
-development loop for measuring agent changes is described in
-[evaluation/devloop/README.md](evaluation/devloop/README.md), and
+development evaluation for measuring agent changes is described in
+[evaluation/README.md](evaluation/README.md), and
 [docs/project-map.md](docs/project-map.md) gives a reading order for the code.
 
 Exact matching tests require `rg` on `PATH`.

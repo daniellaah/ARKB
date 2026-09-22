@@ -39,5 +39,5 @@ htmlcov/
 # Reconstruct this large archive from its versioned multipart files.
 /evaluation/experiments/artifacts/p4-t2-20260910.tar.gz
 
-# Development-loop scoring maps are rebuilt by evaluation.devloop.build (13 MB derived files).
-/evaluation/devloop/devset-v1/scoring/
+# Devset scoring maps are rebuilt by evaluation.devset.build (13 MB derived files).
+/evaluation/devset/scoring/

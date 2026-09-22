@@ -1,30 +1,30 @@
-"""Build the deterministic development set for the fast loop.
+"""Build the development set: scenarios, labels and scopes, from IDs, hashes and corpus text only.
 
-Slices: the v2 pilot (60 English-translated queries over 58 notes with span
-labels), synthetic exact-enumeration tasks on NFCorpus whose ground truth is the
-literal substring truth, evidence-recall queries on NFCorpus and FiQA taken from
-pilot and reserve IDs in frozen hash order, and ten MuSiQue pairs with prepared
-contexts. Labels stay in labels.json on the scoring side; the runner never reads
-them. All selections use IDs and text statistics only, never outcomes.
+The core slices (v2, exact-v2) need nothing beyond the repository. The optional
+slices take their inputs from the frozen pilot-v3 selection on the external
+volume and are built only when it is mounted (`--core-only` skips them).
+No answer, judgment or score is consulted when choosing scenarios.
 """
 import argparse
 from collections import Counter
-import hashlib
 import json
 from pathlib import Path
 import re
 
-from arkb.evaluation.external import digest, write_json
 from arkb.knowledge.documents import load_notes
-from evaluation.agentic_tools.selection import key as hash_key
 
-ROOT = Path(__file__).resolve().parents[2]
-IDENTITY = 'arkb-devloop-v1'
-V2 = ROOT / 'evaluation/data/v2/pilot'
-TRANSLATIONS = ROOT / 'evaluation/devloop/v2-pilot-english-queries.json'
+from ..common import ROOT, digest, digest_text, write_json
+
+IDENTITY = 'arkb-devset-v2'
+# Selection hashes keep their original identities so the chosen terms and queries stay those of devset-v1.
+TERM_IDENTITY = 'arkb-devloop-v1'
+SELECTION_IDENTITY = 'agentic-tools-v1|20260912'
+DEVSET = ROOT / 'evaluation/devset'
+V2 = DEVSET / 'v2-pilot'
+TRANSLATIONS = DEVSET / 'v2-pilot-english-queries.json'
+V2_INDEX = Path('.arkb/devset/v2-pilot/index.sqlite')
+V2_VAULT = 'devset-v2-pilot'
 PILOT_V3 = Path('/Volumes/ARKBPhaseC/agentic-tools-v1/pilot-v3')
-V2_INDEX = ROOT / '.arkb/devloop/v2-pilot/index.sqlite'
-V2_VAULT = 'devloop-v2-pilot'
 QDRANT_URL = 'http://127.0.0.1:6340'
 EXACT_STRATA = {'df_2_5': (2, 5, 8), 'df_6_12': (6, 12, 8), 'df_13_30': (13, 30, 4)}
 PHRASE_STRATUM = (2, 10, 4)
@@ -40,10 +40,14 @@ EXACT_QUERY = ("List every note whose body contains the exact text '{term}' as a
 
 
 def term_key(dataset, term):
-    return hashlib.sha256(f'{IDENTITY}|{dataset}|{term}'.encode('utf-8')).hexdigest()
+    return digest_text(f'{TERM_IDENTITY}|{dataset}|{term}')
 
 
-def exact_tasks(corpus_dir, dataset, *, strata=EXACT_STRATA, phrase=PHRASE_STRATUM):
+def selection_key(dataset, stratum, identifier):
+    return digest_text(f'{SELECTION_IDENTITY}|{dataset}|{stratum}|{identifier}')
+
+
+def exact_tasks(corpus_dir, dataset, *, scope=None, optional=False, strata=EXACT_STRATA, phrase=PHRASE_STRATUM):
     """Literal enumeration tasks whose truth is the substring truth `match` implements."""
     notes = load_notes(Path(corpus_dir))
     bodies = {note.source: note.content for note in notes}
@@ -67,9 +71,9 @@ def exact_tasks(corpus_dir, dataset, *, strata=EXACT_STRATA, phrase=PHRASE_STRAT
             sources, occurrences = substring_truth(term)
             if not low <= len(sources) <= high:
                 continue
-            tasks.append({'id': f'exact-{dataset}-{term_key(dataset, term)[:12]}', 'slice': f'exact-{dataset}', 'scope': dataset,
+            tasks.append({'id': f'exact-{dataset}-{term_key(dataset, term)[:12]}', 'slice': f'exact-{dataset}', 'scope': scope or dataset,
                           'task_type': 'exact_enumeration', 'stratum': stratum, 'term': term,
-                          'query': EXACT_QUERY.format(term=term),
+                          'query': EXACT_QUERY.format(term=term), **({'optional': True} if optional else {}),
                           'labels': {'expected_sources': sources, 'occurrences': occurrences,
                                      'distinct_sources': len(sources)}})
             chosen += 1
@@ -92,18 +96,18 @@ def v2_tasks():
         tasks.append({'id': row['id'], 'slice': 'v2', 'scope': 'v2-pilot', 'task_type': row['task_type'],
                       'answerability': row['answerability'], 'intent_family_id': row['intent_family_id'],
                       'query': translations[row['id']], 'query_zh': row['query'],
-                      'labels': {'dataset': 'evaluation/data/v2/pilot', 'case_id': row['id']}})
+                      'labels': {'dataset': 'evaluation/devset/v2-pilot', 'case_id': row['id']}})
     return tasks
 
 
 def recall_tasks(dataset, inputs, selection, scoring):
     stratum = selection['tracks'][dataset][0]
-    ordered = sorted(stratum['pilot'] + stratum['reserves'], key=lambda x: (hash_key(dataset, 'all', x), x))
+    ordered = sorted(stratum['pilot'] + stratum['reserves'], key=lambda x: (selection_key(dataset, 'all', x), x))
     chosen = ordered[:RECALL_PER_DATASET]
     queries = json.loads((Path(inputs[dataset]['data']) / 'queries.json').read_text())
     tasks = []
     for identifier in chosen:
-        tasks.append({'id': f'recall-{dataset}-{identifier}', 'slice': f'recall-{dataset}', 'scope': dataset,
+        tasks.append({'id': f'recall-{dataset}-{identifier}', 'slice': f'recall-{dataset}', 'scope': dataset, 'optional': True,
                       'task_type': 'evidence_recall', 'query': queries[identifier], 'source_id': identifier,
                       'exposure': 'pilot' if identifier in stratum['pilot'] else 'reserve',
                       'labels': {'qrels': scoring[dataset]['qrels'][identifier], 'source_map': f'scoring/{dataset}.json'}})
@@ -111,14 +115,13 @@ def recall_tasks(dataset, inputs, selection, scoring):
 
 
 def long_document_tasks(scenarios, selection, scoring, inputs):
-    """Optional long-document slice: BrowseComp pilot queries plus the first reserves in hash order.
+    """Long-document slice: BrowseComp pilot queries plus the first reserves in hash order.
 
-    Excluded from default runs because preparing the 100,195-document exact cache
-    takes about ten minutes; request it with --slices long-browsecomp when testing
-    read expansion and evidence packing on long web pages.
+    Preparing the 100,195-document exact cache takes about ten minutes; the slice
+    tests read expansion and evidence packing on long web pages.
     """
     stratum = selection['tracks']['browsecomp-plus'][0]
-    ordered = sorted(stratum['pilot'] + stratum['reserves'], key=lambda x: (hash_key('browsecomp-plus', 'all', x), x))
+    ordered = sorted(stratum['pilot'] + stratum['reserves'], key=lambda x: (selection_key('browsecomp-plus', 'all', x), x))
     chosen = ordered[:LONG_DOCUMENT_QUERIES]
     by_identity = {(v['dataset'], v['id'], v['variant']): v for v in scenarios.values()}
     queries = json.loads((Path(inputs['browsecomp-plus']['data']) / 'queries.json').read_text())
@@ -145,54 +148,78 @@ def musique_tasks(scenarios, selection, gold):
         for variant in ('v0', 'v1'):
             case = by_identity[('musique', pair, variant)]
             tasks.append({'id': f'musique-{case["scenario_id"][:12]}-{variant}', 'slice': 'musique', 'scope': case['scenario_id'],
-                          'task_type': 'multi_hop', 'query': case['query'], 'pair_id': pair, 'variant': variant,
+                          'optional': True, 'task_type': 'multi_hop', 'query': case['query'], 'pair_id': pair, 'variant': variant,
                           'exposure': case['split'], 'corpus': case['corpus'], 'sqlite': case['sqlite'],
                           'vault_id': case['vault_id'], 'context_sha256': case['context_sha256'],
                           'labels': {'gold': gold[case['scenario_id']]}})
     return tasks
 
 
-def build(destination):
-    inputs = json.loads((PILOT_V3 / 'inputs.json').read_text())
-    selection = json.loads((PILOT_V3 / 'selection.json').read_text())
-    scenarios = json.loads((PILOT_V3 / 'inference/scenarios.json').read_text())
-    scoring = {ds: json.loads((PILOT_V3 / 'scoring' / f'{ds}.json').read_text()) for ds in ('nfcorpus', 'fiqa', 'browsecomp-plus')}
-    musique_gold = json.loads((PILOT_V3 / 'scoring/musique.json').read_text())
-    tasks = v2_tasks() + exact_tasks(inputs['nfcorpus']['corpus'], 'nfcorpus')
-    for ds in ('nfcorpus', 'fiqa'):
-        tasks += recall_tasks(ds, inputs, selection, scoring)
-    tasks += musique_tasks(scenarios, selection, musique_gold)
-    tasks += long_document_tasks(scenarios, selection, scoring, inputs)
+def carry_over(destination):
+    """Optional scenarios, labels and scopes of an existing devset, unchanged."""
+    if not (destination / 'scenarios.json').exists():
+        return None
+    scenarios = json.loads((destination / 'scenarios.json').read_text())
+    labels = json.loads((destination / 'labels.json').read_text())
+    scopes = json.loads((destination / 'scopes.json').read_text())
+    manifest = json.loads((destination / 'manifest.json').read_text())
+    tasks = [{**s, 'optional': True, 'labels': labels[s['id']]} for s in scenarios
+             if s['slice'] not in ('v2', 'exact-v2')]
+    kept = {s['scope'] for s in tasks}
+    return {'tasks': tasks, 'scopes': {k: v for k, v in scopes.items() if k in kept},
+            'sources': {k: v for k, v in manifest['sources'].items() if k.startswith('pilot_v3')}
+                       | {'optional_carried_from': manifest['identity']}}
+
+
+def core_scopes():
+    return {'v2-pilot': {'corpus': str((V2 / 'corpus').relative_to(ROOT)), 'sqlite': str(V2_INDEX), 'vault_id': V2_VAULT, 'prepare_exact': True}}
+
+
+def build(destination, *, core_only=False):
+    tasks = v2_tasks() + exact_tasks(V2 / 'corpus', 'v2', scope='v2-pilot')
+    scopes = core_scopes()
+    sources = {'v2_queries': digest(V2 / 'queries.jsonl'), 'v2_evidence': digest(V2 / 'evidence.jsonl'),
+               'v2_qrels': digest(V2 / 'qrels.jsonl'), 'translations': digest(TRANSLATIONS)}
+    scoring, carried = {}, None
+    if not core_only and not PILOT_V3.exists():
+        # Without the volume the optional slices cannot be rebuilt; keep the committed ones as they are.
+        carried = carry_over(destination)
+        if carried is None:
+            raise FileNotFoundError(f'{PILOT_V3} is not mounted and {destination} holds no devset; pass --core-only.')
+        tasks += carried['tasks']
+        scopes.update(carried['scopes'])
+        sources.update(carried['sources'])
+    elif not core_only:
+        inputs = json.loads((PILOT_V3 / 'inputs.json').read_text())
+        selection = json.loads((PILOT_V3 / 'selection.json').read_text())
+        scenarios = json.loads((PILOT_V3 / 'inference/scenarios.json').read_text())
+        scoring = {ds: json.loads((PILOT_V3 / 'scoring' / f'{ds}.json').read_text()) for ds in ('nfcorpus', 'fiqa', 'browsecomp-plus')}
+        musique_gold = json.loads((PILOT_V3 / 'scoring/musique.json').read_text())
+        tasks += exact_tasks(inputs['nfcorpus']['corpus'], 'nfcorpus', optional=True)
+        for ds in ('nfcorpus', 'fiqa'):
+            tasks += recall_tasks(ds, inputs, selection, scoring)
+        tasks += musique_tasks(scenarios, selection, musique_gold)
+        tasks += long_document_tasks(scenarios, selection, scoring, inputs)
+        for ds in ('nfcorpus', 'fiqa', 'browsecomp-plus'):
+            scopes[ds] = {'corpus': inputs[ds]['corpus'], 'sqlite': inputs[ds]['sqlite'], 'vault_id': inputs[ds]['vault_id'],
+                          'index_manifest': inputs[ds]['index_manifest'], 'prepare_exact': True}
+        sources.update(pilot_v3_selection=digest(PILOT_V3 / 'selection.json'), pilot_v3_scenarios=digest(PILOT_V3 / 'inference/scenarios.json'),
+                       pilot_v3_inputs=digest(PILOT_V3 / 'inputs.json'))
     if len({t['id'] for t in tasks}) != len(tasks):
         raise ValueError('Duplicate development task IDs.')
-    scenarios_out = [{k: v for k, v in t.items() if k != 'labels'} for t in tasks]
-    labels = {t['id']: t['labels'] for t in tasks}
-    scopes = {'v2-pilot': {'corpus': str(V2 / 'corpus'), 'sqlite': str(V2_INDEX), 'vault_id': V2_VAULT, 'prepare_exact': True},
-              'nfcorpus': {'corpus': inputs['nfcorpus']['corpus'], 'sqlite': inputs['nfcorpus']['sqlite'],
-                           'vault_id': inputs['nfcorpus']['vault_id'], 'index_manifest': inputs['nfcorpus']['index_manifest'], 'prepare_exact': True},
-              'fiqa': {'corpus': inputs['fiqa']['corpus'], 'sqlite': inputs['fiqa']['sqlite'],
-                       'vault_id': inputs['fiqa']['vault_id'], 'index_manifest': inputs['fiqa']['index_manifest'], 'prepare_exact': True},
-              'browsecomp-plus': {'corpus': inputs['browsecomp-plus']['corpus'], 'sqlite': inputs['browsecomp-plus']['sqlite'],
-                                  'vault_id': inputs['browsecomp-plus']['vault_id'], 'index_manifest': inputs['browsecomp-plus']['index_manifest'],
-                                  'prepare_exact': True, 'optional': True}}
     destination.mkdir(parents=True, exist_ok=True)
-    write_json(destination / 'scenarios.json', scenarios_out)
-    write_json(destination / 'labels.json', labels)
+    write_json(destination / 'scenarios.json', [{k: v for k, v in t.items() if k != 'labels'} for t in tasks])
+    write_json(destination / 'labels.json', {t['id']: t['labels'] for t in tasks})
     write_json(destination / 'scopes.json', scopes)
-    (destination / 'scoring').mkdir(exist_ok=True)
-    for ds in ('nfcorpus', 'fiqa', 'browsecomp-plus'):
-        write_json(destination / 'scoring' / f'{ds}.json', {'source_map': scoring[ds]['source_map']})
+    for ds, value in scoring.items():
+        write_json(destination / 'scoring' / f'{ds}.json', {'source_map': value['source_map']})
     counts = Counter(t['slice'] for t in tasks)
     write_json(destination / 'manifest.json', {
-        'schema': 'arkb-devloop-devset-v1', 'identity': IDENTITY, 'tasks': len(tasks), 'by_slice': dict(counts),
+        'schema': 'arkb-devset-v2', 'identity': IDENTITY, 'tasks': len(tasks), 'by_slice': dict(counts),
+        'core_slices': sorted({t['slice'] for t in tasks if not t.get('optional')}),
         'optional_slices': sorted({t['slice'] for t in tasks if t.get('optional')}),
-        'exact_strata': dict(Counter(t.get('stratum') for t in tasks if t['slice'].startswith('exact'))),
-        'sources': {'v2_queries': digest(V2 / 'queries.jsonl'), 'v2_evidence': digest(V2 / 'evidence.jsonl'),
-                    'v2_qrels': digest(V2 / 'qrels.jsonl'), 'translations': digest(TRANSLATIONS),
-                    'pilot_v3_selection': digest(PILOT_V3 / 'selection.json'), 'pilot_v3_scenarios': digest(PILOT_V3 / 'inference/scenarios.json'),
-                    'pilot_v3_inputs': digest(PILOT_V3 / 'inputs.json')},
-        'files': {name: digest(destination / name) for name in ('scenarios.json', 'labels.json', 'scopes.json')},
-        'exposure': 'development material: v2 pilot and public pilot/reserve/core IDs listed here are exposed; never a holdout',
+        'sources': sources, 'files': {name: digest(destination / name) for name in ('scenarios.json', 'labels.json', 'scopes.json')},
+        'exposure': 'development material: every ID here is exposed; never a holdout',
         'selection': 'IDs and corpus text statistics only; no outcomes, answers or scores were consulted'})
     return counts
 
@@ -201,9 +228,10 @@ def build_v2_index(force=False):
     from arkb.config import RuntimeConfig
     from arkb.runtime import Runtime
     from arkb.knowledge.models import QdrantConfig
-    V2_INDEX.parent.mkdir(parents=True, exist_ok=True)
+    index = ROOT / V2_INDEX
+    index.parent.mkdir(parents=True, exist_ok=True)
     with Runtime(RuntimeConfig(offline=True, tokenizer_cache=(ROOT / '.uv-cache/tokenizers').resolve(), qdrant_url=QDRANT_URL)) as runtime:
-        report = runtime.index(db=V2_INDEX, vault_id=V2_VAULT, notes_dir=V2 / 'corpus',
+        report = runtime.index(db=index, vault_id=V2_VAULT, notes_dir=V2 / 'corpus',
                                qdrant_config=QdrantConfig(url=QDRANT_URL), force=force)
         return {'index_version': report.manifest.index_version, 'documents': report.manifest.document_count,
                 'chunks': report.manifest.chunk_count, 'reused': report.reused_index}
@@ -211,12 +239,13 @@ def build_v2_index(force=False):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--destination', type=Path, default=ROOT / 'evaluation/devloop/devset-v1')
+    parser.add_argument('--destination', type=Path, default=DEVSET)
     parser.add_argument('--index', action='store_true', help='build or verify the v2 pilot corpus index')
+    parser.add_argument('--core-only', action='store_true', help='skip the optional slices that need the external volume')
     args = parser.parse_args()
     if args.index:
         print(json.dumps({'v2_index': build_v2_index()}))
-    counts = build(args.destination.resolve())
+    counts = build(args.destination.resolve(), core_only=args.core_only)
     print(json.dumps({'built': str(args.destination), 'by_slice': dict(counts)}))
 
 

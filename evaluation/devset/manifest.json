@@ -1,0 +1,42 @@
+{
+  "by_slice": {
+    "exact-nfcorpus": 24,
+    "exact-v2": 24,
+    "long-browsecomp": 10,
+    "musique": 20,
+    "recall-fiqa": 20,
+    "recall-nfcorpus": 20,
+    "v2": 60
+  },
+  "core_slices": [
+    "exact-v2",
+    "v2"
+  ],
+  "exposure": "development material: every ID here is exposed; never a holdout",
+  "files": {
+    "labels.json": "3a4d80966352090334d7a4e8d0d0d5e5d9c9290b325f2204c84f8a602778e376",
+    "scenarios.json": "5cd94b1af33d5035a61492b1526c0a602e005d451375e8c31edda14fda440a87",
+    "scopes.json": "5da18f1f0c013c18e266077c8eeda9b51fdbed65f9f38ddcb12c994ae1f00d99"
+  },
+  "identity": "arkb-devset-v2",
+  "optional_slices": [
+    "exact-nfcorpus",
+    "long-browsecomp",
+    "musique",
+    "recall-fiqa",
+    "recall-nfcorpus"
+  ],
+  "schema": "arkb-devset-v2",
+  "selection": "IDs and corpus text statistics only; no outcomes, answers or scores were consulted",
+  "sources": {
+    "optional_carried_from": "arkb-devloop-v1",
+    "pilot_v3_inputs": "6a5311982ce6dd8fe96fb6e5d2fcb052382f6b35bc53a7db48b8e1929a4aabbb",
+    "pilot_v3_scenarios": "531e5d53c7ecfd7d3815926e1a1402ea0eb5053323a31cfa8a0c030e401ee1f7",
+    "pilot_v3_selection": "1d52928b861dec794db7bd9a48c188e605afe09780376952ddd6fce7d57e54eb",
+    "translations": "18865c9dcfd48c1efc98c6f8e4d86212ca399db55e9e38ae28b64608e2f6890e",
+    "v2_evidence": "d8ce7eec466bae96492f3d2a94667d159ee71a32812a0e33e90436ceeee6571a",
+    "v2_qrels": "9aac36ded8f4d98c79d07c19b6d431682ec38eafaf0ac45f17979a49a721ef87",
+    "v2_queries": "8a00b71cd1b5266b2b8be88d4500226aff393384503c8f07f2040165c6eadace"
+  },
+  "tasks": 178
+}

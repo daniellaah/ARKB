@@ -184,7 +184,7 @@ def run_pilot(dataset_dir, output, *, qdrant_url, host='http://127.0.0.1:11434',
 def main(argv=None):
     import argparse
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--dataset',type=Path,default=Path('evaluation/data/v2/pilot'))
+    p.add_argument('--dataset',type=Path,default=Path('evaluation/devset/v2-pilot'))
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--qdrant-url',required=True)
     p.add_argument('--allow-provisional',action='store_true')

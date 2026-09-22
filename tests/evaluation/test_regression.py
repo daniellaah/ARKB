@@ -38,5 +38,5 @@ def test_unreviewed_public_or_empty_holdout_rejected(tmp_path,change):
 def test_current_core_is_not_a_reviewed_release_holdout(tmp_path):
     from pathlib import Path
     with pytest.raises(ValueError):
-        reserve_core_release(Path('evaluation/data/v2/pilot'),tmp_path/'ledger.jsonl','release')
+        reserve_core_release(Path('evaluation/devset/v2-pilot'),tmp_path/'ledger.jsonl','release')
     assert not (tmp_path/'ledger.jsonl').exists()

@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def fixture():
-    path = ROOT/'evaluation/data/v2/pilot'
+    path = ROOT/'evaluation/devset/v2-pilot'
     dataset = load_dataset(path, notes_dir=path/'corpus', allow_provisional=True)
     case = dataset.cases[0]
     hits = [asdict(SearchResult(source_id=d['source'], source=d['source'], content=dataset.bodies[d['source']],

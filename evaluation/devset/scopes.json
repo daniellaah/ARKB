@@ -1,0 +1,84 @@
+{
+  "browsecomp-plus": {
+    "corpus": "/Volumes/ARKBPhaseC/data/browsecomp-plus/corpus",
+    "index_manifest": {
+      "chunk_count": 1883193,
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 100195,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "d7a0497b8efe4f7db2f440af4c5aa9d4",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "browsecomp-plus"
+    },
+    "optional": true,
+    "prepare_exact": true,
+    "sqlite": "/Volumes/ARKBPhaseC/validation/browsecomp-plus/index.sqlite",
+    "vault_id": "browsecomp-plus"
+  },
+  "fiqa": {
+    "corpus": "/Volumes/ARKBPhaseC/validation/fiqa-r2/index-corpus",
+    "index_manifest": {
+      "chunk_count": 60430,
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 57600,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "d1fa9710012d47ed8630a58867c07f85",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "fiqa"
+    },
+    "prepare_exact": true,
+    "sqlite": "/Volumes/ARKBPhaseC/validation/fiqa-r2/index.sqlite",
+    "vault_id": "fiqa"
+  },
+  "nfcorpus": {
+    "corpus": "/Volumes/ARKBPhaseC/data/nfcorpus/corpus",
+    "index_manifest": {
+      "chunk_count": 3930,
+      "chunking_fingerprint": "d0d498bdcb23bf741bb38699e402ed0d6aba2dfee98e5aee3c2c0702fb121aaf",
+      "document_count": 3633,
+      "embedding_spec": {
+        "dimensions": 1024,
+        "document_template": "title-body-v1",
+        "dtype": "float64",
+        "model": "qwen3-embedding:0.6b",
+        "model_revision": "ac6da0dfba84a81fdbfbaf330198c33cd77c4cdfc53e8bc50eb581914a15621d",
+        "normalization": "l2",
+        "provider": "ollama"
+      },
+      "index_version": "d24b61b9069744b692309f80aaa478a1",
+      "query_instruction": "Given a question, retrieve relevant notes that help answer it.",
+      "schema_version": 2,
+      "status": "ready",
+      "vault_id": "nfcorpus"
+    },
+    "prepare_exact": true,
+    "sqlite": "/Volumes/ARKBPhaseC/validation/nfcorpus-r2/index.sqlite",
+    "vault_id": "nfcorpus"
+  },
+  "v2-pilot": {
+    "corpus": "evaluation/devset/v2-pilot/corpus",
+    "prepare_exact": true,
+    "sqlite": ".arkb/devset/v2-pilot/index.sqlite",
+    "vault_id": "devset-v2-pilot"
+  }
+}

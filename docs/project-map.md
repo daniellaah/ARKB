@@ -30,11 +30,11 @@ quality is measured, not assumed.
 | `src/arkb/evaluation/` | Evaluation library that ships with the package: datasets, metrics, baselines, replay, external benchmark adapters. Candidate to move out of the product package. |
 | `evaluation/agentic_tools/` | Reusable library for registered agent studies: capability arms, transport, readiness gates, stop controller, selection, records, scoring, statistics, judge, analysis, runner, registration |
 | `evaluation/studies/<study>/` | One-off preparation and pipeline scripts of each registered study, frozen history with a README each |
-| `evaluation/devloop/` | Fast development loop: 144-scenario development set, runner, scorer, comparison, engine-only recall |
+| `evaluation/` (package) | Development evaluation: devset (84 core + 94 optional scenarios), runner, scorer, paired comparison, blinded review, engine-only recall; see [docs/eval-design.md](eval-design.md) |
 | `evaluation/audits/` | Independent replay audits of completed runs |
 | `evaluation/experiments/` | Historical experiment scripts (P0 to P4, Phase A to C) |
 | `evaluation/agentic-tools/<run>/` | Small public copies of registered run artifacts (protocols, accounting, audits) |
-| `evaluation/results/` (ignored) | Local run outputs, including `devloop/` runs |
+| `evaluation/results/` (ignored) | Local run outputs |
 | `/Volumes/ARKBPhaseC/` | External volume: corpora, indexes, frozen study runs with their source snapshots |
 | `tests/` | Deterministic suite (no services); `integration`-marked tests need Ollama and Qdrant |
 | `docs/` | Reports and protocols; see the index below |
@@ -45,7 +45,7 @@ Current and active:
 
 - [agile-vs-workflow-v1.md](agile-vs-workflow-v1.md): fully agentic against fixed-workflow retrieval on the development set (four arms, 9B with thinking, paired intervals; human review pending).
 - [devloop-fix-log.md](devloop-fix-log.md): the fix-first development log with baseline and after measurements.
-- [evaluation/devloop/README.md](../evaluation/devloop/README.md): how to run and compare development-loop runs.
+- [eval-design.md](eval-design.md) and [evaluation/README.md](../evaluation/README.md): the development evaluation, its design and how to run and compare runs.
 - [agentic-tool-selection-evaluation-plan.md](agentic-tool-selection-evaluation-plan.md): the seven-arm study design (plan of record).
 - [agentic-tool-selection-design-review.md](agentic-tool-selection-design-review.md): why core-v1 was stopped and what a replacement needs.
 - [agentic-core-v2-protocol.md](agentic-core-v2-protocol.md): the registered core v2 design (stopped after 16 attempts).
@@ -84,5 +84,5 @@ and the pilot amendments v2 and v3.
 
 ## Everyday commands
 
-`make test`, `make lint`, `make devset`, `make devloop LABEL=<name>`,
+`make test`, `make lint`, `make devset`, `make eval LABEL=<name>`, `make rescore LABEL=<name>`,
 `make compare A=<run> B=<run>`; see `make help`.

@@ -1,319 +1,90 @@
-# Evaluation
+# Development evaluation
 
-Current maintenance scope is English retrieval. Active public adapters are
-SciFact and the Bright-Pro Stack Overflow/Robotics domains, with MuSiQue as a
-separate Agent diagnostic. The default download/preparation workflow excludes
-retired tracks. Existing datasets, labels and historical results remain intact;
-they are not new English evaluation results. See the [scope cleanup](../docs/english-scope-cleanup.md).
+One purpose: tell whether a change to the agent (tools, prompts, model,
+budgets) made it better or worse, in minutes, with paired comparisons. It
+evaluates the product agent as it ships; an ablation is a product
+configuration, not an evaluation adapter. Design and rationale:
+[docs/eval-design.md](../docs/eval-design.md).
 
-The v2 implementation and execution status is recorded in
-[Evaluation implementation progress](implementation-progress.md).
-The [P3 controlled experiment report](p3-controlled-results.md) records candidate
-depth, fixed-pool reranking and stopping-reminder comparisons (184 component +
-48 Agent rows), with [core intake readiness](data/v2/core-intake/README.md).
-Independent core gold and held-out quality validation remain pending.
-The [original public dataset study](public-dataset-selection.md) records the
-pre-cleanup selection rationale. Its language expansion recommendations are
-superseded by the current English maintenance scope.
-P4 execution is recorded in [External evaluation and regression results](p4-external-results.md).
-The public-development batch is complete: 1,016 full-corpus BM25 rows, 4,064
-indexed retrieval rows and 250 Agent attempts, with official metric checks,
-frozen archives and replay. MuSiQue strict output failures and a separate
-posthoc format diagnostic are reported explicitly. The [artifact manifest](experiments/p4-artifacts-20260910-manifest.json)
-indexes the historical delivery snapshot. Source and workflow entries describe
-that delivery, not the current checkout; their exact bytes are retained in the
-[pre-cleanup snapshot](experiments/artifacts/pre-english-scope-20260911.tar.gz).
-Human output review, independent ARKB core,
-real release holdout and remote CI execution remain pending.
-The [P2 budget and output diagnostics](p2-budget-results.md) document optional
-Agent observation/budgets, review binding and the release gate. Default Agent
-calls retain the v1 trace; opt-in budget runs may additionally stop as `budget`.
-The [v2 pilot dataset card](data/v2/pilot/README.md) describes provisional labels,
-family grouping and limits; [human review](reviews/pilot-20260910/README.md) is pending.
-The [metric specification](metric-spec.json) preserves v1 semantics and names v2
-cutoffs and evidence rules explicitly. Remaining sections on this page describe v1.
+## Devset
 
-For the September 2026 audit, external evaluation research, and proposed v2
-dataset/metrics/experiment roadmap, see the
-[Evaluation optimization plan](eval-optimization-plan.md).
-The plan preserves v1 scores and distinguishes proposed work from measured results.
+| Slice | n | Inputs | Primary metric | Core |
+| --- | ---: | --- | --- | --- |
+| v2 | 60 | in repo (`devset/v2-pilot`, 58 notes) | span evidence coverage (delivered); cited source recall; behaviour by task | yes |
+| exact-v2 | 24 | in repo (terms from the v2 corpus; substring truth) | completeness of cited sources | yes |
+| exact-nfcorpus | 24 | `/Volumes/ARKBPhaseC` (3,633 documents) | completeness of cited sources | optional |
+| recall-nfcorpus, recall-fiqa | 20 + 20 | volume | positive-document recall (delivered) | optional |
+| musique | 20 | volume (prepared contexts) | first-line answer F1; answerability; support F1 | optional |
+| long-browsecomp | 10 | volume | positive-document recall (delivered) | optional |
 
-The dataset and metric contracts remain v1. Index storage and identities now use
-schema v2: rebuild pre-v2 indexes into a fresh database before running current
-code. Historical reports retain their original measurements and artifact IDs;
-updated command examples use current ARKB paths and environment variables.
+Every ID is exposed development material chosen by hash, never by outcome;
+the v2 labels are provisional (assistant-authored, unreviewed) until the
+review pass marks them. `devset/scenarios.json`, `labels.json`, `scopes.json`
+and `manifest.json` are committed; the scoring source maps under
+`devset/scoring/` are derived (13 MB) and rebuilt by the build command.
+Labels are read by `score.py` after inference and by nothing else.
 
-For the controlled three-model, three-trial experiment, see
-[Phase 1: Agent Model Ablation](agent-model-ablation.md).
-The completed 360-run experiment is documented in the
-[Phase 1 measured results](phase1-agent-model-ablation-results.md).
-The current fixed reranker is verified in
-[Qwen3 Reranker integration results](reranker-integration.md).
-Fixed BM25, Semantic, Hybrid, and Hybrid + Rerank controls use the same v1 input:
-[Deterministic Retrieval Baselines](deterministic-retrieval-baselines.md), with
-[measured results on the shared snapshot](deterministic-baseline-results.md).
+## Commands
 
-For matched-case Agent coverage/latency and the role of rg-backed match, see
-[Agent vs Baselines](agent-vs-baselines.md).
-
-The versioned input is `data/agent_v1.jsonl`: one UTF-8 JSON object per line,
-ordered by task type and case ID, with no model output or runtime state.
-Annotations were curated against the local `example_notes` bodies, including
-the longer notes' individual sections. `notes` records why each source is
-relevant. Exact labels also have an executable check against real `match`.
-
-| Task type | Cases |
-| --- | ---: |
-| exact_lookup | 6 |
-| semantic_discovery | 6 |
-| direct_read | 6 |
-| exploratory_retrieval | 10 |
-| knowledge_qa | 6 |
-| no_retrieval | 6 |
-| Total | 40 |
-
-## Annotations and loading
-
-```python
-from pathlib import Path
-from arkb.evaluation.datasets import load_agent_eval_dataset
-
-cases = load_agent_eval_dataset(
-    Path('evaluation/data/agent_v1.jsonl'), notes_dir=Path('example_notes'),
-)
+```bash
+.venv/bin/python -m evaluation.devset.build --index
 ```
 
-`AgentEvalCase` contains `id`, `query`, `task_type`, `expected_sources`, optional
-`allowed_tools`, `forbidden_tools`, `max_tool_calls`, `min_source_recall`,
-`min_read_sources`, and review `notes`. Source lists become immutable tuples in
-Python and JSON arrays on disk. Missing `allowed_tools` allows any tool; an empty
-list allows none. These are scoring constraints, never restrictions injected
-into the runtime or the model's prompt.
+Rebuilds the devset and the v2 corpus index. Without the volume the optional
+slices are carried over from the committed devset unchanged.
 
-Non-retrieval cases have no expected sources. Other cases require nonempty
-expected evidence. Exact lookups and direct reads require full coverage.
-Semantic and exploratory labels include multiple useful sources and explicit
-recall thresholds, so finding a useful subset can succeed. `min_read_sources`
-counts distinct expected sources successfully returned by `read`; it is used
-only where the exploratory query explicitly asks to open notes. No annotation
-requires a particular tool order. QA labels identify key evidence and do not
-attempt to grade prose.
-
-The loader rejects malformed rows, unknown fields/types/tools, duplicate JSON
-keys or case IDs, invalid source arrays, and contradictory tool constraints.
-`notes_dir` optionally checks files without opening an index. Paths follow the
-current flat document contract: knowledge-relative `.md` filenames, with no
-directory traversal or external symlinks. An empty dataset is an error.
-
-Exact queries explicitly target body text: current `match` removes the H1 title
-from its searchable body and counts occurrences rather than unique sources.
-For example, `Agent Memory` occurs only in a title, so it is not labeled as a
-positive body lookup. `RAG` includes case-sensitive substrings and source links;
-its case requires increasing the match limit or otherwise gathering all sources.
-
-## Implementation batches
-
-1. Dataset, validated annotations, loader, and live `match/read` contract tests.
-2. Trace evidence extraction, deterministic case metrics, and aggregates.
-3. Runtime runner, independent trials, serialized traces, JSON/Markdown reports.
-
-Each batch runs deterministic cross-module integration checks and the full
-deterministic regression suite before its commit. Real Ollama/Qdrant evaluations
-remain separate from those tests.
-
-## Deterministic metrics
-
-`arkb.evaluation.agent_metrics.evaluate_case(case, trace)` returns an `AgentEvalResult`.
-`extract_retrieved_sources` unions exact `source` values from every successful
-`match/search` observation's `results` array and `read` observation's `result`.
-Repeated chunks, sources and calls contribute once to coverage. Tool arguments,
-final citations, unknown tools, missing observations and error payloads are not
-evidence. Document-ID and section/range reads use the returned source identity.
-
-Source recall is `len(expected ∩ retrieved) / len(expected)`. It is null for
-no-retrieval cases. This measures source membership, not passage coverage or
-whether the model understood the evidence.
-
-Every success requires `stop_reason == 'final'`, no forbidden or disallowed
-tool requests, and compliance with `max_tool_calls` if present. Further rules:
-
-| Task | Evidence rule |
-| --- | --- |
-| exact_lookup | All expected sources retrieved, through any valid tools |
-| semantic_discovery | Recall meets `min_source_recall` |
-| direct_read | Every expected source successfully returned by `read` |
-| exploratory_retrieval | Recall meets threshold and `min_read_sources` distinct expected sources read |
-| knowledge_qa | Recall meets threshold (all labeled key evidence in v1) |
-| no_retrieval | No `match`, `search`, or `read` request, including failed requests |
-
-The annotated read minimum is also checked for any other retrieval task that
-sets it. No success check depends on final answer wording or a unique tool order.
-
-Results include expected/retrieved/read sources, ordered tool names, counts by
-name (including zero counts for the three knowledge tools), total calls, trace
-turns, forbidden/disallowed call counts, tool-budget violation, max-turn failure,
-unnecessary retrieval, native stop reason, and simple failed-constraint codes.
-Call counts measure **requests** in the trace: a failed batch may include calls
-that the runtime never executed. Turns include attempted failed model requests.
-
-`summarize_agent_results(results)` computes trial-weighted macro means overall
-and under `by_task_type`. It includes distinct case count, execution count,
-success/failure counts, success rate, mean recall/calls/turns, max-turn failure
-rate, unnecessary retrieval rate, tool request totals and stop distributions.
-Every nullable metric has a `*_defined_trials` denominator. Unnecessary retrieval
-uses only observed no-retrieval trials, not all retrieval tasks. Repeated trials
-are retained; the success rate is neither pass-at-k nor all-trials-success.
-
-If a runtime exception has no partial trace, `evaluate_case(case, None)` records
-failure and leaves unobserved behavior null. Such trials count in task success
-and `missing_trace_trials` but cannot establish recall, zero calls, or absence of
-unnecessary retrieval. Current native stop reasons are `final`, `max_turns`, and
-`error`; distributions also expose `other` and `unavailable`. Error is not guessed
-to mean model_error or tool_error: the current trace has no explicit error stage.
-
-## Running an evaluation
-
-```python
-from pathlib import Path
-from arkb.evaluation.runs import run_agent_evaluation
-from arkb.evaluation.models import AgentEvalConfig
-
-run = run_agent_evaluation(AgentEvalConfig(
-    dataset_path=Path('evaluation/data/agent_v1.jsonl'),
-    notes_dir=Path('example_notes'),
-    db=Path('.arkb/index.sqlite'),
-    model='qwen3.5:4b', max_turns=8, num_trials=2,
-    output_dir=Path('evaluation/results/my-first-run'),
-))
-print(run.summary['task_success_rate'])
+```bash
+.venv/bin/python -m evaluation.run run --label <label> --model qwen3.5:9b --think
 ```
 
-The existing evaluation convention also supplies a thin module CLI:
+Runs the product agent (temperature 0, 32,768 context, 4,096 output tokens;
+budgets 12/10/6 tool, query and read calls, 8,000 evidence tokens, 300 s;
+8 turns) and writes `results/<label>/{run.json,results.jsonl,summary.json,summary.md}`.
+`--slices core` (default) is v2 + exact-v2, about ten minutes at 9B;
+`--slices all` adds every optional slice whose inputs are present and lists
+the skipped ones in `run.json`; a comma-separated list selects slices
+explicitly. `--limit N` takes N scenarios per slice for a quick check;
+`--resume` continues an interrupted run; the budget flags override the
+defaults. Completed runs are immutable: rerun under a new label.
 
-```sh
-uv run --locked python -m arkb.evaluation.runs \
-  --dataset evaluation/data/agent_v1.jsonl \
-  --notes-dir example_notes --db .arkb/index.sqlite \
-  --generation-model qwen3.5:4b --max-turns 8 --num-trials 2 \
-  --output evaluation/results/my-first-run
+```bash
+.venv/bin/python -m evaluation.run rescore results/<label>
 ```
 
-Run this from the repository root, with an index of the same `example_notes`
-and the configured model services available. `--host`, `--timeout`, `--offline`,
-`--tokenizer-cache`, `--qdrant-url`, `--vault-id`, and `--think/--no-think` configure
-the existing Runtime. `--model` aliases `--generation-model`. `num_trials`
-defaults to 1. Omitting output creates a unique `evaluation/results/<run-id>`
-directory. An existing output directory is always rejected. Generated results
-under that default root are gitignored.
+Recomputes scores and summary from the saved records with the current scorer.
 
-The runner validates the complete dataset before calling `Runtime.ask`. It then
-executes cases in file order, and trials `0..num_trials-1` for each case. Only the
-query and ordinary runtime options are passed to `ask`; labels and constraints
-remain in evaluation. Each `ask` creates fresh conversation state. The runner
-extracts `AgentResult.trace`, computes case metrics, writes and flushes one row,
-then proceeds. It never implements another agent loop or executes tools itself.
-
-Ordinary runtime exceptions keep `error.agent_result.trace` where available and
-record exception type/message. Each failed trial remains in the result and the
-next trial still runs. There is no automatic retry. Ctrl-C propagates and marks
-metadata `interrupted`; already flushed rows remain. Artifact failures are run
-errors, not task failures, and metadata marks the run `failed`. A completed run
-with failed tasks is still a completed experiment (CLI exit 0).
-
-Pass `runtime=` and optionally `client=` to inject a fake or existing runtime for
-tests or application composition. A supplied runtime/client remains caller-owned.
-Otherwise the runner owns one Runtime context for the run. The effective runtime
-config is recorded when it is available, separately from requested configuration.
-
-## Artifacts and replay
-
-Every completed run contains:
-
-| File | Contents |
-| --- | --- |
-| `results.jsonl` | One `schema_version`, `case`, zero-based `trial`, complete `trace`, `metrics`, `runtime_metadata`, and nullable `error` per line |
-| `summary.json` | Overall metrics, denominators, `by_task_type`, distributions and `failed_trials` with query, sources, sequence and stop reason |
-| `report.md` | Aggregate tables plus a separate detail block for every failed case/trial |
-| `cases.jsonl` | Exact original dataset bytes |
-| `run_metadata.json` | Run status/times, requested/effective settings, dataset hash, Python version, commit and source hashes, knowledge fingerprints before/after |
-
-All JSON is UTF-8 with ordinary arrays/objects and strict finite numbers. Missing
-traces and undefined metrics are JSON null; no Python object representations are
-saved. Each row's runtime metadata includes model, turn limit, thinking setting,
-runtime type, timing, dataset hash and a reference to the run metadata file.
-The latter records live Markdown SHA-256 hashes and, if present, the SQLite
-manifest, build metadata, and corpus manifest using existing fingerprint helpers.
-`knowledge_changed` flags differences at run boundaries.
-
-Saved rows can be scored again without a model or index:
-
-```python
-import json
-from arkb.agent.state import AgentToolTrace, AgentTrace
-from arkb.evaluation.agent_metrics import evaluate_case
-from arkb.evaluation.models import AgentEvalCase
-
-row = json.loads((run.output_dir / 'results.jsonl').read_text().splitlines()[0])
-payload = row['trace']
-trace = (AgentTrace(**{**payload, 'tool_calls': [AgentToolTrace(**c) for c in payload['tool_calls']]})
-         if payload is not None else None)
-metrics = evaluate_case(AgentEvalCase(**row['case']), trace)
+```bash
+.venv/bin/python -m evaluation.compare --run base=results/<a> --run change=results/<b> --output comparisons/<name>.md
 ```
 
-## Verification and limits
+Per-scenario paired differences with slice-stratified percentile bootstrap
+intervals (seed 20260912, 20,000 resamples, nominal, uncorrected) and
+wins/ties/losses, per slice and metric, plus pooled cost differences; writes
+Markdown and JSON. Any number of runs; `--contrast LEFT:RIGHT` picks the
+contrasts (default: every later run minus the first).
 
-```sh
-# Deterministic cross-module integration: real documents, match/read/BM25,
-# a persisted SQLite/Qdrant-local index, Runtime.ask, traces and reports.
-.venv/bin/python -m pytest -q tests/evaluation/test_agent_integration.py
-
-# Full deterministic suite; never calls real LLMs or external services.
-.venv/bin/python -m pytest -q -m 'not integration'
+```bash
+.venv/bin/python -m evaluation.review export --run a=results/<a> --run b=results/<b> --salt <name> --output devset/review/<name>
+.venv/bin/python -m evaluation.review import devset/review/<name>/sheet.md --mapping devset/review/<name>/mapping.json --output devset/review/<name>-verdicts.json --reviewer <you>
+.venv/bin/python -m evaluation.review agreement devset/review/<name>-verdicts.json --run a --results results/<a>/results.jsonl
 ```
 
-The repository's `integration` marker specifically gates real models/external
-services. These new local cross-module integration tests run in the deterministic
-suite. Scripted model replies verify wiring and metric contracts; their success
-rates are not evidence of Qwen performance. A real-model benchmark is the separate
-runner command above, not part of the deterministic test suite.
+Blinded human review: a hash-chosen sample (default 20 v2 + 10 MuSiQue), the
+runs' answers shuffled per question, the mapping in a separate file. Mark one
+box each for *correct* and *grounded* in the sheet, import it, and read the
+agreement between a run's automatic outcome and the human verdicts.
 
-The 40 cases are an initial curated sample of this small English corpus, queried
-mostly in Chinese. Relevance labels and thresholds are reviewable judgments,
-not exhaustive proof of all possible useful evidence. Flat source sets have no
-graded relevance or interchangeable evidence groups. Source recall can reward
-wide retrieval and does not penalize irrelevant additional sources. Read checks
-establish returned source identity, not passage completeness, reading depth, or
-answer correctness. No LLM judge, framework, agent optimization or failure
-classification is included.
+`engine_recall.py` measures the retrieval engine alone (no model) on the
+recall scenarios at 5, 10 and 20 results per mode.
 
-Inspection before implementation found that the described Agent Evaluation
-models were absent from this checkout. The new contracts therefore live only in
-`arkb.evaluation.models`. The existing AgentTrace/AgentResult contract is reused
-without modifying agent, retrieval or knowledge decisions. Its relevant limits:
+## Reading the numbers
 
-- Stops distinguish `final`, `max_turns`, and `error`, with no explicit error stage.
-- Requested tool calls can include a failed call and later unexecuted calls in the
-  same batch; `result=None` does not distinguish those two situations.
-- Some pre-loop failures or exceptions rejecting attributes have no partial trace.
-- Traces preserve tool observations and final response, not full provider prompts,
-  thinking text, generation token usage, or immutable model digests.
-- Match/read use live text; each ask captures the current published search snapshot.
-  Keep inputs stable during comparisons. Before/after fingerprints detect boundary
-  differences, not every transient change or a change followed by a reversion.
-  Tool evidence also retains document revisions. The runner does not pin a run-wide
-  snapshot or alter Runtime resource semantics.
-
-Stored observations make deterministic metric replay possible. Model tags,
-provider versions, local service state and nondeterminism can still change a
-future live run; a saved configuration does not promise identical trajectories.
-
-## Changed files
-
-| Area | Files |
-| --- | --- |
-| Versioned input | `evaluation/data/agent_v1.jsonl` |
-| Contracts and loading | `src/arkb/evaluation/models.py`, `src/arkb/evaluation/datasets.py` |
-| Metrics and execution | `src/arkb/evaluation/agent.py`, `src/arkb/evaluation/agent_runner.py` |
-| Package description | `src/arkb/evaluation/__init__.py` |
-| Deterministic tests | `tests/evaluation/test_agent_dataset.py`, `test_agent_metrics.py`, `test_agent_runner.py`, `test_agent_integration.py` |
-| Documentation and output hygiene | `evaluation/README.md`, `README.md`, `.gitignore` |
+- Delivered coverage and recall count evidence that entered the conversation;
+  cited, answered and answer metrics score the final object. An error final
+  scores 0 on the latter; `errors` in a summary counts error finals, and
+  `responses_cut` counts model responses stopped at `num_predict`.
+- Single runs are noisy (the repeatability study measured two thirds of cells
+  changing their final object between identical runs): read the intervals
+  from `compare`, not single wins.
+- Nothing here is a quality claim; use it for before/after checks,
+  regressions and cost drift.

@@ -1,11 +1,11 @@
-"""Generic paired bootstrap checks; synthetic scores, no services."""
+"""Paired comparison checks; synthetic scores, no services."""
 import json
 
 import numpy as np
 import pytest
 
-from arkb.evaluation.external import write_json
-from evaluation.devloop.bootstrap import analyze, markdown, metric_value, paired_bootstrap, units_for
+from evaluation.common import write_json
+from evaluation.compare import analyze, markdown, metric_value, paired_bootstrap, units_for
 
 
 def test_paired_bootstrap_is_deterministic_stratified_and_counts_wins():
@@ -24,21 +24,21 @@ def test_paired_bootstrap_is_deterministic_stratified_and_counts_wins():
     assert exact['contrasts'][0]['ties'] == 1 and exact['contrasts'][0]['nominal_95_ci'] == [0.0, 0.0]
     with pytest.raises(ValueError, match='twice'):
         paired_bootstrap(units + [units[0]], [('Y', 'X')], resamples=10)
-    with pytest.raises(ValueError, match='without a run'):
+    with pytest.raises(ValueError, match='without results'):
         paired_bootstrap(units, [('Z', 'X')], resamples=10)
 
 
 def scores(value, *, elapsed=1000, answered=True, tokens=7):
     return {'final_status': 'answered', 'tool_names': ['search', 'read'], 'positive_recall_delivered': value,
             'behavior': {'answered': answered, 'abstained': None},
-            'costs': {'elapsed_ms': elapsed, 'model_requests': 3, 'usage': {'prompt_eval_count': {'known_total': tokens}, 'eval_count': {'known_total': None}}}}
+            'costs': {'elapsed_ms': elapsed, 'model_requests': 3, 'tool_calls': 2, 'prompt_tokens': tokens, 'eval_tokens': None}}
 
 
 def test_metric_paths_and_missing_values_drop_the_pair():
     s = scores(0.5)
-    assert metric_value(s, 'elapsed_s') == 1.0 and metric_value(s, 'tool_calls') == 2.0
-    assert metric_value(s, 'costs.model_requests') == 3.0 and metric_value(s, 'prompt_tokens') == 7.0
-    assert metric_value(s, 'eval_tokens') is None and metric_value(s, 'behavior.abstained') is None
+    assert metric_value(s, 'elapsed_s') == 1.0 and metric_value(s, 'costs.tool_calls') == 2.0
+    assert metric_value(s, 'costs.model_requests') == 3.0 and metric_value(s, 'costs.prompt_tokens') == 7.0
+    assert metric_value(s, 'costs.eval_tokens') is None and metric_value(s, 'behavior.abstained') is None
     assert metric_value(s, 'behavior.answered') == 1.0 and metric_value(s, 'missing.path') is None
     rows = {'A': {'q1': {'scenario': {'id': 'q1', 'slice': 'recall-fiqa'}, 'scores': scores(0.5)},
                   'q2': {'scenario': {'id': 'q2', 'slice': 'recall-fiqa'}, 'scores': scores(None)}},

@@ -26,7 +26,7 @@ def test_known_exposure_propagates_to_whole_leakage_group():
 
 
 def test_pilot_readiness_never_promotes_provisional_or_counts_variants_as_families(tmp_path):
-    p=ROOT/'evaluation/data/v2/pilot';intake=ROOT/'evaluation/data/v2/core-intake'
+    p=ROOT/'evaluation/devset/v2-pilot';intake=ROOT/'evaluation/data/v2/core-intake'
     dataset=load_dataset(p,notes_dir=p/'corpus',allow_provisional=True)
     registry=json.loads((intake/'pilot-registry.json').read_text());policy=json.loads((intake/'core-policy.json').read_text())
     report=core_readiness(dataset,registry,policy,directory=p)
@@ -46,7 +46,7 @@ def test_pilot_readiness_never_promotes_provisional_or_counts_variants_as_famili
 
 
 def make_reviewed_fixture(tmp_path):
-    source=ROOT/'evaluation/data/v2/pilot';output=tmp_path/'intake';output.mkdir();(output/'corpus').mkdir()
+    source=ROOT/'evaluation/devset/v2-pilot';output=tmp_path/'intake';output.mkdir();(output/'corpus').mkdir()
     data=load_dataset(source,notes_dir=source/'corpus',allow_provisional=True)
     case=next(c for c in data.cases if c['task_type']=='no_retrieval')
     case={**case,'annotation_status':'reviewed','reviewers':['fixture-reviewer']}
