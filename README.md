@@ -5,7 +5,7 @@
 ARKB currently targets English notes and queries. UTF-8 text, source identities
 and character ranges remain preserved. Active evaluation uses SciFact,
 Bright-Pro technical domains and MuSiQue; earlier datasets and results are
-retained for reference. See the [scope cleanup](docs/english-scope-cleanup.md).
+retained for reference. See the [scope cleanup](docs/archive/english-scope-cleanup.md).
 
 ## Why ARKB
 
@@ -337,7 +337,7 @@ It uses a 512-token input limit, with up to 128 query tokens (head and tail),
 128 body tokens when the body is that long. Equal scores preserve incoming order;
 all-equal scores, all-empty bodies, invalid scores, or expected scoring failures
 preserve incoming ranking and score semantics with explicit fallback metadata.
-Reranking remains optional: the [Phase B evaluation](docs/phase-b-report.md) retains
+Reranking remains optional: the [Phase B evaluation](docs/archive/phase-b-report.md) retains
 SciFact gains but still finds regressions against Hybrid on long technical queries.
 
 ### Exact text vs exact vector search
@@ -621,8 +621,8 @@ Baseline rankings and accumulated agent evidence use different retrieval budgets
 See:
 
 - [Evaluation guide](evaluation/README.md)
-- [Deterministic retrieval baseline guide](evaluation/deterministic-retrieval-baselines.md)
-- [Agent model ablation guide](evaluation/agent-model-ablation.md)
+- [Deterministic retrieval baseline guide](docs/archive/deterministic-retrieval-baselines.md)
+- [Agent model ablation guide](docs/archive/agent-model-ablation.md)
 
 ## Project Structure
 

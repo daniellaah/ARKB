@@ -2,7 +2,7 @@
 
 Started 2026-09-18 UTC after the user chose to fix diagnosed product problems
 before any further registered study. Every number here comes from the
-[fast development loop](../evaluation/devloop/README.md): the product agent
+[fast development loop](../evaluation/README.md): the product agent
 (Qwen3.5-4B, nonthinking, temperature 0, 32,768 context, 4,096 output tokens)
 under the study budgets (12/10/6 tool, query, read calls; 8,000 evidence
 tokens; 300 s), on 144 development scenarios plus an optional ten-query

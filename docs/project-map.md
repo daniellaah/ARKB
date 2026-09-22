@@ -36,35 +36,16 @@ quality is measured, not assumed.
 
 ## Evaluation index
 
-Current and active:
+Current:
 
+- [eval-design.md](eval-design.md) and [evaluation/README.md](../evaluation/README.md): the development evaluation, its design and how to run, compare and review runs.
+- [devloop-fix-log.md](devloop-fix-log.md): the fix-first development log with baseline and after measurements, the model-capacity axis and the transport correction.
 - [agile-vs-workflow-v1.md](agile-vs-workflow-v1.md): fully agentic against fixed-workflow retrieval on the development set (four arms, 9B with thinking, paired intervals; human review pending).
-- [devloop-fix-log.md](devloop-fix-log.md): the fix-first development log with baseline and after measurements.
-- [eval-design.md](eval-design.md) and [evaluation/README.md](../evaluation/README.md): the development evaluation, its design and how to run and compare runs.
-- [agentic-tool-selection-evaluation-plan.md](agentic-tool-selection-evaluation-plan.md): the seven-arm study design (plan of record).
-- [agentic-tool-selection-design-review.md](agentic-tool-selection-design-review.md): why core-v1 was stopped and what a replacement needs.
-- [agentic-core-v2-protocol.md](agentic-core-v2-protocol.md): the registered core v2 design (stopped after 16 attempts).
-- `evaluation/results/agentic-tools-v1/orchestration-status.json`: the durable handoff record for automation.
+- [arkb-current-system-review.md](arkb-current-system-review.md): the long-form architecture review.
 
-Completed development studies (audited):
-[agentic-pilot-v3-results.md](agentic-pilot-v3-results.md),
-[agentic-serving-v1-results.md](agentic-serving-v1-results.md),
-[agentic-repeatability-v1-results.md](agentic-repeatability-v1-results.md),
-[tool-overhead-repair.md](tool-overhead-repair.md).
-
-Retrieval-layer phases (completed): [phase-a-report.md](phase-a-report.md)
-(tool contract), [phase-b-report.md](phase-b-report.md) (reranker),
-[phase-c-report.md](phase-c-report.md) (candidate generation and fusion, full
-BrowseComp-Plus index) with
-[phase-c-validation-diagnostics.md](phase-c-validation-diagnostics.md).
-
-Historical (superseded, kept for provenance): the P0 to P4 result notes under
-`evaluation/*.md`, [agent-thinking-validation.md](agent-thinking-validation.md),
-[agent-search-stopping-validation.md](agent-search-stopping-validation.md),
-[refactor-results.md](refactor-results.md), [simplification-results.md](simplification-results.md),
-[directory-refactor-plan.md](directory-refactor-plan.md), [release-v0.1.0.md](release-v0.1.0.md),
-[english-scope-cleanup.md](english-scope-cleanup.md), [embedding-throughput-investigation.md](embedding-throughput-investigation.md),
-and the pilot amendments v2 and v3.
+Completed work (studies, phases, early evaluation, product notes) is indexed
+in [archive.md](archive.md) with the commit that last carried its code; the
+documents live under `docs/archive/` and their artifacts under `archive/`.
 
 ## Conventions
 
