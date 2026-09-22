@@ -10,6 +10,7 @@ from unittest.mock import create_autospec
 from httpx import ReadTimeout
 import pytest
 
+from arkb.agent.context import ContextPolicy
 from arkb.agent.state import AgentResult, AgentState
 from arkb.config import DEFAULT_DB, DEFAULT_RETRIEVAL_MODE, RetrievalConfig
 from arkb.interfaces.cli import _parser, main
@@ -147,7 +148,7 @@ def test_ask_calls_agent_entry_point_with_model_and_turn_limit(runtime, capsys):
     assert call.args == ('Which notes mention RAG?',)
     assert {k: v for k, v in call.kwargs.items() if k != 'client'} == {
         'db': DEFAULT_DB, 'vault_id': 'default', 'notes_dir': None, 'model': 'fake-agent',
-        'max_turns': 6, 'think': True}
+        'max_turns': 6, 'think': True, 'policy': ContextPolicy()}
     # The agent talks to a metered transport chosen from the model name, not to a raw client.
     fake.chat_client.assert_called_once_with('fake-agent', think=True)
     assert call.kwargs['client'].client is fake.chat_client.return_value
@@ -163,6 +164,21 @@ def test_ask_thinking_flags_only_set_the_model_option(runtime, capsys, flags, th
     assert fake.ask.call_args.kwargs['think'] is think
     output = capsys.readouterr()
     assert output.out == 'Relevant material found.\n' and output.err == ''
+
+
+def test_the_conversation_bound_is_one_setting_for_the_run_and_the_session(runtime):
+    fake, _ = runtime
+    assert main(['ask', 'Question']) == 0
+    assert fake.ask.call_args.kwargs['policy'] == ContextPolicy()
+    assert main(['ask', 'Question', '--history-tokens', '0']) == 0
+    assert fake.ask.call_args.kwargs['policy'] == ContextPolicy(history_tokens=0)
+
+
+def test_a_chat_session_bounds_its_turns_and_its_conversation_with_the_same_setting(runtime, monkeypatch):
+    fake, _ = runtime
+    monkeypatch.setattr('arkb.interfaces.cli._prompt_lines', lambda prompt='> ': iter(['Question', '']))
+    assert main(['chat', '--history-tokens', '900']) == 0
+    assert fake.run_agent.call_args.kwargs['policy'] == ContextPolicy(history_tokens=900)
 
 
 @pytest.mark.parametrize('json_output', [False, True])

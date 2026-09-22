@@ -14,12 +14,13 @@ from httpx import HTTPError
 from ollama import ResponseError
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
+from arkb.agent.context import DEFAULT_HISTORY_TOKENS, ContextPolicy
 from arkb.agent.transports import ChatUsage, format_usage
 from arkb.config import (
     DEFAULT_DB, DEFAULT_NOTES_DIR, DEFAULT_EMBEDDING_MODEL, DEFAULT_GENERATION_MODEL,
     DEFAULT_AGENT_THINK, DEFAULT_RETRIEVAL_MODE, RuntimeConfig, RetrievalConfig, load_env_file,
 )
-from arkb.interfaces.chat import DEFAULT_HISTORY_TOKENS, EXIT_HINT, converse, trace_lines
+from arkb.interfaces.chat import EXIT_HINT, converse, trace_lines
 from arkb.knowledge.documents import DEFAULT_EXCLUDES
 from arkb.knowledge.embeddings import DEFAULT_QUERY_INSTRUCTION
 from arkb.knowledge.models import QdrantConfig
@@ -150,10 +151,9 @@ def _parser():
             command.add_argument('--generation-model', type=_nonblank, default=DEFAULT_GENERATION_MODEL,
                                  help='Local Ollama model, or a hosted claude-* or deepseek-* model whose '
                                       'API key is in the environment or the nearest .env.')
-            if name == 'chat':
-                command.add_argument('--history-tokens', type=_nonnegative_int, default=DEFAULT_HISTORY_TOKENS,
-                                     help='Compact the earliest tool observations above this estimated size; '
-                                          '0 lets the conversation grow unbounded.')
+            command.add_argument('--history-tokens', type=_nonnegative_int, default=DEFAULT_HISTORY_TOKENS,
+                                 help='Compact the earliest tool observations above this estimated size, '
+                                      'within a run and between turns; 0 lets the conversation grow unbounded.')
     return parser
 
 
@@ -191,6 +191,11 @@ def _runtime_config(args):
                          qdrant_url=args.qdrant_url, exclude=_excludes(args))
 
 
+def _context_policy(args):
+    """The run's context engineering, as the ask and chat commands expose it."""
+    return ContextPolicy(history_tokens=args.history_tokens)
+
+
 def _load_api_keys(start=None):
     """Fill the environment from the nearest .env above the working directory.
 
@@ -219,6 +224,7 @@ def _chat(runtime, args):
     from arkb.agent.observation import AgentObserver
     from arkb.agent.session import ToolSession
     client = ChatUsage(runtime.chat_client(args.generation_model, think=args.think), args.generation_model)
+    policy = _context_policy(args)
     with runtime.live_tools(db=args.db, vault_id=args.vault_id, notes_dir=args.notes_dir) as tools:
         state = {'session': ToolSession(tools), 'mark': 0}
         print(EXIT_HINT)
@@ -229,7 +235,7 @@ def _chat(runtime, args):
             state['mark'] = len(client.records)
             return runtime.run_agent(query, tools=tools, model=args.generation_model, max_turns=args.max_turns,
                                      think=args.think, client=client, history=history, session=state['session'],
-                                     observer=AgentObserver())
+                                     observer=AgentObserver(), policy=policy)
 
         for line in converse(_prompt_lines(), run=run,
                              reset=lambda: state.update(session=ToolSession(tools)),
@@ -267,7 +273,8 @@ def _execute(runtime, args, usage=None):
         client = ChatUsage(runtime.chat_client(args.generation_model, think=args.think), args.generation_model)
         try:
             return runtime.ask(args.query, **scope, notes_dir=args.notes_dir, client=client,
-                               model=args.generation_model, max_turns=args.max_turns, think=args.think)
+                               model=args.generation_model, max_turns=args.max_turns, think=args.think,
+                               policy=_context_policy(args))
         except Exception as error:
             partial = getattr(error, 'agent_result', None)
             if args.trace and partial is not None:

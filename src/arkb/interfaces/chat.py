@@ -24,73 +24,37 @@ drive it directly; the CLI adds input() and printing around it.
 from collections.abc import Iterable, Iterator
 import json
 
-DEFAULT_HISTORY_TOKENS = 24000
-# Four characters per token: a transport-independent estimate, deliberately not the
-# embedding tokenizer the observer uses to measure evidence. It only decides when to
-# compact, so being approximate costs a slightly early or late compaction, nothing else.
-CHARS_PER_TOKEN = 4
-COMPACTED_NOTE = ('Earlier observation; its text was dropped to bound this conversation. '
-                  'Read a source again if its exact wording matters.')
+# One conversation bound with one meaning: the same estimate and the same
+# compaction the agent loop applies inside a run, applied here between turns.
+from arkb.agent.context import (CHARS_PER_TOKEN, COMPACTED_NOTE, DEFAULT_HISTORY_TOKENS,  # noqa: F401
+                                compact, estimate_tokens, is_compacted, summarize_observation)
+
 EXIT_HINT = 'Ask a question. Blank line quits; /reset clears the session; /trace toggles the trajectory.'
-
-
-def estimate_tokens(messages: Iterable[dict]) -> int:
-    """Approximate the conversation's size without loading a tokenizer."""
-    return sum(len(json.dumps(m, ensure_ascii=False, default=str)) for m in messages) // CHARS_PER_TOKEN
-
-
-def is_compacted(content: str) -> bool:
-    """Whether an observation has already lost its bodies; compacting twice would lose its sources."""
-    try:
-        return bool(json.loads(content).get('compacted'))
-    except ValueError:
-        return False
-
-
-def summarize_observation(content: str) -> str:
-    """Replace an observation's bodies with the sources it delivered, still as valid JSON.
-
-    The conversation stays well formed for every transport: each tool call keeps
-    exactly one answer, and the answer keeps the source paths, so the model can
-    ask for a note again by name instead of losing the fact that it saw it.
-    """
-    try:
-        result = json.loads(content)
-    except ValueError:
-        return json.dumps({'status': 'success', 'compacted': True, 'sources': [], 'note': COMPACTED_NOTE},
-                          ensure_ascii=False)
-    hits = [result['result']] if 'result' in result else result.get('results') or []
-    sources = list(dict.fromkeys(h['source'] for h in hits if isinstance(h, dict) and h.get('source')))
-    return json.dumps({'status': result.get('status', 'success'), 'compacted': True,
-                       'sources': sources, 'note': COMPACTED_NOTE}, ensure_ascii=False)
 
 
 def carry_history(messages: Iterable[dict], *, limit: int = DEFAULT_HISTORY_TOKENS) -> list[dict]:
     """Prepare the conversation the next turn replays: no operator instructions, bounded size.
 
-    Turn-scoped system messages (the closing instruction, the stall reminder)
-    are dropped. They addressed the turn that ended, and the next run supplies
-    its own instruction as message zero; keeping them would also rewrite the
-    stable prefix that hosted prompt caching depends on.
+    Turn-scoped system messages (the closing instruction, the stall reminder,
+    and the context the next run decides for itself: a vault map, a delivered
+    small scope) are dropped. They addressed the turn that ended, and the next
+    run supplies its own instruction as message zero; keeping them would also
+    rewrite the stable prefix that hosted prompt caching depends on.
 
     Above the limit the earliest tool observations lose their bodies first and
     keep a summary of the sources they delivered. limit=0 disables the bound,
     which lets the context grow until the provider refuses it.
     """
-    kept = [dict(m) for m in messages if m['role'] != 'system']
-    if not limit:
-        return kept
-    for index, message in enumerate(kept):
-        if estimate_tokens(kept) <= limit:
-            break
-        if message['role'] == 'tool' and not is_compacted(message['content']):
-            kept[index] = {**message, 'content': summarize_observation(message['content'])}
-    return kept
+    return compact([m for m in messages if m['role'] != 'system'], limit=limit)[0]
 
 
 def trace_lines(result) -> Iterator[str]:
-    """The available trajectory: requested calls with their arguments, then why the run stopped."""
+    """The available trajectory: what context the run was given, its calls, then why it stopped."""
     trace = result.trace
+    decided = (getattr(result, 'observation', None) or {}).get('context')
+    if decided:
+        yield '[context] ' + json.dumps(decided, ensure_ascii=False, sort_keys=True)
+        yield ''
     for step, call in enumerate(trace.tool_calls, 1):
         yield f'[{step}] {call.name}'
         for name, value in call.arguments.items():

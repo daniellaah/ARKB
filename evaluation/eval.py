@@ -19,6 +19,7 @@ import subprocess
 from threading import current_thread, main_thread
 from time import perf_counter, strftime
 
+from arkb.agent.context import ContextPolicy
 from arkb.agent.observation import AgentBudget, AgentObserver
 from arkb.agent.transports import make_client
 from arkb.config import RuntimeConfig, load_env_file
@@ -199,7 +200,7 @@ def write_json(path, value):
 
 
 def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turns=8, limit=0, resume=False,
-        effort='high', types=None, questions_path=QUESTIONS, notes=NOTES):
+        effort='high', types=None, questions_path=QUESTIONS, notes=NOTES, policy=ContextPolicy()):
     questions = load_questions(questions_path, notes)
     if types:
         questions = [q for q in questions if q['type'] in types]
@@ -221,7 +222,8 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
         meta.update(resumed_at=strftime('%Y-%m-%dT%H:%M:%S%z'), resumed_from=len(rows))
     else:
         meta = {'label': label, 'model': model, 'think': think, 'effort': effort, 'types': types, 'options': options, 'budget': asdict(budget),
-                'max_turns': max_turns, 'questions': len(questions), 'started_at': strftime('%Y-%m-%dT%H:%M:%S%z'), **git_state()}
+                'context': asdict(policy), 'max_turns': max_turns, 'questions': len(questions),
+                'started_at': strftime('%Y-%m-%dT%H:%M:%S%z'), **git_state()}
     write_json(output / 'run.json', meta)
     started = perf_counter()
     with Runtime(RuntimeConfig(offline=True, tokenizer_cache=(ROOT / '.uv-cache/tokenizers').resolve(), qdrant_url=QDRANT_URL)) as runtime:
@@ -248,7 +250,7 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
                     try:
                         with deadline(QUESTION_DEADLINE_SECONDS):
                             result = runtime.run_agent(question['question'], tools=tools, model=model, max_turns=max_turns,
-                                                       think=think, client=client, observer=observer)
+                                                       think=think, client=client, observer=observer, policy=policy)
                     except Exception as exc:
                         error = {'type': type(exc).__name__, 'message': str(exc)}
                     row = {'question': question, 'elapsed_ms': (perf_counter() - start) * 1000, 'error': error,
@@ -342,6 +344,8 @@ def main():
     r.add_argument('--max-turns', type=int, default=8)
     r.add_argument('--effort', default='high', help='claude-* models with --think: low | medium | high | xhigh | max')
     r.add_argument('--max-evidence-tokens', type=int, default=BUDGET.max_evidence_tokens)
+    r.add_argument('--history-tokens', type=int, default=ContextPolicy.history_tokens,
+                   help='compact the earliest observations above this estimate; 0 disables it')
     r.add_argument('--limit', type=int, default=0, help='questions per type, for a quick check')
     r.add_argument('--types', default='', help='comma-separated question types to run; default all')
     r.add_argument('--resume', action='store_true', help='continue an interrupted run under the same label')
@@ -356,9 +360,10 @@ def main():
     if args.command == 'run':
         options = {**OPTIONS, 'num_ctx': args.num_ctx, 'num_predict': args.num_predict}
         budget = AgentBudget(**{**asdict(BUDGET), 'max_evidence_tokens': args.max_evidence_tokens})
+        policy = ContextPolicy(history_tokens=args.history_tokens)
         summary = run((args.output or RESULTS / args.label).resolve(), label=args.label, model=args.model, think=args.think,
                       options=options, budget=budget, max_turns=args.max_turns, limit=args.limit, resume=args.resume,
-                      effort=args.effort, types=[t for t in args.types.split(',') if t] or None)
+                      effort=args.effort, types=[t for t in args.types.split(',') if t] or None, policy=policy)
         print(markdown(summary, json.loads(((args.output or RESULTS / args.label) / 'run.json').read_text())))
     elif args.command == 'rescore':
         summary = rescore(args.run.resolve())

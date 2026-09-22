@@ -15,6 +15,7 @@ from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.retrieval.models import SearchResponse, validate_request
 from arkb.retrieval.semantic import QdrantSnapshotIndex, SemanticRetriever
 if TYPE_CHECKING:
+    from arkb.agent.context import ContextPolicy
     from arkb.agent.observation import AgentBudget, AgentObserver
     from arkb.agent.session import ToolSession
     from arkb.agent.state import AgentResult
@@ -139,7 +140,8 @@ class Runtime:
             notes_dir: Path | None = None, model: str = DEFAULT_GENERATION_MODEL,
             max_turns: int = 8, think: bool = DEFAULT_AGENT_THINK,
             client: 'Client | None' = None, observer: 'AgentObserver | None' = None,
-            search_stall_reminder: bool = True) -> 'AgentResult':
+            search_stall_reminder: bool = True,
+            policy: 'ContextPolicy | None' = None) -> 'AgentResult':
         """Let the existing agent choose tools and search modes over one snapshot.
 
         Match/read remain live. Ranked capabilities load only if chosen; direct
@@ -149,7 +151,7 @@ class Runtime:
                              mode=DEFAULT_RETRIEVAL_MODE) as tools:
             return self.run_agent(query, tools=tools, model=model, max_turns=max_turns,
                                   think=think, client=client,observer=observer,
-                                  search_stall_reminder=search_stall_reminder)
+                                  search_stall_reminder=search_stall_reminder, policy=policy)
 
     def index(self, *, db: Path = DEFAULT_DB, vault_id: str = 'default',
               notes_dir: Path = DEFAULT_NOTES_DIR, qdrant_config: QdrantConfig | None = None,
@@ -311,21 +313,27 @@ class Runtime:
                   think: bool = DEFAULT_AGENT_THINK,
                   client: 'Client | None' = None, observer: 'AgentObserver | None' = None,
                   search_stall_reminder: bool = True, history: Sequence[dict] = (),
-                  session: 'ToolSession | None' = None) -> 'AgentResult':
+                  session: 'ToolSession | None' = None,
+                  policy: 'ContextPolicy | None' = None) -> 'AgentResult':
         """Run with prepared tools and a reused model client, or a caller-owned one.
 
         Compose tools with agent_tools and keep their directory/vault aligned
         with the prepared engine. Each query gets an independent conversation
         unless history replays an earlier one; passing the session that issued
         earlier evidence references keeps them citable across turns.
+
+        policy is the run's context engineering; None uses its defaults, which
+        the CLI exposes as --map-note, --small-scope-tokens and --history-tokens.
         """
         self._require_open()
         if type(think) is not bool:
             raise ValueError('think must be a boolean.')
+        from arkb.agent.context import ContextPolicy
         from arkb.agent.loop import run_agent
         return run_agent(query, client=self.chat_client(model, think=think) if client is None else client,
                          tools=tools, model=model, max_turns=max_turns, think=think,observer=observer,
                          search_stall_reminder=search_stall_reminder, history=history,
+                         policy=ContextPolicy() if policy is None else policy,
                          **({'session_factory': lambda _tools: session} if session is not None else {}))
 
     def agent_observer(self, *, budget: 'AgentBudget | None' = None) -> 'AgentObserver':

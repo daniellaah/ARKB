@@ -5,6 +5,8 @@ import json
 
 from ollama import Client
 
+from arkb.agent import context
+from arkb.agent.context import ContextPolicy
 from arkb.agent.state import AgentFinal, AgentResult, AgentState, ObservedAgentResult
 from arkb.agent.observation import AgentObserver
 from arkb.agent.tools import AgentTools, FINAL_SCHEMA
@@ -51,7 +53,10 @@ def _search_stalled(messages: list[dict], turn_start: int) -> bool:
     """
     earlier, latest = [], []
     for position, message in enumerate(messages):
-        if message['role'] == 'tool' and message['tool_name'] == 'search':
+        # A compacted observation kept its sources, not its hits; counting it as
+        # an empty search would read as progress lost rather than context dropped.
+        if (message['role'] == 'tool' and message['tool_name'] == 'search'
+                and not context.is_compacted(message['content'])):
             searches = earlier if position < turn_start else latest
             searches.append(json.loads(message['content']).get('results', []))
     if len(earlier) < 2 or not latest:
@@ -87,7 +92,8 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
               search_stall_reminder: bool = True,
               system_instruction: str = SYSTEM_INSTRUCTION,
               session_factory: type[ToolSession] = ToolSession,
-              history: Sequence[dict] = ()) -> AgentResult:
+              history: Sequence[dict] = (),
+              policy: ContextPolicy = ContextPolicy()) -> AgentResult:
     """Run the bounded protocol; reserve one model request for finalization.
 
     Expected model misuse is delivered as a recoverable observation. Unexpected
@@ -104,6 +110,9 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
     and the reserved finalization are counted for this run alone, and evidence
     references remain the session's, so a caller that wants earlier references
     to stay citable supplies the session that issued them.
+
+    policy decides when an old observation loses its body; context.OFF restores
+    the unbounded conversation.
     """
     if not isinstance(query, str) or not query.strip():
         raise ValueError('query must be a nonblank string.')
@@ -117,9 +126,12 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
         raise ValueError('observer must be an AgentObserver.')
     if any(not isinstance(m, dict) or m.get('role') not in ('system', 'user', 'assistant', 'tool') for m in history):
         raise ValueError('history must contain conversation messages with a known role.')
+    if not isinstance(policy, ContextPolicy):
+        raise ValueError('policy must be a ContextPolicy.')
     run = _AgentRun(query, client=client, tools=tools, model=model, max_turns=max_turns, think=think,
                     observer=observer or AgentObserver(), search_stall_reminder=search_stall_reminder,
-                    system_instruction=system_instruction, session_factory=session_factory, history=history)
+                    system_instruction=system_instruction, session_factory=session_factory, history=history,
+                    policy=policy)
     return run.run()
 
 
@@ -127,10 +139,10 @@ class _AgentRun:
     """One bounded run: conversation state, the tool session and the failure boundary."""
 
     def __init__(self, query, *, client, tools, model, max_turns, think, observer, search_stall_reminder,
-                 system_instruction, session_factory, history=()):
+                 system_instruction, session_factory, history=(), policy=ContextPolicy()):
         self.client, self.tools, self.model, self.max_turns, self.think = client, tools, model, max_turns, think
         self.observer, self.search_stall_reminder = observer, search_stall_reminder
-        self.session_factory = session_factory
+        self.session_factory, self.policy = session_factory, policy
         self.state = AgentState(messages=[{'role': 'system', 'content': system_instruction},
                                           *deepcopy(list(history)),
                                           {'role': 'user', 'content': query}])
@@ -193,6 +205,7 @@ class _AgentRun:
             return self.failed('max_elapsed_ms', stop='budget')
         if state.turn == self.max_turns - 1:
             self.closing_reason = self.closing_reason or 'max_turns'
+        self.compact_history()
         if self.search_stall_reminder and _search_stalled(state.messages, self.turn_start):
             state.messages.append({'role': 'system', 'content': _SEARCH_STALLED_INSTRUCTION})
         if self.closing_reason:
@@ -235,6 +248,35 @@ class _AgentRun:
             self.closing_reason = 'final_requested'
             return None
         return self.execute_tool_calls(message.tool_calls)
+
+    def compact_history(self):
+        """Bound what the next request replays by dropping the oldest observation bodies.
+
+        The evidence references the compacted observations delivered stay
+        citable: the reference table is the session's, not the conversation's,
+        and finish resolves a reference by re-reading its source, which a
+        shortened message cannot affect. What is lost is the model's ability to
+        quote text it no longer sees, which is why each summary keeps the
+        sources and says the note can be read again.
+
+        The observations of the turn that just ended are held back: the model
+        has not read them yet, and a run that drops the result a tool just
+        returned would reason from a trajectory with no evidence in it.
+
+        The conversation is measured as it will be sent, without the thinking
+        blocks the request drops. This does invalidate a hosted prompt-cache
+        prefix for the turn that compacts, which is the price of continuing at
+        all; below the limit nothing is rewritten and the prefix is stable.
+        """
+        state = self.state
+        messages, compacted = context.compact(
+            state.messages, limit=self.policy.history_tokens,
+            measure=lambda kept: context.estimate_tokens(_without_thinking(m) for m in kept),
+            protect=len(state.messages) - self.turn_start)
+        if compacted:
+            state.messages[:] = messages
+            self.observer.context['compacted_observations'] = (
+                self.observer.context.get('compacted_observations', 0) + compacted)
 
     def malformed_arguments(self, error, finalizing):
         """The SDK can reject malformed tool arguments before returning a ChatResponse."""

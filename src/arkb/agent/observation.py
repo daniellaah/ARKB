@@ -49,6 +49,10 @@ class AgentObserver:
         self.tools = []
         self.reason = None
         self.error = None
+        # What the run's context engineering decided, filled by the loop: which
+        # layout note oriented it, whether it was handed its whole scope, how
+        # many observations lost their bodies. Empty when nothing was decided.
+        self.context = {}
         self._unique = {}
 
     def start(self):
@@ -248,6 +252,7 @@ class AgentObserver:
                 'tools': self.tools,
                 'stop_reason': stop_reason,
                 'budget_stop_reason': self.reason,
+                'context': self.context,
                 'error': self.error,
                 'elapsed_ms': self.elapsed(),
                 'usage': {key: usage(key) for key in ('prompt_eval_count', 'eval_count')},

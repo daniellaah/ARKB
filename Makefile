@@ -16,8 +16,8 @@ lint:            ## pyflakes-level checks
 format:          ## format the modules listed in FILES, e.g. make format FILES=src/arkb/agent/loop.py
 	.venv/bin/ruff format $(FILES)
 
-eval:            ## run the product agent on the question set, e.g. make eval LABEL=my-change MODEL=qwen3.5:9b THINK=--think
-	$(EVAL) run --label $(LABEL) --model $(or $(MODEL),qwen3.5:9b) $(THINK)
+eval:            ## run the product agent on the question set, e.g. make eval LABEL=my-change MODEL=qwen3.5:9b THINK=--think ARGS="--history-tokens 0"
+	$(EVAL) run --label $(LABEL) --model $(or $(MODEL),qwen3.5:9b) $(THINK) $(ARGS)
 
 rescore:         ## recompute the scores of a saved run, e.g. make rescore LABEL=my-change
 	$(EVAL) rescore evaluation/results/$(LABEL)

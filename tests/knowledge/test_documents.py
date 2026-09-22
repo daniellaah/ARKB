@@ -381,3 +381,4 @@ def test_titles_name_known_sources_and_skip_the_rest(linked_vault):
 
     assert access.titles(['index.md', 'Concepts/Attention.md', 'gone.md', '../outside.md']) == {
         'index.md': 'Vault Map', 'Concepts/Attention.md': 'Attention'}
+
