@@ -61,7 +61,9 @@ Models: an Ollama name runs locally; `claude-*` uses the Claude transport
 (`pip install -e .[claude]`, credentials from the environment, `--think`
 selects `--effort` and its absence low effort); `deepseek-chat` /
 `deepseek-reasoner` use the chat-completions transport with
-`DEEPSEEK_API_KEY` (thinking is a property of the model name there).
+`DEEPSEEK_API_KEY` (thinking is a property of the model name there). Keys go
+in `.env` at the repository root (copy `.env.example`; the file is gitignored
+and read at startup, shell variables take precedence).
 
 ```bash
 .venv/bin/python -m evaluation.eval compare evaluation/results/baseline evaluation/results/my-change

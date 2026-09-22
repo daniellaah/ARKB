@@ -23,7 +23,7 @@ import httpx
 from ollama import ChatResponse
 
 from arkb.agent.observation import AgentBudget, AgentObserver
-from arkb.config import RuntimeConfig
+from arkb.config import RuntimeConfig, load_env_file
 from arkb.knowledge.embeddings import tokenizer_fingerprint
 from arkb.knowledge.models import QdrantConfig
 from arkb.knowledge.sqlite import SQLiteStorage
@@ -366,6 +366,7 @@ def compare(a, b):
 # --- CLI ------------------------------------------------------------------------------
 
 def main():
+    load_env_file(ROOT / '.env')  # API keys for the hosted transports; never committed
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest='command', required=True)
     r = sub.add_parser('run', help='run the product agent on the question set')

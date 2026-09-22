@@ -286,3 +286,17 @@ def test_search_entry_point_delegates_and_closes_its_read_only_storage(tmp_path,
                                          filters={'source': 'a.md'}, rerank=False)
     storage_factory.assert_called_once_with(db, read_only=True)
     storage.__exit__.assert_called_once()
+
+
+def test_env_file_sets_missing_variables_only(tmp_path, monkeypatch):
+    from arkb.config import load_env_file
+    env = tmp_path / '.env'
+    env.write_text('# keys\nexport ARKB_TEST_A="alpha"\nARKB_TEST_B=beta # not a comment\n\nARKB_TEST_C=\nbroken line\n')
+    monkeypatch.delenv('ARKB_TEST_A', raising=False)
+    monkeypatch.setenv('ARKB_TEST_B', 'kept')
+    monkeypatch.delenv('ARKB_TEST_C', raising=False)
+    loaded = load_env_file(env)
+    assert loaded == {'ARKB_TEST_A': 'alpha', 'ARKB_TEST_C': ''}
+    import os
+    assert os.environ['ARKB_TEST_A'] == 'alpha' and os.environ['ARKB_TEST_B'] == 'kept'
+    assert load_env_file(tmp_path / 'missing') == {}
