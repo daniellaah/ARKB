@@ -45,8 +45,12 @@ def test_scores_follow_the_question_type():
     partial = {'id': 'p', 'type': 'evidence_gap', 'expected_sources': ['a.md']}
     assert score(record('partial', cited=['a.md']), partial)['gap_respected'] is True
     assert score(record('answered', cited=['a.md']), partial)['gap_respected'] is False
+    # A false premise is scored on citing the note that corrects it, whatever status the answer carries.
     trap = {'id': 't', 'type': 'false_premise', 'expected_sources': ['a.md']}
-    assert score(record('partial', cited=['a.md']), trap)['premise_flagged'] is True and score(record('answered', cited=['a.md']), trap)['premise_flagged'] is False
+    assert score(record('partial', cited=['a.md']), trap)['premise_flagged'] is True
+    assert score(record('answered', cited=['a.md']), trap)['premise_flagged'] is True
+    assert score(record('insufficient_evidence', cited=['b.md']), trap)['premise_flagged'] is False
+    assert score(record('answered', cited=[]), trap)['premise_flagged'] is False
     assert score(record('answered'), q)['premise_flagged'] is None
     assert score(record(tools=()), {'id': 'n', 'type': 'no_retrieval', 'expected_sources': []})['no_retrieval'] is True
     assert score(record(tools=('search',)), {'id': 'n', 'type': 'no_retrieval', 'expected_sources': []})['no_retrieval'] is False

@@ -125,18 +125,21 @@ def score(row, question):
     expected = set(question['expected_sources'])
     kind = question['type']
     usage = report.get('usage') or {}
+    recall = len(expected & set(cited)) / len(expected) if expected else None
     return {
         'status': status, 'error': row.get('error') or final.get('error'),
         'answer': final.get('answer'), 'cited': cited, 'delivered': delivered, 'tools': tools,
         'answered': status in ('answered', 'partial'),
-        'source_recall': len(expected & set(cited)) / len(expected) if expected else None,
+        'source_recall': recall,
         'source_precision': len(expected & set(cited)) / len(cited) if cited else None,
         'delivered_recall': len(expected & set(delivered)) / len(expected) if expected else None,
         'complete': set(cited) == expected if kind == 'exact_lookup' else None,
         # A gap with nothing expected wants an abstention; a gap beside answerable parts wants a partial answer.
         'gap_respected': status == ('partial' if expected else 'insufficient_evidence') if kind == 'evidence_gap' else None,
-        # A false premise must not be answered as asked; the honest statuses correct it or report the gap.
-        'premise_flagged': status in ('partial', 'insufficient_evidence') if kind == 'false_premise' else None,
+        # A false premise is corrected by citing the note that contradicts it. The status is not the
+        # signal: measured on three models, most of these were answered with the correction stated in
+        # the answer and the refuting note cited, which the earlier status rule scored as a failure.
+        'premise_flagged': recall == 1 if kind == 'false_premise' else None,
         'no_retrieval': not any(t in ('list', 'search', 'match', 'read') for t in tools) if kind == 'no_retrieval' else None,
         'read_only': all(t in ('read', 'finish') for t in tools) if kind == 'direct_read' else None,
         'elapsed_s': row['elapsed_ms'] / 1000, 'model_requests': len(report.get('models') or []), 'tool_calls': len(tools),

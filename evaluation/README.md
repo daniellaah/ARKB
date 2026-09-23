@@ -32,7 +32,7 @@ evaluation/
 | no_retrieval | 4 | an answer without any retrieval tool |
 | synthesis | 10 | one answer that needs three or more notes, all cited |
 | browse | 10 | the set of notes on a topic (which notes discuss X); extras cost precision, omissions cost recall |
-| false_premise | 10 | the question assumes something the notes contradict or never state: status `partial` or `insufficient_evidence`, citing the note that corrects it |
+| false_premise | 10 | the question assumes something the notes contradict or never state: the answer cites the note that corrects it |
 
 `expected_sources` is read only by the scorer, after a run. `reference` is
 for a human reading the results; it is not scored. Every question was written
@@ -93,6 +93,33 @@ An error (harness exception or error final) counts as not answered with zero
 recall. `results.jsonl` keeps the full trace of every question (requests,
 tool calls, delivered evidence, the final object), so any number can be
 traced back to what the agent did.
+
+### premise_flagged counts the citation, not the status
+
+`premise_flagged` used to require a final status of `partial` or
+`insufficient_evidence`, on the assumption that a question with a false
+premise cannot be answered as asked. The traces of the 2026-09-22 runs show
+that assumption was wrong about the answers it was scoring. On
+deepseek-reasoner and on qwen3.5:27b, 7 of the 10 came back as `answered`,
+every one of those seven opening with the correction ("the note does not
+recommend a summary length because prompt caching does not summarize the
+material"), and 10 of 10 cited the refuting note. The metric was measuring the
+status word, and the status word is a judgement call: an answer that says "the
+notes describe the opposite" is `answered` by one reading and `partial` by
+another. It scored those runs 0.3 while their answers were right.
+
+What is not a judgement call is whether the run found and cited the note that
+corrects the premise, so that is what the metric now is: `source_recall == 1`.
+It is a weaker claim than the old one — it does not check that the answer
+states the correction, only that the refuting note is cited — and it is the
+strongest claim this scorer can make without a judge. The smaller model shows
+the metric still discriminates: qwen3.5:9b cited the refuting note on 7 of 10.
+
+This is a change of instrument, not of the corpus. `questions.json` and
+`notes/` are untouched, and every saved run was recomputed with `rescore`
+rather than rerun, so historical numbers stay comparable with each other. The
+status distribution has not been discarded; it is still in `summary.json` per
+type, next to the metric.
 
 ## Reading the numbers
 
