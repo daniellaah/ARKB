@@ -47,6 +47,7 @@ Current:
 - [evaluation/README.md](../evaluation/README.md): the development evaluation (questions, metrics, commands).
 - [devloop-fix-log.md](devloop-fix-log.md): the fix-first development log with baseline and after measurements, the model-capacity axis and the transport correction.
 - [agile-vs-workflow-v1.md](agile-vs-workflow-v1.md): fully agentic against fixed-workflow retrieval on the development set (four arms, 9B with thinking, paired intervals; human review pending).
+- [sft-pilot.md](sft-pilot.md): distilling DeepSeek into a 4B student — staged plan, measured costs and the prompt for a fresh session.
 - [search-agent-roadmap.md](search-agent-roadmap.md): what the search agent still lacks, in priority order, with one executable prompt per task.
 - [arkb-current-system-review.md](arkb-current-system-review.md): the long-form architecture review.
 
