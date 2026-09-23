@@ -871,12 +871,13 @@ directories.
 
 ## Roadmap
 
-Potential next steps:
-
-- Recursive Markdown directory ingestion.
-- Final-answer quality evaluation alongside retrieval and agent behavior metrics.
-
-These items are not currently implemented.
+Recursive directory ingestion now exists. What is still open, with the
+measurements behind each item, is in
+[docs/search-agent-roadmap.md](docs/search-agent-roadmap.md): answer-quality
+evaluation beyond retrieval and citation metrics, a citation checker that is
+not the answering model, and two things that need one paid API run to
+confirm (prompt-cache hits, and whether the citation guards help a model that
+genuinely over-cites).
 
 ## License
 

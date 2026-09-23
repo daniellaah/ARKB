@@ -1,9 +1,9 @@
 # Search agent roadmap (2026-09-22)
 
 The goal is a search agent that works on the author's own Markdown knowledge
-base. This document states what exists, what is missing in priority order, and
-carries one self-contained prompt per task so each can be executed in a fresh
-session.
+base. Written 2026-09-22 as six prioritized gaps with one executable prompt
+each; updated 2026-09-23, when all six had been executed. The outcomes and the
+measurements are at the top, the prompts below them as a record.
 
 ## Where the system stands
 
@@ -39,33 +39,67 @@ Local run labels for regression comparisons (gitignored, on this machine):
 
 ## Gaps in priority order
 
-| # | Gap | Why it matters now |
+All six were executed on 2026-09-22 and 2026-09-23, one session each, in the
+order below. The prompts are kept further down as a record of what each
+session was asked to do; the outcome of each is stated here.
+
+| # | Gap | Outcome |
 | ---: | --- | --- |
-| 1 | **Only a flat directory is supported.** `note_paths` iterates one directory; `source` is a bare filename; `DocumentAccess._paths` rejects any path with a separator; the exact-match text cache keys files by `path.name`. No frontmatter handling. | The author's vault has 1,603 `.md` files and **none** at the top level. The product indexes nothing there. Everything else is blocked on this. |
-| 2 | **Nothing exposes the vault to an outer agent.** No MCP server. | The shortest path to daily use: Claude Code and the desktop app become the agent, ARKB stays the retrieval layer. No LLM needed inside ARKB for this mode. |
-| 3 | **`ask` is one-shot and Ollama-only.** No session, no follow-ups, no hosted-model selection in the product, and no prompt caching on the hosted transports. | Measurement says a hosted model is better and faster; a search agent people use has follow-up turns, and every turn resends the whole history — uncached that is the dominant cost. |
-| 4 | **No Obsidian-native navigation.** No wikilink/backlink traversal, no tag or folder filters, no date filters. `list` filters by filename only. | Links and tags are the strongest structural signal in a real vault, and they are free to index. |
-| 5 | **No context engineering.** No vault map at startup, no whole-corpus bypass for small scopes, no compaction of old observations in long runs. | A 1,603-note vault needs orientation; a 20-note folder does not need retrieval at all. |
-| 6 | **Citation precision and no verification step.** The final object is the model's own claim; nothing checks that each cited note supports the answer. | Measured: 0.795 precision on the strongest model, 0.58 on single-note discovery questions. |
+| 1 | Only a flat directory was supported, so the author's 1,603-note vault indexed nothing | **Done** (`91d444b`). Recursive scan, vault-relative POSIX sources, frontmatter, exclusions, per-file fault tolerance. Real vault: 1,555 notes, 19,979 chunks, 7 minutes. |
+| 2 | Nothing exposed the vault to an outer agent | **Done** (`e217165`). Read-only MCP stdio server (`arkb mcp`) over list / match / search / read; Claude Code and the desktop app can use the vault directly. |
+| 3 | `ask` was one-shot and Ollama-only | **Done** (`b441f79`, `c20ef7e`). Transport selection in the product, usage and cost accounting, Claude prompt-cache breakpoints (live hit rate still unverified), and `arkb chat` with the conversation carried across turns on one tool session. |
+| 4 | No Obsidian-native navigation | **Done** (`2c20043`). Link graph in the snapshot (3,552 links in the real vault), a `links` tool, and `list` filtering by path, tag and modification date. |
+| 5 | No context engineering | **Done** (`143f415`, `75ed46e`, `532083d`). Layout note, small-scope bypass and history compaction, each switchable; only compaction is on by default. |
+| 6 | Citation precision, no verification step | **Done** (`b28d0e8`, `d7669ea`). Both guards built, both measured into the off position; the false-premise metric now scores the citation rather than the status word. |
 
-Not worth a session yet: reranking in the agent path (code exists, switched
-off), multilingual handling, writing to the vault.
+## What the measurements said
 
-## Plan
+Every arm is 114 questions on the development set, local models, no paid API.
 
-```
-Task 1 (P0) real vault support ──┬── Task 2 (P1) MCP server
-                                 ├── Task 3 (P1) hosted models + multi-turn
-                                 ├── Task 4 (P2) links, tags, filters
-                                 └── Task 5 (P2) context engineering
-Task 6 (P2) citation precision and verification  (independent, any time)
-```
+| Run | Model | Cited recall | Cited precision | Errors | s/question |
+| --- | --- | ---: | ---: | ---: | ---: |
+| v2-9b-think (before Task 1) | 9b | 0.886 | 0.944 | 1 | 21.1 |
+| t4-9b-think (after links) | 9b | 0.954 | 0.958 | 0 | 21.9 |
+| t5-on-9b (defaults) | 9b | 0.924 | 0.945 | 0 | 22.1 |
+| t6-base-27b | 27b | 0.973 | 0.918 | 0 | 55.5 |
+| v2-deepseek-reasoner (before Task 1) | deepseek | 0.991 | 0.795 | 0 | 8.8 |
 
-Rules that hold for every task: `make test` and `make lint` stay green; the
-evaluation must not regress (compare against the run labels above); the
-evaluation corpus `evaluation/notes/` and `evaluation/questions.json` are not
-edited unless the task says so; commits are English and match the repository's
-history style.
+Readings that should survive into the next piece of work:
+
+- **Single 9B runs move by about 0.03 recall for no reason.** t5-off and t4
+  share a code path on this corpus and differ by 0.028; treat anything smaller
+  than that as noise, and do not read the t4 jump as proof that `links` helped
+  (the tool was never called on this corpus).
+- **Feeding a whole small corpus instead of searching it is a trap.** With the
+  bypass forced on, delivered recall is 1.000 and *cited* recall falls to
+  0.822 with 15 errors: the notes are in the prompt, so the model answers
+  without citing or invents a reference. Retrieval is not what breaks; the
+  citation contract is.
+- **A model cannot audit its own citations.** The verification step changed 4
+  of 431 citations on 27B and wrongly dropped 80 of 465 on 9B, mostly in
+  enumeration answers where each note only mentions the term. Useful
+  verification needs a checker that is not the author.
+- **Telling a model to cite less does nothing when it is already precise, and
+  costs recall when it is not.** 27B: 0.918 to 0.917. 9B: +0.011 precision,
+  −0.028 recall.
+- **The layout note is the cheapest context win.** On the real vault it
+  answered a structural question in 3 requests and 9,033 prompt tokens where
+  search-first took 4 requests, 14,787 tokens, and reached the wrong note.
+
+## What is still open
+
+- **The precision problem was never measured where it is worst.** DeepSeek
+  (0.795, 0.58 on single-note discovery) needs one paid run to know whether
+  either guard helps a model that genuinely over-cites.
+- **Prompt caching has never been observed working.** The breakpoints and the
+  byte-stable prefix are asserted offline; a live cache-read count needs one
+  paid Claude run.
+- **13 journal notes have unparsed frontmatter** (nested YAML mappings). Their
+  bodies index normally; only their tags are missing, which matters for the
+  tag filter.
+- **Verification by question type.** The failure was structural, not a matter
+  of model strength: enumeration answers cannot be checked one citation at a
+  time. A checker that reads the answer as a set would be a different design.
 
 ---
 
