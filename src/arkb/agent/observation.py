@@ -53,6 +53,10 @@ class AgentObserver:
         # layout note oriented it, whether it was handed its whole scope, how
         # many observations lost their bodies. Empty when nothing was decided.
         self.context = {}
+        # What the post-hoc citation check did, filled by the loop: how many
+        # citations it examined, how many survived, which sources it dropped
+        # and whether that changed the status. Empty when nothing was checked.
+        self.citations = {}
         self._unique = {}
 
     def start(self):
@@ -253,6 +257,7 @@ class AgentObserver:
                 'stop_reason': stop_reason,
                 'budget_stop_reason': self.reason,
                 'context': self.context,
+                'citations': self.citations,
                 'error': self.error,
                 'elapsed_ms': self.elapsed(),
                 'usage': {key: usage(key) for key in ('prompt_eval_count', 'eval_count')},

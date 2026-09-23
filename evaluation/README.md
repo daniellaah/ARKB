@@ -55,7 +55,10 @@ About fifteen minutes at 9B. `--limit N` takes N questions per type for a
 quick check; `--types a,b` runs only those types; `--resume` continues an
 interrupted run; `--max-evidence-tokens`, `--max-turns`, `--num-ctx`,
 `--num-predict` override the defaults. A finished run is not rerun under the
-same label.
+same label. `--citation-discipline` / `--no-citation-discipline` and
+`--verify-citations` / `--no-verify-citations` switch the two citation guards
+(`src/arkb/agent/citations.py`); both settings are recorded in `run.json`, so
+a run says which guards produced its numbers.
 
 Models: an Ollama name runs locally; `claude-*` uses the Claude transport
 (`pip install -e .[claude]`, credentials from the environment, `--think`

@@ -13,7 +13,8 @@ quality is measured, not assumed.
    evidence references), `observation.py` (budgets and accounting),
    `loop.py` (the bounded tool-calling loop), `context.py` (what a run opens
    with, when it reads a small scope whole instead of searching it, and what a
-   long trajectory forgets).
+   long trajectory forgets), `citations.py` (the citation rule stated to the
+   model, and the check of each citation after the answer).
 3. `src/arkb/retrieval/`: `exact.py` (literal matching with a disposable text
    cache), `bm25.py`, `semantic.py`, `hybrid.py` (reciprocal rank fusion),
    `engine.py` (explicit mode dispatch).

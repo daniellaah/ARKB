@@ -10,6 +10,7 @@ from unittest.mock import create_autospec
 from httpx import ReadTimeout
 import pytest
 
+from arkb.agent.citations import CitationPolicy
 from arkb.agent.context import ContextPolicy
 from arkb.agent.state import AgentResult, AgentState
 from arkb.config import DEFAULT_DB, DEFAULT_RETRIEVAL_MODE, RetrievalConfig
@@ -148,7 +149,7 @@ def test_ask_calls_agent_entry_point_with_model_and_turn_limit(runtime, capsys):
     assert call.args == ('Which notes mention RAG?',)
     assert {k: v for k, v in call.kwargs.items() if k != 'client'} == {
         'db': DEFAULT_DB, 'vault_id': 'default', 'notes_dir': None, 'model': 'fake-agent',
-        'max_turns': 6, 'think': True, 'policy': ContextPolicy()}
+        'max_turns': 6, 'think': True, 'policy': ContextPolicy(), 'citation_policy': CitationPolicy()}
     # The agent talks to a metered transport chosen from the model name, not to a raw client.
     fake.chat_client.assert_called_once_with('fake-agent', think=True)
     assert call.kwargs['client'].client is fake.chat_client.return_value
@@ -175,6 +176,19 @@ def test_context_engineering_flags_build_one_policy_and_default_to_a_bounded_con
     assert fake.ask.call_args.kwargs['policy'] == ContextPolicy(
         map_notes=('a.md', '00-Sys/b.md', 'c.md'), small_scope_tokens=5000, history_tokens=0,
         scope_prefix='04-Areas/Career')
+
+
+def test_citation_flags_build_one_policy_and_reach_both_commands(runtime, monkeypatch):
+    fake, _ = runtime
+    assert main(['ask', 'Question']) == 0
+    assert fake.ask.call_args.kwargs['citation_policy'] == CitationPolicy()
+    assert main(['ask', 'Question', '--citation-discipline', '--verify-citations']) == 0
+    assert fake.ask.call_args.kwargs['citation_policy'] == CitationPolicy(discipline=True, verify=True)
+    assert main(['ask', 'Question', '--no-citation-discipline', '--no-verify-citations']) == 0
+    assert fake.ask.call_args.kwargs['citation_policy'] == CitationPolicy(discipline=False, verify=False)
+    monkeypatch.setattr('arkb.interfaces.cli._prompt_lines', lambda prompt='> ': iter(['Question', '']))
+    assert main(['chat', '--verify-citations']) == 0
+    assert fake.run_agent.call_args.kwargs['citation_policy'] == CitationPolicy(verify=True)
 
 
 def test_a_chat_session_bounds_its_turns_and_its_conversation_with_the_same_setting(runtime, monkeypatch):

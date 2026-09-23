@@ -60,6 +60,10 @@ def trace_lines(result) -> Iterator[str]:
         for name, value in call.arguments.items():
             yield f'{name}: {json.dumps(value, ensure_ascii=False)}'
         yield ''
+    checked = (getattr(result, 'observation', None) or {}).get('citations')
+    if checked:
+        yield '[citations] ' + json.dumps(checked, ensure_ascii=False, sort_keys=True)
+        yield ''
     yield f'[{len(trace.tool_calls) + 1}] {trace.stop_reason}'
 
 

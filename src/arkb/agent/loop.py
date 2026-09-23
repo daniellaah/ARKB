@@ -5,7 +5,8 @@ import json
 
 from ollama import Client
 
-from arkb.agent import context
+from arkb.agent import citations, context
+from arkb.agent.citations import CitationPolicy
 from arkb.agent.context import ContextPolicy
 from arkb.agent.state import AgentFinal, AgentResult, AgentState, ObservedAgentResult
 from arkb.agent.observation import AgentObserver
@@ -93,7 +94,8 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
               system_instruction: str = SYSTEM_INSTRUCTION,
               session_factory: type[ToolSession] = ToolSession,
               history: Sequence[dict] = (),
-              policy: ContextPolicy = ContextPolicy()) -> AgentResult:
+              policy: ContextPolicy = ContextPolicy(),
+              citation_policy: CitationPolicy = CitationPolicy()) -> AgentResult:
     """Run the bounded protocol; reserve one model request for finalization.
 
     Expected model misuse is delivered as a recoverable observation. Unexpected
@@ -114,6 +116,10 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
     policy decides what the conversation opens with, whether a small scope is
     delivered instead of searched, and when old observations lose their bodies;
     context.OFF restores the cold start.
+
+    citation_policy decides whether the run states the citation rule to the
+    model and whether it checks each citation against the answer afterwards;
+    citations.OFF returns the final object the model proposed, unexamined.
     """
     if not isinstance(query, str) or not query.strip():
         raise ValueError('query must be a nonblank string.')
@@ -129,10 +135,12 @@ def run_agent(query: str, *, client: Client, tools: AgentTools, model: str,
         raise ValueError('history must contain conversation messages with a known role.')
     if not isinstance(policy, ContextPolicy):
         raise ValueError('policy must be a ContextPolicy.')
+    if not isinstance(citation_policy, CitationPolicy):
+        raise ValueError('citation_policy must be a CitationPolicy.')
     run = _AgentRun(query, client=client, tools=tools, model=model, max_turns=max_turns, think=think,
                     observer=observer or AgentObserver(), search_stall_reminder=search_stall_reminder,
                     system_instruction=system_instruction, session_factory=session_factory, history=history,
-                    policy=policy)
+                    policy=policy, citation_policy=citation_policy)
     return run.run()
 
 
@@ -140,10 +148,13 @@ class _AgentRun:
     """One bounded run: conversation state, the tool session and the failure boundary."""
 
     def __init__(self, query, *, client, tools, model, max_turns, think, observer, search_stall_reminder,
-                 system_instruction, session_factory, history=(), policy=ContextPolicy()):
+                 system_instruction, session_factory, history=(), policy=ContextPolicy(),
+                 citation_policy=CitationPolicy()):
         self.client, self.tools, self.model, self.max_turns, self.think = client, tools, model, max_turns, think
         self.observer, self.search_stall_reminder = observer, search_stall_reminder
         self.session_factory, self.policy = session_factory, policy
+        self.citation_policy = citation_policy
+        self.final_instruction = citations.final_instruction(_FINAL_INSTRUCTION, citation_policy)
         self.state = AgentState(messages=[{'role': 'system', 'content': system_instruction},
                                           *deepcopy(list(history)),
                                           {'role': 'user', 'content': query}])
@@ -169,7 +180,54 @@ class _AgentRun:
 
     def accepted(self, result):
         data = result['final']
-        return self.outcome(AgentFinal(data['answer'], data['status'], data['citations'], self.closing_reason or 'finish'))
+        status, cited = data['status'], data['citations']
+        if self.citation_policy.verify and cited:
+            status, cited = self.verify_citations(data['answer'], status, cited)
+        return self.outcome(AgentFinal(data['answer'], status, cited, self.closing_reason or 'finish'))
+
+    # Citations ----------------------------------------------------------------
+
+    def verify_citations(self, answer, status, cited):
+        """Keep the cited notes the model can tie to a statement in its own answer.
+
+        One request per citation, on the same transport and recorded by the same
+        observer, so the extra cost appears in the models list and in the usage
+        totals rather than off the books. A check that cannot decide keeps its
+        citation, so a failing verifier costs requests and changes nothing.
+
+        Dropping every citation leaves an answer with no evidence behind it,
+        which the status must say: it becomes insufficient_evidence. The answer
+        text is the model's and is not rewritten here.
+        """
+        self.stage = 'citation_verification'
+        kept, dropped = [], []
+        for citation in cited:
+            (dropped if self.check_citation(answer, citation) is False else kept).append(citation)
+        record = {'checked': len(cited), 'kept': len(kept), 'dropped': [c['source'] for c in dropped]}
+        if not kept and status != 'insufficient_evidence':
+            record['status'] = f'{status} -> insufficient_evidence'
+            status = 'insufficient_evidence'
+        self.observer.citations = record
+        self.stage = 'measurement'
+        return status, kept
+
+    def check_citation(self, answer, citation):
+        """One bounded request; None when the check did not decide and the citation stands."""
+        observer = self.observer
+        if observer.deadline():
+            return None
+        request = citations.verification_request(self.model, answer=answer, citation=citation)
+        observer.start_model(self.state.turn, request, phase='citation_verification')
+        try:
+            response = self.client.chat(**request)
+        except Exception as error:
+            # A verifier that fails must not remove evidence; the failed request is recorded.
+            observer.models[-1].update(status='recoverable_error', error={
+                'type': type(error).__name__, 'message': str(error)},
+                elapsed_ms=observer.elapsed() - observer.models[-1]['started_ms'])
+            return None
+        observer.end_model(response)
+        return citations.supported(response)
 
     def append_result(self, name, result, event):
         event['conversation_result'] = deepcopy(result)
@@ -246,7 +304,10 @@ class _AgentRun:
         self.observer.start()
         try:
             self.session = self.session_factory(self.tools)
-            self.definitions = [{'type': 'function', 'function': d} for d in self.session.definitions]
+            definitions = self.session.definitions
+            if self.citation_policy.discipline:
+                definitions = citations.disciplined(definitions)
+            self.definitions = [{'type': 'function', 'function': d} for d in definitions]
             self.prepare_context()
             for _ in range(self.max_turns):
                 result = self.turn()
@@ -275,7 +336,7 @@ class _AgentRun:
         if self.search_stall_reminder and _search_stalled(state.messages, self.turn_start):
             state.messages.append({'role': 'system', 'content': _SEARCH_STALLED_INSTRUCTION})
         if self.closing_reason:
-            state.messages.append({'role': 'system', 'content': _FINAL_INSTRUCTION})
+            state.messages.append({'role': 'system', 'content': self.final_instruction})
         state.turn += 1
         self.turn_start = len(state.messages)
         # The reserved finalization only formats an answer from delivered evidence;

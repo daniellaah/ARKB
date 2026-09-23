@@ -14,6 +14,7 @@ from httpx import HTTPError
 from ollama import ResponseError
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
+from arkb.agent.citations import CitationPolicy
 from arkb.agent.context import DEFAULT_HISTORY_TOKENS, FOLDER_SCOPE_TOKENS, ContextPolicy, parse_map_notes
 from arkb.agent.transports import ChatUsage, format_usage
 from arkb.config import (
@@ -166,6 +167,14 @@ def _parser():
             command.add_argument('--scope', type=_nonblank, metavar='PREFIX',
                                  help='Vault-relative folder the small-scope delivery covers; the tools keep '
                                       'the whole knowledge base.')
+            command.add_argument('--citation-discipline', action=argparse.BooleanOptionalAction,
+                                 default=CitationPolicy.discipline,
+                                 help='Ask the model to cite a note only when a statement in the answer '
+                                      'rests on it.')
+            command.add_argument('--verify-citations', action=argparse.BooleanOptionalAction,
+                                 default=CitationPolicy.verify,
+                                 help='After the answer, check each cited note against it in one extra model '
+                                      'request per citation and drop the notes it does not support.')
     return parser
 
 
@@ -209,6 +218,11 @@ def _context_policy(args):
                          small_scope_tokens=args.small_scope_tokens, scope_prefix=args.scope)
 
 
+def _citation_policy(args):
+    """What the answer may cite, as the ask and chat commands expose it."""
+    return CitationPolicy(discipline=args.citation_discipline, verify=args.verify_citations)
+
+
 def _load_api_keys(start=None):
     """Fill the environment from the nearest .env above the working directory.
 
@@ -237,7 +251,7 @@ def _chat(runtime, args):
     from arkb.agent.observation import AgentObserver
     from arkb.agent.session import ToolSession
     client = ChatUsage(runtime.chat_client(args.generation_model, think=args.think), args.generation_model)
-    policy = _context_policy(args)
+    policy, citation_policy = _context_policy(args), _citation_policy(args)
     with runtime.live_tools(db=args.db, vault_id=args.vault_id, notes_dir=args.notes_dir) as tools:
         state = {'session': ToolSession(tools), 'mark': 0}
         print(EXIT_HINT)
@@ -248,7 +262,7 @@ def _chat(runtime, args):
             state['mark'] = len(client.records)
             return runtime.run_agent(query, tools=tools, model=args.generation_model, max_turns=args.max_turns,
                                      think=args.think, client=client, history=history, session=state['session'],
-                                     observer=AgentObserver(), policy=policy)
+                                     observer=AgentObserver(), policy=policy, citation_policy=citation_policy)
 
         for line in converse(_prompt_lines(), run=run,
                              reset=lambda: state.update(session=ToolSession(tools)),
@@ -287,7 +301,7 @@ def _execute(runtime, args, usage=None):
         try:
             return runtime.ask(args.query, **scope, notes_dir=args.notes_dir, client=client,
                                model=args.generation_model, max_turns=args.max_turns, think=args.think,
-                               policy=_context_policy(args))
+                               policy=_context_policy(args), citation_policy=_citation_policy(args))
         except Exception as error:
             partial = getattr(error, 'agent_result', None)
             if args.trace and partial is not None:
