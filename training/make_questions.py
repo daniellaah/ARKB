@@ -179,6 +179,8 @@ def main():
     parser.add_argument('--top-k', type=int, default=20)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--resume', action='store_true', help='keep the questions already written and extend them')
+    parser.add_argument('--exclude', type=Path, action='append', default=[],
+                        help='a question file whose notes are off limits; repeatable')
     args = parser.parse_args()
 
     shots = few_shot()
@@ -190,6 +192,10 @@ def main():
                     if shared_span(q['question'], (args.vault / q['expected_sources'][0]).read_text(
                         encoding='utf-8')) <= MAX_SHARED_SPAN]
     already = {q['expected_sources'][0] for q in kept_already}
+    # A held-out set is only held out if it is written from notes the trained
+    # set never saw, so the sources of an excluded file are off limits here.
+    for path in args.exclude:
+        already |= {q['expected_sources'][0] for q in json.loads(path.read_text())}
     notes = [(source, text) for source, text in notes if source not in already]
     print(f'{len(notes)} candidate notes ({len(kept_already)} questions carried over)', flush=True)
     client = OllamaClient(args.model, options={'num_ctx': 16384}, think=False)

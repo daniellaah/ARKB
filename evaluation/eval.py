@@ -199,6 +199,17 @@ def git_state():
     return {'git_head': head, 'dirty': bool(dirty), 'dirty_files': dirty.splitlines()}
 
 
+def read_rows(path):
+    """One saved record per line, split on newlines only.
+
+    str.splitlines() also breaks on U+2028, U+0085 and a vertical tab, which
+    json.dumps writes through unescaped inside a string. No note in this
+    corpus contains one; notes in a real vault do, and a record cut in half
+    reads as a corrupt run rather than as a reading bug.
+    """
+    return [json.loads(line) for line in Path(path).read_text().split('\n') if line.strip()]
+
+
 def write_json(path, value):
     Path(path).write_text(json.dumps(value, indent=1, ensure_ascii=False) + '\n')
 
@@ -220,7 +231,7 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
     results_path = output / 'results.jsonl'
     rows = []
     if resume and results_path.exists():
-        rows = [json.loads(line) for line in results_path.read_text().splitlines() if line.strip()]
+        rows = read_rows(results_path)
         done = {r['question']['id'] for r in rows}
         questions = [q for q in questions if q['id'] not in done]
         meta = json.loads((output / 'run.json').read_text())
@@ -283,7 +294,7 @@ def run(output, *, label, model, think, options=OPTIONS, budget=BUDGET, max_turn
 def rescore(output, questions_path=QUESTIONS, notes=NOTES):
     """Recompute the scores of a saved run with the current scorer and question file."""
     questions = {q['id']: q for q in load_questions(questions_path, notes)}
-    rows = [json.loads(line) for line in (output / 'results.jsonl').read_text().splitlines() if line.strip()]
+    rows = read_rows(output / 'results.jsonl')
     rows = [r for r in rows if r['question']['id'] in questions]
     for row in rows:
         row['question'] = questions[row['question']['id']]
@@ -302,7 +313,7 @@ def rescore(output, questions_path=QUESTIONS, notes=NOTES):
 
 def load_run(path):
     path = Path(path)
-    rows = {r['question']['id']: r for r in (json.loads(line) for line in (path / 'results.jsonl').read_text().splitlines() if line.strip())}
+    rows = {r['question']['id']: r for r in read_rows(path / 'results.jsonl')}
     return json.loads((path / 'run.json').read_text()), rows
 
 

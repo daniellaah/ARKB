@@ -28,6 +28,7 @@ from collections import Counter
 import json
 import multiprocessing as mp
 from pathlib import Path
+import subprocess
 from time import perf_counter, strftime
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,7 +49,7 @@ def worker(shard, tasks, settings, out_dir):
     from arkb.runtime import Runtime
     from evaluation.eval import BUDGET, QUESTION_DEADLINE_SECONDS, deadline, score
     from dataclasses import asdict
-    from training.transport import SampledDeepSeekClient
+    from training.transport import MlxServerClient, SampledDeepSeekClient
 
     load_env_file(ROOT / '.env')
     rows_path = out_dir / f'results-{shard}.jsonl'
@@ -60,13 +61,18 @@ def worker(shard, tasks, settings, out_dir):
                                qdrant_url=QDRANT_URL)) as runtime:
         tokenizer = runtime.tokenizer()
         counter_id = 'reference-text:' + tokenizer_fingerprint(tokenizer)
-        # A local model rehearses the whole composition for nothing, which is
-        # how this worker was checked before any of it was paid for.
-        transport = (SampledDeepSeekClient(settings['model'], temperature=settings['temperature'])
-                     if settings['model'].startswith('deepseek')
-                     else make_client(settings['model'], options={'temperature': settings['temperature'],
-                                                                  'num_ctx': 32768, 'num_predict': 4096},
-                                      think=True))
+        # Three transports, one composition: the paid teacher, a local model
+        # that rehearses the whole thing for nothing, and the served student,
+        # which is how the same vault questions measure a fine-tune in domain.
+        if settings['base_url']:
+            transport = MlxServerClient(settings['model'], base_url=settings['base_url'],
+                                        temperature=settings['temperature'])
+        elif settings['model'].startswith('deepseek'):
+            transport = SampledDeepSeekClient(settings['model'], temperature=settings['temperature'])
+        else:
+            transport = make_client(settings['model'], think=True,
+                                    options={'temperature': settings['temperature'],
+                                             'num_ctx': 32768, 'num_predict': 4096})
         client = ChatUsage(transport, model=settings['model'])
         with SQLiteStorage(INDEX, read_only=True) as storage:
             manifest = storage.active_manifest(VAULT_ID)
@@ -108,6 +114,13 @@ def worker(shard, tasks, settings, out_dir):
         {'shard': shard, 'spent_usd': spent, 'stopped': stopped, 'totals': client.totals()}, indent=1) + '\n')
 
 
+def git_state():
+    head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    dirty = subprocess.check_output(['git', 'status', '--porcelain', '--', 'src', 'training'],
+                                    cwd=ROOT, text=True).strip()
+    return {'git_head': head, 'dirty': bool(dirty)}
+
+
 def keep(row, *, min_recall, statuses):
     scores = row['scores']
     recall = scores['source_recall']
@@ -126,6 +139,9 @@ def main():
     parser.add_argument('--limit', type=int, default=0, help='first N questions only, for a calibration run')
     parser.add_argument('--min-recall', type=float, default=1.0)
     parser.add_argument('--statuses', default='answered,partial')
+    parser.add_argument('--base-url', default='', help='serve the model from this OpenAI-compatible endpoint')
+    parser.add_argument('--keep-all', action='store_true',
+                        help='do not filter: results.jsonl is every trajectory, for measuring rather than training')
     args = parser.parse_args()
 
     questions = json.loads(args.questions.read_text())
@@ -137,7 +153,7 @@ def main():
         # Workers append, so a second run under the same directory would double
         # the trajectories and the reported spend without saying so.
         raise SystemExit(f'{args.out} already holds shards; use a new --out.')
-    settings = {'model': args.model, 'temperature': args.temperature,
+    settings = {'model': args.model, 'temperature': args.temperature, 'base_url': args.base_url,
                 'max_cost_per_worker': args.max_cost / args.workers}
     (args.out / 'rollout.json').write_text(json.dumps(
         {'questions': len(questions), 'samples': args.samples, 'trajectories': len(tasks), **settings,
@@ -164,8 +180,14 @@ def main():
             for line in path.read_text().split('\n') if line.strip()]
     statuses = tuple(args.statuses.split(','))
     kept = [row for row in rows if keep(row, min_recall=args.min_recall, statuses=statuses)]
-    (args.out / 'results.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in kept))
+    (args.out / 'results.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n'
+                                                    for r in (rows if args.keep_all else kept)))
     (args.out / 'results-all.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows))
+    # A run.json beside results.jsonl is what `evaluation.eval compare` reads, so
+    # two vault runs compare with the harness's own paired table.
+    (args.out / 'run.json').write_text(json.dumps(
+        {'label': args.out.name, 'model': args.model, 'think': True, 'questions': len(questions),
+         'base_url': args.base_url, **git_state()}, indent=1) + '\n')
     spent = sum(row.get('cost_usd') or 0 for row in rows)
     report = {'trajectories': len(rows), 'kept': len(kept),
               'retention': round(len(kept) / len(rows), 3) if rows else None,
