@@ -39,3 +39,9 @@ htmlcov/
 # Reconstruct this large archive from its versioned multipart files.
 /archive/experiments-artifacts/
 
+# Distillation pilot: the scripts are versioned, the questions, trajectories,
+# datasets and adapters they produce are not.
+/training/data/
+/training/models/
+/.venv-train/
+
