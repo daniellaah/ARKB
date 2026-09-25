@@ -95,7 +95,7 @@ class ToolSession:
         self.resolutions.append(record)
         try:
             if ref not in self.references:
-                raise ToolInputError('invalid_reference', 'Reference does not exist in this run. Use a returned ref.')
+                raise ToolInputError('invalid_reference', self._unknown_reference(ref))
             if ref not in self._delivered:
                 raise ToolInputError('undelivered_reference', 'This evidence was not delivered within the budget.')
             bound = self.references[ref]
@@ -114,6 +114,26 @@ class ToolSession:
         except ToolInputError as error:
             record.update(status='recoverable_error', error={'code': error.code, 'message': str(error)})
             raise
+
+    def _unknown_reference(self, ref):
+        """Say what was wrong, not only that something was.
+
+        Six of the seven citation failures measured over the real vault were
+        one mistake: the model put the note's source path where a reference
+        belongs. The old message said the reference did not exist, which is
+        true and unusable -- one run proposed the same rejected finish five
+        times. When the string names a source whose evidence was delivered,
+        the refs for it are named here, because they are already in the
+        conversation and repeating them is what lets the next turn recover.
+        """
+        delivered = [r for r in self._delivered
+                     if self.references.get(r, {}).get('source') == ref]
+        if delivered:
+            shown = ', '.join(sorted(delivered)[:5])
+            return (f'{ref} is a source path, not a reference. Evidence from that note was delivered as: '
+                    f'{shown}. Cite those.')
+        return ('No such reference in this run. Cite the ref returned beside a piece of evidence, '
+                'such as ev_4f2a...c8_3; a source path or a title is not a reference.')
 
     def _read(self, *, ref=None, source=None, expand='section'):
         if (ref is None) == (source is None):

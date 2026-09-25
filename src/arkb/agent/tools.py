@@ -330,7 +330,10 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
             'properties': {
                 'answer': {'type': 'string', 'minLength': 1},
                 'status': {'type': 'string', 'enum': ['answered', 'partial', 'insufficient_evidence']},
-                'evidence_refs': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True},
+                'evidence_refs': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True,
+                                  'description': 'The ref returned beside each piece of evidence, such as '
+                                                 'ev_4f2a...c8_3. A source path or a note title is not a '
+                                                 'reference and is rejected.'},
             },
         },
     },
