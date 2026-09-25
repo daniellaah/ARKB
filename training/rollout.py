@@ -31,6 +31,8 @@ from pathlib import Path
 import subprocess
 from time import perf_counter, strftime
 
+from arkb.config import DEFAULT_RETRIEVAL_MODE
+
 from training import chat_format
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -162,7 +164,8 @@ def main():
                         help='the served weights, which decide the chat template dialect')
     parser.add_argument('--keep-all', action='store_true',
                         help='do not filter: results.jsonl is every trajectory, for measuring rather than training')
-    parser.add_argument('--mode', default='semantic', help="the agent's default search strategy")
+    parser.add_argument('--mode', default=DEFAULT_RETRIEVAL_MODE,
+                        help="the agent's default search strategy; follows the product unless given")
     parser.add_argument('--query-hint', default='', help='description to give the search tool\'s query parameter')
     parser.add_argument('--system-instruction', default='', help='a file holding a replacement system instruction')
     args = parser.parse_args()

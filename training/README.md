@@ -160,3 +160,75 @@ expected result: the evaluation's noise floor is about 0.03 recall, and the
 architecture limits training to 1.9M parameters in the last of 32 blocks.
 Before this is worth scaling to a thousand questions, the gated delta rule
 needs a backward pass so a LoRA can reach the whole network.
+
+## What the second round measured
+
+The first round could not separate "the fine-tune does nothing" from "the
+adapter had no capacity" or "the corpus had no headroom". The second round
+removes all three excuses and the answer does not change.
+
+What changed between the rounds: the agent's retrieval and citation defaults
+were fixed first (see the repository history), so the teacher demonstrates a
+policy worth imitating; the teacher's trajectories were regenerated against the
+fixed tools (400 trajectories, 88.7% kept, $3.44, 649.8 s at 8 workers, 23%
+cheaper per trajectory than the first round because a fixed default shortens
+them); and the student became **Qwen3-4B**, which is full attention, so LoRA
+reaches all 36 blocks — 66M trainable parameters against the first round's 1.9M
+in a single block.
+
+The dataset's turn distribution had to be chosen deliberately. At a 8,192-token
+cap, 8.5% of samples came from turn 4 or later and **not one finalization turn
+survived**: training on that would teach a model that already stops too early
+to stop even earlier. At 16,384 tokens with two trajectories per question the
+distribution is usable — 708 samples spanning turns 1 to 8, 47 of them
+finalizations, 257k tokens carrying loss, no boundary failures.
+
+Training: all 36 blocks, rank 32, scale 2.0, gradient checkpointing, one epoch,
+708 iterations in 7.5 hours at 91 GB peak. **Validation loss 1.606 → 0.794**, a
+51% reduction against the first round's 10%. The adapter learned the teacher's
+token distribution on questions it never saw.
+
+The task behaviour did not follow.
+
+| | 180 vault questions | | 114 dev questions | |
+| --- | ---: | ---: | ---: | ---: |
+| | base | +LoRA | base | +LoRA |
+| delivered recall | 0.589 | 0.556 | 0.782 | 0.825 |
+| cited recall | 0.544 | 0.506 | 0.725 | 0.760 |
+| answered | 0.756 | 0.761 | 0.763 | 0.772 |
+| tool calls | 1.55 | 1.58 | 1.98 | 1.97 |
+| runs calling no tool | 44 | 43 | 10 | 8 |
+
+The two corpora move in opposite directions — the vault by −0.039 cited recall,
+the development set by +0.035 — which is what noise looks like. Pooled over all
+**294 paired questions: 26 wins, 234 ties, 26 losses** on cited recall; 23/21 on
+delivered recall; 21/19 on answered. The behaviour the training set was selected
+for is untouched: 54 runs called no tool before, 51 after, and 38 of them are
+the same questions.
+
+### Where the signal went
+
+The training set says the right thing. All 175 turn-1 samples call a tool;
+the teacher never answers from memory. But turn 1 is one short decision and the
+rest of a trajectory is long prose:
+
+| | turn 1 | turns 3-5 |
+| --- | ---: | ---: |
+| share of samples (the loss is a per-sample token mean, so this is the gradient's share) | 24.7% | 46.2% |
+| share of tokens carrying loss | 8.5% | 64.3% |
+| mean tokens carrying loss per sample | 113 | ~400 |
+
+The failure that matters is a single early branch — search, or answer from what
+the model already knows. Imitation spends its capacity on the middle of
+trajectories the student never reaches, because it stops after 1.55 tool calls.
+A 51% drop in validation loss is consistent with learning the reasoning and
+tool-call *style* of turns 3 to 5 while leaving the turn-1 decision where it was.
+
+So the honest conclusion is narrower than "SFT does not work here" and more
+useful: **token-weighted imitation of positive trajectories is the wrong
+instrument for changing one early decision.** What would address it, in order of
+how much machinery each needs: weight the loss by decision rather than by
+sample; train only on the turns where the student and the teacher diverge; or
+give the objective a contrast — the rollouts already contain 45 rejected
+trajectories per round, so the same pipeline produces preference pairs on the
+question where the student went wrong.
