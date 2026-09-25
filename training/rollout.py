@@ -40,6 +40,8 @@ QDRANT_URL = 'http://127.0.0.1:6340'
 
 def worker(shard, tasks, settings, out_dir):
     """One process: its own runtime, its own transport, its own share of the budget."""
+    from arkb.agent import tools as agent_tools_module
+    from arkb.agent.loop import SYSTEM_INSTRUCTION, run_agent
     from arkb.agent.observation import AgentObserver
     from arkb.agent.transports import ChatUsage, estimate_cost, make_client
     from arkb.config import RuntimeConfig, load_env_file
@@ -52,6 +54,17 @@ def worker(shard, tasks, settings, out_dir):
     from training.transport import MlxServerClient, SampledDeepSeekClient
 
     load_env_file(ROOT / '.env')
+    # An A/B on retrieval policy changes what the agent is told, not what the
+    # agent is. The query hint belongs to the tool schema, where the model
+    # reads it while building the call and where this project puts retrieval
+    # policy; it is patched in the worker so a candidate can be measured
+    # before it is committed to the product.
+    if settings['query_hint']:
+        for definition in agent_tools_module.TOOL_DEFINITIONS:
+            if definition['name'] == 'search':
+                definition['parameters']['properties']['query']['description'] = settings['query_hint']
+    instruction = (Path(settings['system_instruction']).read_text().strip()
+                   if settings['system_instruction'] else SYSTEM_INSTRUCTION)
     rows_path = out_dir / f'results-{shard}.jsonl'
     # The Ollama options the harness sets (num_ctx, num_predict) belong to a
     # local server; this transport carries its own max_tokens, and the sampling
@@ -78,7 +91,8 @@ def worker(shard, tasks, settings, out_dir):
             manifest = storage.active_manifest(VAULT_ID)
             engine = runtime.retrieval_engine(storage, manifest, modes=('bm25', 'semantic'), exact=True)
             tools = runtime.agent_tools(engine=engine, directory=VAULT, vault_id=VAULT_ID, rerank=False,
-                                        prepare_exact=True, links=LinkGraph(storage, manifest.index_version))
+                                        mode=settings['mode'], prepare_exact=True,
+                                        links=LinkGraph(storage, manifest.index_version))
             try:
                 for question, sample in tasks:
                     if spent >= settings['max_cost_per_worker']:
@@ -90,8 +104,9 @@ def worker(shard, tasks, settings, out_dir):
                     result, error = None, None
                     try:
                         with deadline(QUESTION_DEADLINE_SECONDS):
-                            result = runtime.run_agent(question['question'], tools=tools, model=settings['model'],
-                                                       max_turns=8, think=True, client=client, observer=observer)
+                            result = run_agent(question['question'], tools=tools, model=settings['model'],
+                                               max_turns=8, think=True, client=client, observer=observer,
+                                               system_instruction=instruction)
                     except Exception as exc:
                         error = {'type': type(exc).__name__, 'message': str(exc)}
                     totals = client.totals(mark)
@@ -142,6 +157,9 @@ def main():
     parser.add_argument('--base-url', default='', help='serve the model from this OpenAI-compatible endpoint')
     parser.add_argument('--keep-all', action='store_true',
                         help='do not filter: results.jsonl is every trajectory, for measuring rather than training')
+    parser.add_argument('--mode', default='semantic', help="the agent's default search strategy")
+    parser.add_argument('--query-hint', default='', help='description to give the search tool\'s query parameter')
+    parser.add_argument('--system-instruction', default='', help='a file holding a replacement system instruction')
     args = parser.parse_args()
 
     questions = json.loads(args.questions.read_text())
@@ -154,6 +172,8 @@ def main():
         # the trajectories and the reported spend without saying so.
         raise SystemExit(f'{args.out} already holds shards; use a new --out.')
     settings = {'model': args.model, 'temperature': args.temperature, 'base_url': args.base_url,
+                'mode': args.mode, 'query_hint': args.query_hint,
+                'system_instruction': args.system_instruction,
                 'max_cost_per_worker': args.max_cost / args.workers}
     (args.out / 'rollout.json').write_text(json.dumps(
         {'questions': len(questions), 'samples': args.samples, 'trajectories': len(tasks), **settings,
@@ -187,7 +207,8 @@ def main():
     # two vault runs compare with the harness's own paired table.
     (args.out / 'run.json').write_text(json.dumps(
         {'label': args.out.name, 'model': args.model, 'think': True, 'questions': len(questions),
-         'base_url': args.base_url, **git_state()}, indent=1) + '\n')
+         'base_url': args.base_url, 'mode': args.mode, 'query_hint': args.query_hint,
+         'system_instruction': args.system_instruction, **git_state()}, indent=1) + '\n')
     spent = sum(row.get('cost_usd') or 0 for row in rows)
     report = {'trajectories': len(rows), 'kept': len(kept),
               'retention': round(len(kept) / len(rows), 3) if rows else None,

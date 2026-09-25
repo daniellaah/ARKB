@@ -17,7 +17,7 @@ def test_search_maps_arguments_once_and_projects_only_evidence(tools, engine, do
     hit.metadata['fusion'] = {'private': 'details'}
     engine.search.return_value = SearchResponse(query=' original ', method='hybrid', results=(hit,))
     output = tools.search(' original ', source='a.md', limit=7)
-    engine.search.assert_called_once_with(' original ', mode='semantic', rerank=False,
+    engine.search.assert_called_once_with(' original ', mode='hybrid', rerank=False,
                                          filters={'source': 'a.md'}, top_k=7)
     result, = output['results']
     assert set(result) == {'document_id', 'source', 'title', 'content', 'document_revision',
@@ -32,7 +32,7 @@ def test_search_maps_arguments_once_and_projects_only_evidence(tools, engine, do
 
 def test_search_empty_defaults_and_underlying_error(tools, engine):
     assert tools.search('question') == {'query': 'question', 'results': []}
-    engine.search.assert_called_once_with('question', mode='semantic', rerank=False, filters={}, top_k=10)
+    engine.search.assert_called_once_with('question', mode='hybrid', rerank=False, filters={}, top_k=10)
     error = RuntimeError('backend unavailable')
     engine.search.side_effect = error
     with pytest.raises(RuntimeError) as raised:

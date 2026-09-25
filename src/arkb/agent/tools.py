@@ -3,6 +3,7 @@
 from copy import deepcopy
 from typing import TypedDict
 
+from arkb.config import DEFAULT_RETRIEVAL_MODE
 from arkb.knowledge.documents import DocumentAccess, DocumentNotFound
 from arkb.knowledge.links import LinkGraph
 from arkb.knowledge.models import ConfigValue
@@ -86,7 +87,7 @@ class AgentTools:
     """
 
     def __init__(self, *, documents: DocumentAccess, exact: ExactRetriever,
-                 engine: RetrievalEngine, mode: str = 'semantic', rerank: bool = False,
+                 engine: RetrievalEngine, mode: str = DEFAULT_RETRIEVAL_MODE, rerank: bool = False,
                  links: LinkGraph | None = None):
         if mode not in ('semantic', 'bm25', 'lexical', 'hybrid'):
             raise ValueError('Unknown configured retrieval mode.')

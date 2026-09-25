@@ -30,9 +30,17 @@ def main():
     parser.add_argument('--types', default='')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--mode', default='', help="override the agent's default search strategy")
     args = parser.parse_args()
 
     load_env_file(ROOT / '.env')
+    if args.mode:
+        # The harness composes its tools without naming a strategy, so the
+        # default is AgentTools'. Supplying one here measures a candidate
+        # default on the development set before it becomes the product's.
+        import arkb.runtime
+        composed = arkb.runtime.Runtime.agent_tools
+        arkb.runtime.Runtime.agent_tools = lambda self, **kw: composed(self, **{'mode': args.mode, **kw})
     options = harness.OPTIONS
     harness.make_client = lambda model, *, options, think, effort='high': MlxServerClient(
         model, base_url=args.base_url, max_tokens=options['num_predict'],

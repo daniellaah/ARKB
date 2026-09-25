@@ -284,7 +284,7 @@ class Runtime:
             rerank_candidates=settings.rerank_candidates)
 
     def agent_tools(self, *, engine: 'RetrievalEngine', directory: Path, vault_id: str,
-                    mode: str = 'semantic', rerank: bool = False,
+                    mode: str = DEFAULT_RETRIEVAL_MODE, rerank: bool = False,
                     prepare_exact: bool = False, exclude: Sequence[str] | None = None,
                     links: 'LinkGraph | None' = None) -> 'AgentTools':
         """Bind live document tools to an already prepared retrieval engine.

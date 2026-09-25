@@ -85,7 +85,7 @@ def test_search_returns_stateless_evidence(server, documents, engine):
     engine.search.return_value = SearchResponse(query='retrieval', method='semantic',
                                                 results=(hit,), index_id='idx-1')
     result = session(server, lambda client: client.call_tool('search', {'query': 'retrieval', 'limit': 3}))
-    engine.search.assert_called_once_with('retrieval', mode='semantic', rerank=False, filters={}, top_k=3)
+    engine.search.assert_called_once_with('retrieval', mode='hybrid', rerank=False, filters={}, top_k=3)
     assert result.isError is False
     assert result.structuredContent['query'] == 'retrieval'
     assert result.structuredContent['index_version'] == 'idx-1'

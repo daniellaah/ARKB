@@ -7,7 +7,13 @@ from pathlib import Path
 DEFAULT_EMBEDDING_MODEL = 'qwen3-embedding:0.6b'
 DEFAULT_GENERATION_MODEL = 'qwen3.5:4b'
 DEFAULT_AGENT_THINK = True
-DEFAULT_RETRIEVAL_MODE = 'semantic'
+# Hybrid, because the agent writes its searches as keyword lists and semantic
+# ranking is the worst match for one. Measured on 60 questions over the real
+# 1,555-note vault: the note the question was written from reached the model
+# in 0.917 of runs against 0.833 under semantic, five questions better and
+# none worse. On the 58-note development corpus retrieval is already
+# saturated (0.997) and the choice changes nothing it can measure.
+DEFAULT_RETRIEVAL_MODE = 'hybrid'
 DEFAULT_DB = Path('.arkb/index.sqlite')
 DEFAULT_NOTES_DIR = Path('example_notes')
 

@@ -86,7 +86,8 @@ def test_persistent_commands_build_reopen_search_and_show_status(
     assert persistent_client.embed.call_args.kwargs['options'] == {'num_ctx': 512}
     persistent_client.embed.reset_mock()
     (workspace / 'example_notes' / 'habits.md').write_text('# Edited\nThis must not appear in a snapshot query.')
-    assert main(['search', 'Question?', '--offline', '--json', '--source', 'habits.md']) == 0
+    assert main(['search', 'Question?', '--offline', '--json', '--source', 'habits.md',
+                 '--mode', 'semantic']) == 0
     result = json.loads(capsys.readouterr().out)
     assert result['index_id'] == report['manifest']['index_version']
     assert result['method'] == result['results'][0]['method'] == 'semantic'

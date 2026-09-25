@@ -19,6 +19,9 @@ def documents(tmp_path):
 def engine():
     engine = Mock(spec=RetrievalEngine)
     engine.search.return_value = SearchResponse(query='question', method='semantic')
+    # The session checks a hybrid limit against these before searching, and the
+    # default strategy is hybrid; a Mock would compare as a Mock.
+    engine.candidate_k, engine.rerank_candidates = 20, 20
     return engine
 
 

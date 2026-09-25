@@ -106,7 +106,7 @@ def test_search_passes_mode_top_k_and_source(runtime, mode):
 def test_search_uses_project_default(runtime):
     fake, _ = runtime
     assert main(['search', 'Agent Memory']) == 0
-    assert fake.search.call_args.kwargs['mode'] == DEFAULT_RETRIEVAL_MODE == 'semantic'
+    assert fake.search.call_args.kwargs['mode'] == DEFAULT_RETRIEVAL_MODE == 'hybrid'
 
 
 @pytest.mark.parametrize('option', ['--reranker-model', '--reranker-revision'])
