@@ -125,6 +125,10 @@ class ToolSession:
         times. When the string names a source whose evidence was delivered,
         the refs for it are named here, because they are already in the
         conversation and repeating them is what lets the next turn recover.
+
+        Neither message carries a specimen reference. One that did was copied
+        verbatim into a final answer by 38 of 180 runs of a smaller model,
+        which called no tool at all.
         """
         delivered = [r for r in self._delivered
                      if self.references.get(r, {}).get('source') == ref]
@@ -132,8 +136,8 @@ class ToolSession:
             shown = ', '.join(sorted(delivered)[:5])
             return (f'{ref} is a source path, not a reference. Evidence from that note was delivered as: '
                     f'{shown}. Cite those.')
-        return ('No such reference in this run. Cite the ref returned beside a piece of evidence, '
-                'such as ev_4f2a...c8_3; a source path or a title is not a reference.')
+        return ('No such reference in this run. Cite a ref returned beside a piece of evidence by a tool '
+                'in this run; a source path, a title, or an invented identifier is not a reference.')
 
     def _read(self, *, ref=None, source=None, expand='section'):
         if (ref is None) == (source is None):

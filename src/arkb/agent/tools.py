@@ -330,10 +330,13 @@ TOOL_DEFINITIONS: tuple[dict[str, ConfigValue], ...] = (
             'properties': {
                 'answer': {'type': 'string', 'minLength': 1},
                 'status': {'type': 'string', 'enum': ['answered', 'partial', 'insufficient_evidence']},
+                # No example value: a smaller model copies one. Measured on 180 vault
+                # questions, a description carrying a specimen ref had 38 runs cite it
+                # with no tool call at all.
                 'evidence_refs': {'type': 'array', 'items': {'type': 'string'}, 'uniqueItems': True,
-                                  'description': 'The ref returned beside each piece of evidence, such as '
-                                                 'ev_4f2a...c8_3. A source path or a note title is not a '
-                                                 'reference and is rejected.'},
+                                  'description': 'The ref field returned beside a piece of evidence in this '
+                                                 'run. A source path, a note title, or anything not returned '
+                                                 'by a tool is not a reference and is rejected.'},
             },
         },
     },

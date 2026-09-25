@@ -47,14 +47,14 @@ def load_tokenizer(model_path=chat_format.MODEL_PATH):
     return load(model_path)[1]
 
 
-def build_sample(tokenizer, request, message):
+def build_sample(tokenizer, request, message, dialect=chat_format.QWEN3):
     """One turn as tokens and a mask, or None when the two renderings do not nest."""
-    tools = chat_format.wire_tools(request.get('tools'))
+    tools = chat_format.wire_tools(request.get('tools'), dialect)
     format = request.get('format')
     thinking = not format  # the reserved finalization runs with thinking off
     # The schema instruction belongs at the end of the prompt, so the assistant
     # turn is appended to the wire conversation, never to the raw one.
-    prompt_messages = chat_format.to_wire(request['messages'], format)
+    prompt_messages = chat_format.to_wire(request['messages'], format, dialect)
     turn = {'role': 'assistant', 'content': message.get('content') or ''}
     # A finalization prompt ends with a closed, empty think block, so the model
     # cannot reason there and the target must not either. deepseek-reasoner
@@ -64,7 +64,7 @@ def build_sample(tokenizer, request, message):
         turn['thinking'] = message['thinking']
     if message.get('tool_calls'):
         turn['tool_calls'] = message['tool_calls']
-    full_messages = [*prompt_messages, *chat_format.to_wire([turn])]
+    full_messages = [*prompt_messages, *chat_format.to_wire([turn], None, dialect)]
     prompt = chat_format.render(tokenizer, prompt_messages, tools,
                                 add_generation_prompt=True, enable_thinking=thinking)
     full = chat_format.render(tokenizer, full_messages, tools,
@@ -83,7 +83,7 @@ def build_sample(tokenizer, request, message):
             'prompt_tokens': len(prompt), 'boundary': 'text'}
 
 
-def trajectory_samples(tokenizer, row, *, max_tokens):
+def trajectory_samples(tokenizer, row, *, max_tokens, dialect=chat_format.QWEN3):
     """Every model request in one saved trajectory that rendered cleanly."""
     kept, dropped, oversized = [], 0, 0
     observation = ((row.get('result') or {}).get('observation') or {})
@@ -93,7 +93,7 @@ def trajectory_samples(tokenizer, row, *, max_tokens):
             continue
         if record.get('phase') == 'citation_verification':
             continue  # not a step of the trajectory: a separate check on the finished answer
-        sample = build_sample(tokenizer, request, response.get('message') or {})
+        sample = build_sample(tokenizer, request, response.get('message') or {}, dialect)
         if sample is None:
             dropped += 1
             continue
@@ -150,7 +150,8 @@ def main():
         rows = kept_rows
     samples, dropped, oversized = [], 0, 0
     for row in rows:
-        kept, lost, big = trajectory_samples(tokenizer, row, max_tokens=args.max_tokens)
+        kept, lost, big = trajectory_samples(tokenizer, row, max_tokens=args.max_tokens,
+                                             dialect=chat_format.dialect_for(args.model))
         samples += kept
         dropped += lost
         oversized += big

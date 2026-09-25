@@ -18,8 +18,6 @@ set: four identical samples of one question teach nothing. It overrides that
 one option and leaves the rest of the request alone.
 """
 
-import json
-
 from arkb.agent.chat_completions_client import ChatCompletionsClient
 
 from training import chat_format
@@ -30,20 +28,22 @@ MLX_SERVER_URL = 'http://127.0.0.1:8080/v1'
 class MlxServerClient(ChatCompletionsClient):
     """The student, served locally; `label` is what the run records as the model."""
 
-    def __init__(self, label, *, base_url=MLX_SERVER_URL, max_tokens=4096, temperature=0, timeout=900):
+    def __init__(self, label, *, base_url=MLX_SERVER_URL, max_tokens=4096, temperature=0, timeout=900,
+                 model_path=chat_format.MODEL_PATH):
         super().__init__(label, base_url=base_url, api_key='local', max_tokens=max_tokens,
                          temperature=temperature, timeout=timeout)
-        self.identity = {'name': label, 'provider': base_url}
+        self.dialect = chat_format.dialect_for(model_path)
+        self.identity = {'name': label, 'provider': base_url, 'template': model_path}
 
     def convert_messages(self, messages, format=None):
-        return chat_format.to_wire(messages, format)
+        return chat_format.to_wire(messages, format, self.dialect)
 
     def chat(self, *, messages, tools=None, format=None, options=None, **ignored):
         body = {'model': 'default_model', 'messages': self.convert_messages(messages, format),
                 'max_tokens': self.max_tokens, 'stream': False,
                 'temperature': (options or {}).get('temperature', self.temperature)}
         if tools:
-            body['tools'] = chat_format.wire_tools(tools)
+            body['tools'] = chat_format.wire_tools(tools, self.dialect)
         if format:
             # The reserved finalization formats an answer from evidence already
             # collected; the loop turns thinking off for it, and this is how the
@@ -70,10 +70,3 @@ class SampledDeepSeekClient(ChatCompletionsClient):
         return super().chat(options={**(options or {}), 'temperature': self.temperature}, **request)
 
 
-def tool_definitions_sent(request):
-    """The tool schemas a saved request carried, in the form the template renders."""
-    return chat_format.wire_tools(request.get('tools')) if request.get('tools') else None
-
-
-def dump(value):
-    return json.dumps(value, ensure_ascii=False)

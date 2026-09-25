@@ -28,17 +28,35 @@ applied identically on both sides:
 """
 
 from copy import deepcopy
+from dataclasses import dataclass
 import json
 
-MODEL_PATH = 'mlx-community/Qwen3.5-4B-bf16'
+MODEL_PATH = 'mlx-community/Qwen3-4B-bf16'
+
+
+@dataclass(frozen=True)
+class Dialect:
+    """What one model's chat template needs that the OpenAI wire format does not say."""
+
+    leading_system_only: bool
+    untyped_tool_calls: bool
+
+
+QWEN3_5 = Dialect(leading_system_only=True, untyped_tool_calls=True)
+QWEN3 = Dialect(leading_system_only=False, untyped_tool_calls=False)
+
+
+def dialect_for(model_path: str) -> Dialect:
+    """Qwen3.5's template is the demanding one; anything else is treated as Qwen3's."""
+    return QWEN3_5 if 'Qwen3.5' in model_path or 'qwen3.5' in model_path else QWEN3
 
 SCHEMA_INSTRUCTION = ('Respond with a single JSON object that matches this JSON schema and nothing else:\n')
 
 
-def wire_tools(tools):
+def wire_tools(tools, dialect=QWEN3):
     """Advertise one concrete type per parameter; see the module note on union types."""
-    if not tools:
-        return None
+    if not tools or not dialect.untyped_tool_calls:
+        return list(tools) if tools else None
     out = deepcopy(list(tools))
     for tool in out:
         for spec in (tool.get('function', {}).get('parameters', {}).get('properties') or {}).values():
@@ -51,15 +69,14 @@ def wire_tools(tools):
     return out
 
 
-def to_wire(messages, format=None):
+def to_wire(messages, format=None, dialect=QWEN3):
     """The Ollama-shaped conversation as the server receives it, ready for the template."""
     out, pending = [], []
     for message in messages:
         role = message['role']
         if role in ('system', 'user'):
-            # Only the first message may be a system message; see the module note.
-            out.append({'role': 'system' if role == 'system' and not out else 'user',
-                        'content': message['content']})
+            demoted = dialect.leading_system_only and role == 'system' and out
+            out.append({'role': 'user' if demoted else role, 'content': message['content']})
         elif role == 'assistant':
             calls = [{'id': f'call_{len(out)}_{index}', 'type': 'function',
                       'function': {'name': call['function']['name'],
@@ -80,7 +97,8 @@ def to_wire(messages, format=None):
         else:
             raise ValueError('Unknown message role: ' + role)
     if format:
-        out.append({'role': 'user', 'content': SCHEMA_INSTRUCTION + json.dumps(format, ensure_ascii=False)})
+        role = 'user' if dialect.leading_system_only else 'system'
+        out.append({'role': role, 'content': SCHEMA_INSTRUCTION + json.dumps(format, ensure_ascii=False)})
     return out
 
 

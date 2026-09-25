@@ -31,6 +31,8 @@ from pathlib import Path
 import subprocess
 from time import perf_counter, strftime
 
+from training import chat_format
+
 ROOT = Path(__file__).resolve().parents[1]
 VAULT = Path('/Users/daboluo/ObsidianVault/MyObsidian')
 INDEX = ROOT / '.arkb/obsidian.sqlite'
@@ -79,7 +81,8 @@ def worker(shard, tasks, settings, out_dir):
         # which is how the same vault questions measure a fine-tune in domain.
         if settings['base_url']:
             transport = MlxServerClient(settings['model'], base_url=settings['base_url'],
-                                        temperature=settings['temperature'])
+                                        temperature=settings['temperature'],
+                                        model_path=settings['model_path'])
         elif settings['model'].startswith('deepseek'):
             transport = SampledDeepSeekClient(settings['model'], temperature=settings['temperature'])
         else:
@@ -155,6 +158,8 @@ def main():
     parser.add_argument('--min-recall', type=float, default=1.0)
     parser.add_argument('--statuses', default='answered,partial')
     parser.add_argument('--base-url', default='', help='serve the model from this OpenAI-compatible endpoint')
+    parser.add_argument('--model-path', default=chat_format.MODEL_PATH,
+                        help='the served weights, which decide the chat template dialect')
     parser.add_argument('--keep-all', action='store_true',
                         help='do not filter: results.jsonl is every trajectory, for measuring rather than training')
     parser.add_argument('--mode', default='semantic', help="the agent's default search strategy")
@@ -172,7 +177,7 @@ def main():
         # the trajectories and the reported spend without saying so.
         raise SystemExit(f'{args.out} already holds shards; use a new --out.')
     settings = {'model': args.model, 'temperature': args.temperature, 'base_url': args.base_url,
-                'mode': args.mode, 'query_hint': args.query_hint,
+                'mode': args.mode, 'query_hint': args.query_hint, 'model_path': args.model_path,
                 'system_instruction': args.system_instruction,
                 'max_cost_per_worker': args.max_cost / args.workers}
     (args.out / 'rollout.json').write_text(json.dumps(
@@ -208,7 +213,8 @@ def main():
     (args.out / 'run.json').write_text(json.dumps(
         {'label': args.out.name, 'model': args.model, 'think': True, 'questions': len(questions),
          'base_url': args.base_url, 'mode': args.mode, 'query_hint': args.query_hint,
-         'system_instruction': args.system_instruction, **git_state()}, indent=1) + '\n')
+         'system_instruction': args.system_instruction, 'model_path': args.model_path,
+         **git_state()}, indent=1) + '\n')
     spent = sum(row.get('cost_usd') or 0 for row in rows)
     report = {'trajectories': len(rows), 'kept': len(kept),
               'retention': round(len(kept) / len(rows), 3) if rows else None,

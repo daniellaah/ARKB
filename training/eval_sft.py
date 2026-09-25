@@ -17,6 +17,7 @@ from pathlib import Path
 from arkb.config import load_env_file
 
 import evaluation.eval as harness
+from training import chat_format
 from training.transport import MLX_SERVER_URL, MlxServerClient
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +27,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--label', required=True)
     parser.add_argument('--base-url', default=MLX_SERVER_URL)
+    parser.add_argument('--model-path', default=chat_format.MODEL_PATH,
+                        help='the served weights, which decide the chat template dialect')
     parser.add_argument('--limit', type=int, default=0, help='questions per type, for a quick check')
     parser.add_argument('--types', default='')
     parser.add_argument('--resume', action='store_true')
@@ -44,7 +47,7 @@ def main():
     options = harness.OPTIONS
     harness.make_client = lambda model, *, options, think, effort='high': MlxServerClient(
         model, base_url=args.base_url, max_tokens=options['num_predict'],
-        temperature=options.get('temperature', 0))
+        temperature=options.get('temperature', 0), model_path=args.model_path)
     output = (args.output or harness.RESULTS / args.label).resolve()
     summary = harness.run(output, label=args.label, model=args.label, think=True, options=options,
                           limit=args.limit, resume=args.resume,
