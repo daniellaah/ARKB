@@ -33,7 +33,8 @@ uv venv --python 3.12 .venv-train && VIRTUAL_ENV=.venv-train uv pip install mlx-
 ```
 
 `make_questions`, `rollout` and `eval_sft` run in the project's `.venv`,
-because they drive the product. `build_dataset` and `train_lora` run in
+because they drive the product. They read the knowledge base at `ARKB_VAULT`,
+defaulting to `~/ObsidianVault/MyObsidian`. `build_dataset` and `train_lora` run in
 `.venv-train`, because they need the tokenizer and MLX.
 
 ## The pipeline

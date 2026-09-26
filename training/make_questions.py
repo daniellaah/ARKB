@@ -21,6 +21,7 @@ ways that a human would catch and a generator will not:
 import argparse
 from collections import Counter
 import json
+import os
 from pathlib import Path
 import random
 import re
@@ -32,7 +33,9 @@ from arkb.knowledge.sqlite import SQLiteStorage
 from arkb.runtime import Runtime
 
 ROOT = Path(__file__).resolve().parents[1]
-VAULT = Path('/Users/daboluo/ObsidianVault/MyObsidian')
+# The knowledge base these scripts read. Set ARKB_VAULT to point elsewhere; the
+# default is a path under the running user's home, so nothing here names one.
+VAULT = Path(os.environ.get('ARKB_VAULT', '~/ObsidianVault/MyObsidian')).expanduser()
 INDEX = ROOT / '.arkb/obsidian.sqlite'
 VAULT_ID = 'obsidian'
 QDRANT_URL = 'http://127.0.0.1:6340'
